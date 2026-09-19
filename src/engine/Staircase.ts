@@ -72,11 +72,18 @@ export class Staircase {
     return { valor, esEnsayoDeConfianza: this.enCursoEsDeConfianza };
   }
 
-  /** Registra el ensayo en curso. Tiempo agotado cuenta como fallo. */
-  record(correct: boolean): void {
+  /**
+   * Registra el ensayo en curso. Tiempo agotado cuenta como fallo.
+   *
+   * `fueDeConfianza` solo hace falta en los juegos donde varios estímulos
+   * están en el aire a la vez y no se resuelven en el orden en que nacieron
+   * (Meteoritos): ahí cada objeto recuerda su propia condición.
+   */
+  record(correct: boolean, fueDeConfianza?: boolean): void {
     this.ensayos += 1;
+    const deConfianza = fueDeConfianza ?? this.enCursoEsDeConfianza;
 
-    if (this.enCursoEsDeConfianza) {
+    if (deConfianza) {
       this.enCursoEsDeConfianza = false;
       this.proximoEnsayoDeConfianza = this.sortearProximaConfianza(this.ensayos);
       return;

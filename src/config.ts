@@ -174,8 +174,13 @@ export const config = {
     anchosDeNaveParaEnsayo: 2,
     objetosSimultaneosMin: 1,
     objetosSimultaneosMax: 4,
-    velocidadCaidaInicialPxSeg: 90,
-    velocidadCaidaFinalPxSeg: 260,
+    /**
+     * Ritmo de caída. A 170 px/s un objeto cruza una pantalla de tablet en
+     * unos 4 s, así que un nivel de 75 s deja unos 17 ensayos: suficientes
+     * para que la escalera se mueva sin apurar a la jugadora.
+     */
+    velocidadCaidaInicialPxSeg: 170,
+    velocidadCaidaFinalPxSeg: 420,
     /** Proporción estrella/roca. */
     probabilidadEstrella: 0.5,
     energiaMaxima: 100,

@@ -146,6 +146,16 @@ export class DichopticRenderer {
     this.ctx.fillRect(0, 0, this.anchoCss, this.altoCss);
   }
 
+  /**
+   * Pinta con el color del FONDO, para vaciar una zona (el cráter de una roca,
+   * por ejemplo). En lentes es negro puro; en parche, el fondo del mundo.
+   */
+  borrar(x: number, y: number, ancho: number, alto: number): void {
+    this.ctx.fillStyle =
+      this.opciones.modo === 'lentes' ? config.color.fondoLentes : this.opciones.paleta.fondo;
+    this.ctx.fillRect(Math.round(x), Math.round(y), Math.round(ancho), Math.round(alto));
+  }
+
   rect(capa: Capa, x: number, y: number, ancho: number, alto: number, op?: OpcionesDeDibujo): void {
     this.ctx.fillStyle = this.cssDeCapa(capa, op);
     this.ctx.fillRect(Math.round(x), Math.round(y), Math.round(ancho), Math.round(alto));

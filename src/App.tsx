@@ -99,20 +99,24 @@ function Contenido(props: PropsDeContenido) {
   // Instantánea de antes de jugar, para el resumen de la sesión.
   const antesDeJugar = useRef<Marcador>(marcador(estado, dia));
 
-  if (calibrando === 'pantalla') {
-    return <CalibracionDePantalla alTerminar={() => setCalibrando(null)} />;
-  }
-  if (calibrando === 'lentes') {
-    return <CalibracionDeLentes alTerminar={() => setCalibrando(null)} />;
-  }
-
+  // Durante el asistente, las calibraciones se abren ENCIMA: el asistente
+  // sigue montado y no pierde el paso en el que iba.
   if (!estado.asistenteCompletado) {
     return (
-      <AsistenteInicial
-        alCalibrarPantalla={() => setCalibrando('pantalla')}
-        alCalibrarLentes={() => setCalibrando('lentes')}
-      />
+      <>
+        <div hidden={calibrando !== null}>
+          <AsistenteInicial
+            alCalibrarPantalla={() => setCalibrando('pantalla')}
+            alCalibrarLentes={() => setCalibrando('lentes')}
+          />
+        </div>
+        <Calibracion cual={calibrando} alTerminar={() => setCalibrando(null)} />
+      </>
     );
+  }
+
+  if (calibrando !== null) {
+    return <Calibracion cual={calibrando} alTerminar={() => setCalibrando(null)} />;
   }
 
   if (pantalla === 'base') {
@@ -189,4 +193,11 @@ function Contenido(props: PropsDeContenido) {
       </button>
     </main>
   );
+}
+
+/** Las dos pantallas de calibración, compartidas por el asistente y el panel. */
+function Calibracion({ cual, alTerminar }: { cual: Calibrando; alTerminar: () => void }) {
+  if (cual === 'pantalla') return <CalibracionDePantalla alTerminar={alTerminar} />;
+  if (cual === 'lentes') return <CalibracionDeLentes alTerminar={alTerminar} />;
+  return null;
 }
