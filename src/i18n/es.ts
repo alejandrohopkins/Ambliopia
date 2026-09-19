@@ -242,6 +242,30 @@ export const es = {
     balance: 'Contraste del ojo dominante',
   },
 
+  finDeNivel: {
+    titulo: '¡Nivel completado!',
+    estrellas: (n: number) => `${n} de 3 estrellas`,
+    precision: (pct: number) => `${Math.round(pct)} % de aciertos`,
+    monedasGanadas: (n: number) => `+${n} monedas`,
+    nuevoRecord: '¡Nuevo récord!',
+    siguienteNivel: 'Siguiente nivel',
+    repetir: 'Repetir',
+    mundoDesbloqueado: (nombre: string) => `¡Se abrió ${nombre}!`,
+    modoInfinito: '¡Terminaste los cinco mundos! Ahora puedes seguir en modo infinito.',
+  },
+
+  elegirJuego: {
+    titulo: '¿Con qué empezamos?',
+  },
+
+  pausa: {
+    titulo: 'Pausa',
+    seguir: 'Seguir jugando',
+    molestia: 'Me molesta la vista',
+    salir: 'Volver a la base',
+    molestiaRegistrada: 'Listo, lo anotamos. Descansa la vista.',
+  },
+
   descanso: {
     titulo: 'Hora de descansar la vista',
     texto: 'Hora de descansar la vista: mira algo lejano por la ventana.',

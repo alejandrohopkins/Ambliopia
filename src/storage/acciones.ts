@@ -3,7 +3,14 @@
  * de modo que guardar sea siempre "escribir el estado actual".
  */
 import { config, type IdJuego, type Modo } from '../config';
-import { estadoInicial, type Ajustes, type Estado, type Perfil } from './esquema';
+import {
+  estadoInicial,
+  type Ajustes,
+  type Estado,
+  type EstadoEscalera,
+  type Perfil,
+  type ResumenDeJuegoEnSesion,
+} from './esquema';
 import { diaISO, horaISO } from '../engine/fechas';
 
 export type Accion =
@@ -19,7 +26,17 @@ export type Accion =
   | { tipo: 'evento/molestia'; modo: Modo; juego: IdJuego | null }
   | { tipo: 'nota/agregar'; texto: string; dia?: string }
   | { tipo: 'nota/borrar'; indice: number }
-  | { tipo: 'extra/conceder'; dia: string; minutos: number };
+  | { tipo: 'extra/conceder'; dia: string; minutos: number }
+  | { tipo: 'sesion/iniciar'; id: string; dia: string; modo: Modo }
+  | { tipo: 'sesion/sumarMinutos'; minutos: number }
+  | { tipo: 'sesion/registrarJuego'; juego: IdJuego; resumen: ResumenDeJuegoEnSesion }
+  | { tipo: 'sesion/terminar' }
+  | { tipo: 'escaleras/guardar'; escaleras: Record<string, EstadoEscalera> }
+  | { tipo: 'progreso/estrellas'; juego: IdJuego; mundo: number; nivel: number; estrellas: number }
+  | { tipo: 'progreso/avanzar'; juego: IdJuego; mundo: number; nivel: number }
+  | { tipo: 'economia/sumar'; monedas?: number; cristales?: number }
+  | { tipo: 'records/registrar'; clave: string; px: number; mm: number | null; dia: string }
+  | { tipo: 'galeria/agregar'; figura: string };
 
 export function reducir(estado: Estado, accion: Accion): Estado {
   switch (accion.tipo) {
@@ -104,7 +121,140 @@ export function reducir(estado: Estado, accion: Accion): Estado {
         },
       };
 
+    case 'sesion/iniciar':
+      return {
+        ...estado,
+        sesiones: [
+          ...estado.sesiones,
+          {
+            id: accion.id,
+            fecha: accion.dia,
+            modo: accion.modo,
+            inicio: new Date().toISOString(),
+            fin: null,
+            minutosActivos: 0,
+            porJuego: {},
+          },
+        ],
+      };
+
+    case 'sesion/sumarMinutos':
+      return conSesionAbierta(estado, (sesion) => ({
+        ...sesion,
+        minutosActivos: sesion.minutosActivos + accion.minutos,
+      }));
+
+    case 'sesion/registrarJuego':
+      return conSesionAbierta(estado, (sesion) => {
+        const previo = sesion.porJuego[accion.juego];
+        return {
+          ...sesion,
+          porJuego: {
+            ...sesion.porJuego,
+            [accion.juego]: previo ? combinarResumen(previo, accion.resumen) : accion.resumen,
+          },
+        };
+      });
+
+    case 'sesion/terminar':
+      return conSesionAbierta(estado, (sesion) => ({ ...sesion, fin: new Date().toISOString() }));
+
+    case 'escaleras/guardar':
+      return { ...estado, escaleras: { ...estado.escaleras, ...accion.escaleras } };
+
+    case 'progreso/estrellas': {
+      const clave = `${accion.mundo}:${accion.nivel}`;
+      const progreso = estado.progreso[accion.juego];
+      // Las estrellas nunca bajan: repetir un nivel solo puede mejorarlas.
+      const mejor = Math.max(progreso.estrellasPorNivel[clave] ?? 0, accion.estrellas);
+      return {
+        ...estado,
+        progreso: {
+          ...estado.progreso,
+          [accion.juego]: {
+            ...progreso,
+            estrellasPorNivel: { ...progreso.estrellasPorNivel, [clave]: mejor },
+          },
+        },
+      };
+    }
+
+    case 'progreso/avanzar':
+      return {
+        ...estado,
+        progreso: {
+          ...estado.progreso,
+          [accion.juego]: {
+            ...estado.progreso[accion.juego],
+            mundo: accion.mundo,
+            nivel: accion.nivel,
+          },
+        },
+      };
+
+    case 'economia/sumar':
+      return {
+        ...estado,
+        economia: {
+          ...estado.economia,
+          monedas: estado.economia.monedas + (accion.monedas ?? 0),
+          cristales: estado.economia.cristales + (accion.cristales ?? 0),
+        },
+      };
+
+    case 'records/registrar': {
+      const previo = estado.records[accion.clave];
+      // El récord es el objeto MÁS PEQUEÑO encontrado: menor es mejor.
+      if (previo && previo.mejorPx <= accion.px) return estado;
+      return {
+        ...estado,
+        records: {
+          ...estado.records,
+          [accion.clave]: { mejorPx: accion.px, mejorMm: accion.mm, fecha: accion.dia },
+        },
+      };
+    }
+
+    case 'galeria/agregar':
+      if (estado.galeria.includes(accion.figura)) return estado;
+      return { ...estado, galeria: [...estado.galeria, accion.figura] };
+
     default:
       return estado;
   }
+}
+
+/** Aplica un cambio a la sesión abierta (la última sin fin). */
+function conSesionAbierta(estado: Estado, cambio: (s: Estado['sesiones'][number]) => Estado['sesiones'][number]): Estado {
+  let indice = -1;
+  for (let i = estado.sesiones.length - 1; i >= 0; i -= 1) {
+    if (estado.sesiones[i].fin === null) {
+      indice = i;
+      break;
+    }
+  }
+  if (indice < 0) return estado;
+  const sesiones = [...estado.sesiones];
+  sesiones[indice] = cambio(sesiones[indice]);
+  return { ...estado, sesiones };
+}
+
+/** Varios niveles del mismo juego en una sesión se acumulan. */
+function combinarResumen(
+  previo: ResumenDeJuegoEnSesion,
+  nuevo: ResumenDeJuegoEnSesion,
+): ResumenDeJuegoEnSesion {
+  const ensayos = previo.ensayos + nuevo.ensayos;
+  const tiempo =
+    ensayos > 0
+      ? (previo.tiempoReaccionMedioMs * previo.ensayos + nuevo.tiempoReaccionMedioMs * nuevo.ensayos) /
+        ensayos
+      : 0;
+  return {
+    ensayos,
+    aciertos: previo.aciertos + nuevo.aciertos,
+    // El último umbral es el más informado: la escalera ya convergió más.
+    umbrales: { ...previo.umbrales, ...nuevo.umbrales },
+    tiempoReaccionMedioMs: tiempo,
+  };
 }

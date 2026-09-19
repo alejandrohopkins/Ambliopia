@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { IdJuego, Modo } from './config';
 import { es } from './i18n/es';
 import { ProveedorDeEstado, useEstado } from './storage/contexto';
-import { limiteAlcanzado, modosDisponibles } from './storage/selectores';
+import {
+  diferenciaDeMarcador,
+  limiteAlcanzado,
+  marcador,
+  modosDisponibles,
+  type Marcador,
+} from './storage/selectores';
 import { AsistenteInicial } from './ui/AsistenteInicial';
 import { ChequeoPrevio } from './ui/ChequeoPrevio';
 import { Descanso } from './ui/Descanso';
 import { LimiteDiario } from './ui/LimiteDiario';
 import { Base } from './ui/base/Base';
+import { ElegirJuego } from './ui/juego/ElegirJuego';
+import { PantallaDeJuego } from './ui/juego/PantallaDeJuego';
+import { ResumenDeSesion } from './ui/juego/ResumenDeSesion';
 import { CalibracionDePantalla } from './calibration/CalibracionDePantalla';
 import { CalibracionDeLentes } from './calibration/CalibracionDeLentes';
 import { OverlayDeDesarrollo } from './ui/componentes/OverlayDeDesarrollo';
@@ -87,6 +96,8 @@ function Contenido(props: PropsDeContenido) {
   const { estado } = useEstado();
   const { dia, pantalla, setPantalla, modo, setModo, juego, setJuego, calibrando, setCalibrando } =
     props;
+  // Instantánea de antes de jugar, para el resumen de la sesión.
+  const antesDeJugar = useRef<Marcador>(marcador(estado, dia));
 
   if (calibrando === 'pantalla') {
     return <CalibracionDePantalla alTerminar={() => setCalibrando(null)} />;
@@ -111,6 +122,7 @@ function Contenido(props: PropsDeContenido) {
         alCambiarModo={setModo}
         alIr={setPantalla}
         alEmpezar={(elegido) => {
+          antesDeJugar.current = marcador(estado, dia);
           setJuego(elegido ?? null);
           setPantalla('chequeo');
         }}
@@ -130,8 +142,41 @@ function Contenido(props: PropsDeContenido) {
     );
   }
 
+  if (pantalla === 'elegirJuego') {
+    return (
+      <ElegirJuego
+        alElegir={(elegido) => {
+          setJuego(elegido);
+          setPantalla('juego');
+        }}
+        alVolver={() => setPantalla('base')}
+      />
+    );
+  }
+
+  if (pantalla === 'juego' && juego) {
+    return (
+      <PantallaDeJuego
+        juego={juego}
+        modo={modo}
+        alVolver={() => setPantalla('resumenSesion')}
+        alDescanso={() => setPantalla('descanso')}
+        alMolestia={() => setPantalla('base')}
+      />
+    );
+  }
+
   if (pantalla === 'descanso') {
-    return <Descanso alTerminar={() => setPantalla('base')} />;
+    return <Descanso alTerminar={() => setPantalla(juego ? 'juego' : 'base')} />;
+  }
+
+  if (pantalla === 'resumenSesion') {
+    return (
+      <ResumenDeSesion
+        datos={diferenciaDeMarcador(antesDeJugar.current, marcador(estado, dia))}
+        alVolver={() => setPantalla('base')}
+      />
+    );
   }
 
   // Las demás pantallas llegan en fases posteriores.

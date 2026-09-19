@@ -74,3 +74,31 @@ export function modosDisponibles(estado: Estado): Modo[] {
   if (estado.ajustes.modoFijo) return [estado.ajustes.modoFijo];
   return estado.ajustes.modosPermitidos;
 }
+
+/** Instantánea para comparar el antes y el después de una sesión. */
+export interface Marcador {
+  minutos: number;
+  monedas: number;
+  estrellas: number;
+  records: number;
+}
+
+export function marcador(estado: Estado, dia: string): Marcador {
+  let estrellas = 0;
+  for (const juego of JUEGOS) estrellas += estrellasTotales(estado, juego);
+  return {
+    minutos: minutosDelDia(estado, dia),
+    monedas: estado.economia.monedas,
+    estrellas,
+    records: Object.keys(estado.records).length,
+  };
+}
+
+export function diferenciaDeMarcador(antes: Marcador, despues: Marcador): Marcador {
+  return {
+    minutos: Math.max(0, despues.minutos - antes.minutos),
+    monedas: Math.max(0, despues.monedas - antes.monedas),
+    estrellas: Math.max(0, despues.estrellas - antes.estrellas),
+    records: Math.max(0, despues.records - antes.records),
+  };
+}
