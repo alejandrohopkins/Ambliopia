@@ -1,0 +1,150 @@
+@import './fuentes.css';
+
+:root {
+  /* Paleta: base espacial de bloques sobre cielo nocturno índigo. */
+  --cielo-profundo: #1b1446;
+  --nebulosa: #5b3fa0;
+  --cristal: #3fd6c6;
+  --ambar-estelar: #ffc23d;
+  --musgo-pixel: #7bd65a;
+  --polvo-lunar: #ede9ff;
+
+  /* Derivados sobrios para superficies y bordes. */
+  --superficie: #241a58;
+  --superficie-alta: #2e2270;
+  --borde: #493a8f;
+  --texto: var(--polvo-lunar);
+  --texto-tenue: #b9b0e4;
+
+  --fuente-titulos: 'Pixelify Sans', ui-monospace, monospace;
+  --fuente-texto: 'Fredoka', system-ui, sans-serif;
+
+  --borde-ancho: 3px;
+  --toque-minimo: 48px;
+  --texto-minimo: 18px;
+
+  /* Esquinas pixeladas: escalón de 6 px, nunca border-radius. */
+  --esquina: 6px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--cielo-profundo);
+  color: var(--texto);
+  font-family: var(--fuente-texto);
+  font-size: var(--texto-minimo);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+.numero {
+  font-family: var(--fuente-titulos);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.4em;
+}
+
+h1 {
+  font-size: clamp(28px, 5vw, 44px);
+}
+h2 {
+  font-size: clamp(22px, 3.4vw, 30px);
+}
+
+p {
+  margin: 0 0 0.8em;
+  max-width: 62ch;
+}
+
+/* Esquinas pixeladas compartidas (sin border-radius). */
+.pixelado {
+  clip-path: polygon(
+    var(--esquina) 0,
+    calc(100% - var(--esquina)) 0,
+    100% var(--esquina),
+    100% calc(100% - var(--esquina)),
+    calc(100% - var(--esquina)) 100%,
+    var(--esquina) 100%,
+    0 calc(100% - var(--esquina)),
+    0 var(--esquina)
+  );
+}
+
+.panel {
+  background: var(--superficie);
+  border: var(--borde-ancho) solid var(--borde);
+  padding: 18px;
+}
+
+button {
+  font-family: var(--fuente-texto);
+  font-size: var(--texto-minimo);
+  min-height: var(--toque-minimo);
+  padding: 0 20px;
+  color: var(--cielo-profundo);
+  background: var(--ambar-estelar);
+  border: var(--borde-ancho) solid #0f0a2c;
+  cursor: pointer;
+}
+
+button.secundario {
+  background: var(--superficie-alta);
+  color: var(--texto);
+  border-color: var(--borde);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--borde-ancho) solid var(--cristal);
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--fuente-texto);
+  font-size: var(--texto-minimo);
+  min-height: var(--toque-minimo);
+  padding: 6px 12px;
+  background: #140e38;
+  color: var(--texto);
+  border: var(--borde-ancho) solid var(--borde);
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
