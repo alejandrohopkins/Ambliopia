@@ -74,6 +74,20 @@ export const es = {
     meteoritos: 'Lluvia de meteoritos',
   } as Record<IdJuego, string>,
 
+  mundos: {
+    minero: ['Cueva de piedra', 'Mina de ámbar', 'Caverna de hielo', 'Núcleo de lava', 'Geoda gigante'],
+    saboteador: ['Nave Alfa', 'Estación lunar', 'Base en Marte', 'Anillos de Saturno', 'Nebulosa misteriosa'],
+    torre: ['Pradera de bloques', 'Ciudad flotante', 'Luna', 'Planeta rojo', 'Estación orbital'],
+    meteoritos: ['Órbita baja', 'Cinturón de asteroides', 'Lluvia de cometas', 'Viento solar', 'Galaxia lejana'],
+  } as Record<IdJuego, string[]>,
+
+  habilidades: {
+    minero: 'Agudeza y contraste',
+    saboteador: 'Agudeza con amontonamiento',
+    torre: 'Visión binocular y planificación',
+    meteoritos: 'Seguimiento y coordinación',
+  } as Record<IdJuego, string>,
+
   base: {
     saludo: (nombre: string) => `¡Hola, ${nombre}! ¿Lista para la misión de hoy?`,
     saludoCorto: (nombre: string) => `Hola, ${nombre}`,
@@ -139,6 +153,72 @@ export const es = {
     lenteja: '¡Como una lenteja!',
     botonDeCamisa: '¡Como un botón de camisa!',
     moneda: '¡Como una moneda!',
+  } as Record<string, string>,
+
+  asistente: {
+    titulo: 'Preparar Misión Pixel',
+    paso: (n: number, total: number) => `Paso ${n} de ${total}`,
+    bienvenida: {
+      titulo: '¡Bienvenidos a Misión Pixel!',
+      texto:
+        'Un juego para acompañar el tratamiento del oftalmólogo. Primero lo preparamos entre los dos: ' +
+        'unos datos, la pantalla y los lentes. Toma un par de minutos.',
+    },
+    pin: {
+      titulo: 'PIN de adultos',
+      explicacion:
+        'Cuatro dígitos para entrar al panel de adultos. Es un candado para que la jugadora no cambie la configuración.',
+      escribir: 'Escribe el PIN',
+      repetir: 'Escríbelo otra vez',
+      noCoincide: 'Los dos PIN no coinciden.',
+      formato: 'El PIN son 4 dígitos.',
+    },
+    jugadora: {
+      titulo: 'La jugadora',
+      nombre: 'Nombre',
+      ojoAmbliope: '¿Cuál es el ojo ambliope?',
+      nota: 'Todo el juego se ajusta a partir de este dato.',
+    },
+    pantalla: {
+      titulo: 'Calibrar la pantalla',
+      explicacion:
+        'Con una tarjeta sobre la pantalla medimos cuántos píxeles son un milímetro. Sirve para que las métricas sean comparables entre sesiones y dispositivos.',
+      recomendado: 'Recomendado. También se puede hacer después desde el panel de adultos.',
+    },
+    lentes: {
+      titulo: 'Lentes rojo/cian',
+      pregunta: '¿Tienen lentes rojo/cian?',
+      tieneSi: 'Sí, los tenemos',
+      tieneNo: 'Todavía no',
+      sinLentes:
+        'Sin problema: se juega en modo parche. El modo lentes queda bloqueado hasta calibrarlos.',
+      nota: 'Van encima de los lentes de graduación (clip-on o sobrepuestos).',
+    },
+    tiempos: {
+      titulo: 'Tiempos de juego',
+      metaDiaria: 'Meta diaria (min)',
+      maxDiario: 'Máximo diario (min)',
+      nota: 'Ajusta estos tiempos según lo que indique el oftalmólogo.',
+      error: 'El máximo diario no puede ser menor que la meta diaria.',
+    },
+    avatar: {
+      titulo: 'Tu pixelnauta',
+      explicacion: 'Elige tu casco y el color del traje. Después podrás comprar más en la tienda.',
+      casco: 'Casco',
+      traje: 'Color del traje',
+    },
+    terminar: 'Ir a la base',
+  },
+
+  articulos: {
+    'casco-clasico': 'Casco clásico',
+    'casco-antena': 'Casco con antena',
+    'traje-cristal': 'Traje cristal',
+    'traje-ambar': 'Traje ámbar',
+    'nave-exploradora': 'Nave exploradora',
+    'estela-chispas': 'Estela de chispas',
+    'pico-basico': 'Pico básico',
+    'fondo-base-lunar': 'Base lunar',
   } as Record<string, string>,
 
   nombreDeModo: (modo: Modo): string => (modo === 'parche' ? 'Parche' : 'Lentes rojo/cian'),
