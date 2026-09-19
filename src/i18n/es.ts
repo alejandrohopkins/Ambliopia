@@ -117,6 +117,79 @@ export const es = {
     ],
   },
 
+  figuras: {
+    circulo: 'Círculo',
+    triangulo: 'Triángulo',
+    cuadrado: 'Cuadrado',
+    rombo: 'Rombo',
+    cruz: 'Cruz',
+  } as Record<string, string>,
+
+  calibracion: {
+    pantalla: {
+      titulo: 'Calibrar la pantalla',
+      instruccion:
+        'Pon una tarjeta bancaria o una credencial sobre la pantalla y ajusta el control hasta que el rectángulo mida exactamente lo mismo que la tarjeta.',
+      control: 'Ajustar el tamaño',
+      medida: (pxPorMm: number) => `${pxPorMm.toFixed(2)} píxeles por milímetro`,
+      guardar: 'Coincide, guardar',
+      sinCalibrar: 'Sin calibrar: las métricas son estimadas.',
+      distancia: 'Distancia de juego (cm)',
+      distanciaNota: 'Un antebrazo de la pantalla suele ser la distancia correcta.',
+    },
+    lentes: {
+      titulo: 'Calibrar los lentes rojo/cian',
+      ponerse: 'Ponte los lentes rojo/cian encima de tus lentes de graduación.',
+      identificar: {
+        titulo: 'Paso 1: identificar los lentes',
+        instruccion: (ojoQueSeCierra: string) =>
+          `Cierra el ojo ${ojoQueSeCierra}. ¿Qué cuadrado ves?`,
+        rojo: 'El rojo',
+        cian: 'El cian',
+        ambos: 'Los dos igual de brillantes',
+        revisar:
+          'Revisa que tengas los lentes puestos y bien orientados, y vuelve a intentarlo.',
+      },
+      fugas: {
+        titulo: 'Paso 2: quitar el efecto fantasma',
+        instruccion: (ojoAbierto: string, ojoCerrado: string) =>
+          `Deja abierto el ojo ${ojoAbierto} y cierra el ${ojoCerrado}. Baja el control hasta que el cuadrado desaparezca por completo.`,
+        control: 'Intensidad',
+        desaparecio: 'Ya no lo veo',
+      },
+      verificar: {
+        titulo: 'Paso 3: comprobar',
+        instruccion: 'Abre los dos ojos. ¿Ves las dos figuras?',
+        siVeoLasDos: 'Sí, veo las dos',
+        noVeoUna: 'No, falta una',
+        listo: '¡Lentes listos!',
+      },
+      calidad:
+        'La separación entre ojos quedó justa. Unos lentes rojo/cian de mejor calidad ayudarían bastante.',
+      ultimaCalibracion: (fecha: string) => `Última calibración: ${fecha}`,
+      recalibrar: 'Recalibrar lentes',
+      cambioDeDispositivo:
+        'La pantalla cambió desde la última calibración. Conviene recalibrar los lentes.',
+    },
+    escaner: {
+      titulo: 'Escáner de lentes',
+      instruccion: (ojoQueSeCierra: string) => `Cierra el ojo ${ojoQueSeCierra}. ¿Qué ves?`,
+      lasDos: 'Las dos',
+      correcto: '¡Listo! Empezamos.',
+      alReves: '¿Tienes los lentes al revés?',
+      revisar: 'Revisa que tengas los lentes rojo/cian puestos.',
+      reintentar: 'Intentar otra vez',
+    },
+    patron: {
+      titulo: 'Patrón de verificación',
+      explicacion:
+        'Cierra un ojo y luego el otro: cada figura debe verse solo con el ojo que le toca, y la gris con los dos.',
+      ojoAmbliope: (ojo: string) => `Ojo ${ojo} (ambliope)`,
+      ojoDominante: (ojo: string) => `Ojo ${ojo} (dominante)`,
+      ambos: 'Ambos ojos',
+    },
+  },
+
   juego: {
     aciertos: ['¡Bien visto!', '¡Cristal encontrado!', '¡Saboteador atrapado!', '¡Pieza perfecta!'],
     fallos: ['¡Casi! Estaba aquí.', 'Buen intento. ¡La próxima es tuya!'],
