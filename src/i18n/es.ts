@@ -201,6 +201,47 @@ export const es = {
     repetir: 'Repetir',
   },
 
+  sesion: {
+    limiteAlcanzado: '¡Misión cumplida por hoy! Vuelve mañana por más cristales.',
+    extenderTitulo: 'Minutos extra',
+    extender: (min: number) => `Añadir ${min} min`,
+    resumen: {
+      titulo: 'Resumen de la misión',
+      minutos: 'Minutos',
+      monedas: 'Monedas',
+      estrellas: 'Estrellas',
+      records: 'Récords',
+      mision: 'Misión del día',
+    },
+  },
+
+  depuracion: {
+    titulo: 'Modo desarrollo',
+    fps: 'fps',
+    escaleras: 'Escaleras',
+    valor: 'valor',
+    umbral: 'umbral',
+    inversiones: 'inversiones',
+    ensayos: 'ensayos',
+    capas: 'Colores de capa',
+    ojoAmbliope: 'Ojo ambliope',
+    ojoDominante: 'Ojo dominante',
+    ambos: 'Ambos ojos',
+    fondo: 'Fondo',
+    tiempo: 'Tiempo',
+    contando: 'contando',
+    detenido: 'detenido',
+    minutosActivos: 'min activos',
+    diaSiguiente: 'Simular día siguiente',
+    motivos: {
+      enPausa: 'en pausa',
+      pestanaOculta: 'pestaña oculta',
+      sinInteraccion: 'sin interacción',
+      sinJuego: 'sin juego en curso',
+    } as Record<string, string>,
+    balance: 'Contraste del ojo dominante',
+  },
+
   descanso: {
     titulo: 'Hora de descansar la vista',
     texto: 'Hora de descansar la vista: mira algo lejano por la ventana.',

@@ -8,7 +8,7 @@ import { useEstado } from '../../storage/contexto';
 import { lentesCalibrados } from '../../storage/esquema';
 import { minutosDelDia, modosDisponibles } from '../../storage/selectores';
 import { rachaVigente } from '../../engine/racha';
-import { diaISO } from '../../engine/fechas';
+import { hoyDelJuego } from '../reloj';
 import { Portal } from './Portal';
 import { Contadores } from './Contadores';
 import type { Pantalla } from '../navegacion';
@@ -27,7 +27,7 @@ export function Base({
   alEmpezar: (juego?: IdJuego) => void;
 }) {
   const { estado } = useEstado();
-  const dia = diaISO();
+  const dia = hoyDelJuego();
   const minutos = minutosDelDia(estado, dia);
   const meta = estado.ajustes.metaDiariaMin;
   const disponibles = modosDisponibles(estado);

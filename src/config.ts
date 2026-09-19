@@ -245,6 +245,6 @@ export const config = {
     { hastaMm: 12, clave: 'botonDeCamisa' },
     { hastaMm: 9999, clave: 'moneda' },
   ] as const,
-} as const;
+};
 
 export type Config = typeof config;
