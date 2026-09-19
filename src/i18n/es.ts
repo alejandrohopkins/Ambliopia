@@ -526,6 +526,141 @@ export const es = {
 
   insigniaNueva: (nombre: string) => `¡Insignia nueva: ${nombre}!`,
 
+  parametros: {
+    tamano: 'Tamaño del objetivo',
+    contraste: 'Contraste del objetivo',
+    diametro: 'Diámetro del visor',
+  } as Record<string, string>,
+
+  /** 'diametro:1.2' → 'Diámetro del visor (separación 1.2×)'. */
+  nombreDeParametro: (clave: string): string => {
+    const [base, espaciado] = clave.split(':');
+    const nombre = es.parametros[base] ?? base;
+    return espaciado ? `${nombre} (separación ${espaciado}×)` : nombre;
+  },
+
+  adultos: {
+    titulo: 'Panel de adultos',
+    pin: 'PIN de adultos',
+    entrar: 'Entrar',
+    pinIncorrecto: 'Ese PIN no es correcto.',
+    olvide: 'Olvidé mi PIN',
+    preguntaDeAdulto: (a: number, b: number) => `¿Cuánto es ${a} × ${b}?`,
+    respuesta: 'Respuesta',
+    nuevoPin: 'PIN nuevo',
+    respuestaIncorrecta: 'Esa no es la respuesta. Vuelve a intentarlo.',
+    salir: 'Salir del panel',
+
+    secciones: {
+      resumen: 'Resumen',
+      graficas: 'Gráficas',
+      configuracion: 'Configuración',
+      calibraciones: 'Calibraciones',
+      eventos: 'Eventos',
+      notas: 'Notas',
+      datos: 'Datos',
+    } as Record<string, string>,
+
+    calendario: 'Calendario de minutos por día',
+    diasDeSemana: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
+    leyendaCalendario: 'Ámbar: parche. Cristal: lentes. Borde verde: meta cumplida.',
+    minutosHoy: 'Hoy',
+    minutosSemana: 'Esta semana',
+    minutosMes: 'Este mes',
+    porModo: (parche: number, lentes: number) =>
+      `${Math.round(parche)} min parche · ${Math.round(lentes)} min lentes`,
+    constanciaReal: 'Constancia real (sin protectores)',
+    constanciaTexto: (dias: number, de: number) => `${dias} de ${de} días`,
+    rachaActual: 'Racha actual',
+    mejorRacha: 'Mejor racha',
+
+    sinDatos: 'Todavía no hay datos suficientes para esta gráfica.',
+    mejora: (pct: number) =>
+      `${pct >= 0 ? '+' : ''}${(pct * 100).toFixed(0)} % frente a la primera semana`,
+    mejoraNota: 'Más bajo es mejor: mide el objeto más pequeño que logra encontrar.',
+
+    comoLeer: {
+      umbralTamano:
+        'Umbral de tamaño: el objeto más pequeño que logra encontrar con cerca de 70 % de aciertos. Más bajo es mejor.',
+      umbralContraste:
+        'Umbral de contraste: la diferencia de brillo más pequeña que logra distinguir. Más bajo es mejor.',
+      balance:
+        'Contraste del ojo dominante: cuánta señal recibe el ojo que ve bien. Sube cuando el otro ojo aguanta el reto y baja si le cuesta demasiado.',
+      precision:
+        'Precisión: porcentaje de aciertos. El juego la mantiene cerca del 71 %, así que casi no cambia; sirve para detectar días raros.',
+      tiempo:
+        'Tiempo de reacción: lo que tarda en responder. Bajar es señal de soltura, no de mejor visión.',
+    } as Record<string, string>,
+
+    graficaDe: (juego: string, parametro: string) => `${juego} · ${parametro}`,
+    medianaMovil: 'Línea gruesa: mediana móvil de 7 días.',
+
+    configuracion: {
+      nombre: 'Nombre de la jugadora',
+      ojoAmbliope: 'Ojo ambliope',
+      metaDiaria: 'Meta diaria (min)',
+      maxDiario: 'Máximo diario (min)',
+      descansoCada: 'Descanso cada (min)',
+      modosPermitidos: 'Modos permitidos',
+      modoFijo: 'Modo fijo de hoy',
+      sinModoFijo: 'Que elija ella',
+      distancia: 'Distancia de juego (cm)',
+      sonido: 'Sonido',
+      musica: 'Música',
+      volumen: 'Volumen',
+      reducirMovimiento: 'Reducir movimiento',
+      balanceAutomatico: 'Ajustar el contraste automáticamente',
+      balanceManual: 'Contraste del ojo dominante',
+      historialDeBalance: 'Historial del contraste',
+      extender: (min: number) => `Dar ${min} minutos extra hoy`,
+      extendido: (min: number) => `${min} min extra concedidos hoy`,
+      guardado: 'Guardado.',
+    },
+
+    calibraciones: {
+      pantalla: 'Calibración de pantalla',
+      lentes: 'Calibración de lentes',
+      nunca: 'Sin calibrar',
+      hecha: (fecha: string) => `Última calibración: ${fecha}`,
+      calibrarPantalla: 'Calibrar pantalla',
+      calibrarLentes: 'Calibrar lentes',
+      intensidades: (rojo: number, cian: number) => `Rojo máx. ${rojo} · Cian máx. ${cian}`,
+    },
+
+    eventos: {
+      titulo: 'Veces que tocó "Me molesta la vista"',
+      vacio: 'Ninguna. ',
+      fila: (fecha: string, hora: string, modo: string, juego: string) =>
+        `${fecha} ${hora} · ${modo} · ${juego}`,
+      sinJuego: 'fuera de un minijuego',
+    },
+
+    notas: {
+      titulo: 'Notas',
+      explicacion:
+        'Indicaciones del oftalmólogo, cambios de graduación o lo que convenga recordar. Aparecen como marcas en las gráficas.',
+      nueva: 'Nota nueva',
+      agregar: 'Agregar nota',
+      borrar: 'Borrar',
+      vacio: 'Todavía no hay notas.',
+    },
+
+    datos: {
+      titulo: 'Datos',
+      exportarCSV: 'Exportar CSV (para consulta)',
+      exportarJSON: 'Exportar respaldo JSON',
+      importarJSON: 'Importar respaldo JSON',
+      importado: 'Respaldo importado.',
+      errorAlImportar: 'Ese archivo no es un respaldo válido.',
+      borrarTodo: 'Borrar todos los datos',
+      confirmar1: '¿Seguro? Se borrará todo el progreso de este dispositivo.',
+      confirmar2: 'Esto no se puede deshacer. ¿Borrar de verdad?',
+      problemaDeGuardado:
+        'El navegador no pudo guardar: puede que no quede espacio. Exporta un respaldo y libera espacio.',
+      privacidad: 'Los datos viven solo en este dispositivo. Sin cuentas, sin analítica, sin envíos.',
+    },
+  },
+
   nombreDeModo: (modo: Modo): string => (modo === 'parche' ? 'Parche' : 'Lentes rojo/cian'),
 } as const;
 

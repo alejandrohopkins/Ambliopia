@@ -19,6 +19,7 @@ import { Tienda } from './ui/Tienda';
 import { MiAvatar } from './ui/MiAvatar';
 import { Insignias } from './ui/Insignias';
 import { MisRecords } from './ui/MisRecords';
+import { PanelDeAdultos } from './ui/adultos/PanelDeAdultos';
 import { ElegirJuego } from './ui/juego/ElegirJuego';
 import { PantallaDeJuego } from './ui/juego/PantallaDeJuego';
 import { ResumenDeSesion } from './ui/juego/ResumenDeSesion';
@@ -180,6 +181,11 @@ function Contenido(props: PropsDeContenido) {
   if (pantalla === 'avatar') return <MiAvatar alVolver={() => setPantalla('base')} />;
   if (pantalla === 'insignias') return <Insignias alVolver={() => setPantalla('base')} />;
   if (pantalla === 'records') return <MisRecords alVolver={() => setPantalla('base')} />;
+  if (pantalla === 'adultos') {
+    return (
+      <PanelDeAdultos alVolver={() => setPantalla('base')} alCalibrar={setCalibrando} />
+    );
+  }
 
   if (pantalla === 'descanso') {
     return <Descanso alTerminar={() => setPantalla(juego ? 'juego' : 'base')} />;
