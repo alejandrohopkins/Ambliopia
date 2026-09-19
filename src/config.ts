@@ -215,6 +215,34 @@ export const config = {
     protectoresPorSemana: 1,
   },
 
+  misiones: {
+    /**
+     * Objetivos de la misión del día, escalados para cumplirse dentro de la
+     * meta diaria de minutos. Nunca piden más de lo que cabe en una sesión.
+     */
+    rangos: {
+      minutos: [15, 25],
+      cristales: [15, 30],
+      saboteadores: [12, 25],
+      figuras: [1, 2],
+      estrellasDeEnergia: [10, 22],
+      estrellasDeNivel: [3, 7],
+      juegosDistintos: [2, 3],
+    } as Record<string, [number, number]>,
+  },
+
+  insignias: {
+    /** Récord de tamaño mínimo, en píxeles CSS: menor es mejor. */
+    ojoDeHalcon: [25, 10, 3],
+    saboteadoresParaDetective: 50,
+    figurasParaArquitecta: 10,
+    estrellasParaPiloto: 500,
+    rachasParaConstancia: [3, 7, 14, 30],
+    subidasParaDosOjos: 3,
+    fallosSeguidosParaPerseverante: 3,
+    articulosParaColeccionista: 10,
+  },
+
   avatar: {
     escalas: [4, 6, 8],
     /** Respiración: 1 px arriba y abajo cada 1.5 s. */

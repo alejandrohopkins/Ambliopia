@@ -10,6 +10,8 @@ import type { EstadoEscalera, ResumenDeJuegoEnSesion } from '../../storage/esque
 import type { Staircase } from '../../engine/Staircase';
 import type { ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { monedasPorMinutos } from '../../rewards/economia';
+import { aportesDelNivel } from '../../rewards/progresoDeJuego';
+import { juegosDelDia, minutosDelDia } from '../../storage/selectores';
 import { pxAMm } from '../../engine/color';
 import { hoyDelJuego } from '../reloj';
 
@@ -44,8 +46,16 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
   const sumarMinutos = useCallback(
     (minutos: number) => {
       if (minutos <= 0) return;
+      const dia = hoyDelJuego();
       despachar({ tipo: 'sesion/sumarMinutos', minutos });
       despachar({ tipo: 'economia/sumar', monedas: monedasPorMinutos(minutos) });
+      // Los minutos de la misión se fijan como total del día, no se acumulan.
+      despachar({
+        tipo: 'mision/fijar',
+        dia,
+        tipoDeMision: 'minutos',
+        total: minutosDelDia(ultimoEstado.current, dia) + minutos,
+      });
     },
     [despachar],
   );
@@ -110,7 +120,21 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
       despachar({ tipo: 'progreso/estrellas', juego, mundo, nivel, estrellas: resumen.estrellas });
       despachar({ tipo: 'economia/sumar', monedas });
 
-      return registrarRecord(ensayos, hoyDelJuego());
+      // Contadores de insignias y avance de la misión del día.
+      const dia = hoyDelJuego();
+      const aportes = aportesDelNivel(juego, ensayos, resumen);
+      despachar({ tipo: 'contadores/sumar', cambios: aportes.contadores });
+      for (const { tipo, cantidad } of aportes.mision) {
+        despachar({ tipo: 'mision/avanzar', dia, tipoDeMision: tipo, cantidad });
+      }
+      despachar({
+        tipo: 'mision/fijar',
+        dia,
+        tipoDeMision: 'juegosDistintos',
+        total: new Set([...juegosDelDia(ultimoEstado.current, dia), juego]).size,
+      });
+
+      return registrarRecord(ensayos, dia);
     },
     [despachar, guardarEscaleras, juego, registrarRecord],
   );

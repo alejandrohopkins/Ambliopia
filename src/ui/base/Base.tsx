@@ -11,9 +11,38 @@ import { rachaVigente } from '../../engine/racha';
 import { hoyDelJuego } from '../reloj';
 import { Portal } from './Portal';
 import { Contadores } from './Contadores';
+import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
+import { MisionDelDia } from './MisionDelDia';
 import type { Pantalla } from '../navegacion';
 
 const PORTALES: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos'];
+
+/**
+ * El avatar grande sobre su plataforma: el elemento memorable de la base.
+ * Todo lo demás de la pantalla es sobrio a propósito.
+ */
+function Plataforma() {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div
+        className="pixelado"
+        style={{ padding: '14px 18px 0', background: 'var(--superficie)' }}
+      >
+        <AvatarCompuesto escala={12} conMascota />
+        <div
+          aria-hidden
+          className="pixelado"
+          style={{
+            height: 14,
+            marginTop: 6,
+            background: 'var(--nebulosa)',
+            borderTop: '3px solid var(--borde)',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function Base({
   modo,
@@ -52,6 +81,8 @@ export function Base({
           marginBottom: 18,
         }}
       >
+        <Plataforma />
+
         <div style={{ flex: '1 1 260px' }}>
           <h1 style={{ marginBottom: 4 }}>{es.base.saludoCorto(estado.perfil.nombre)}</h1>
           <Contadores
@@ -85,6 +116,8 @@ export function Base({
           )}
         </div>
       </header>
+
+      <MisionDelDia dia={dia} />
 
       <section className="panel pixelado" style={{ marginBottom: 18 }}>
         <h2 style={{ marginBottom: 8 }}>{es.base.etiquetaMetaDeHoy}</h2>

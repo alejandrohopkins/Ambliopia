@@ -1,0 +1,321 @@
+/**
+ * Piezas del avatar como mapas de caracteres. Todo diseño propio: bloques,
+ * pixel art y tripulación espacial genérica.
+ *
+ * El avatar se compone por capas sobre una rejilla de 10 × 14:
+ * traje, casco, visor y accesorio. Mascota, nave y pico son sprites aparte.
+ *
+ * Caracteres: '.' transparente · 'K' contorno · 'H' casco · 'V' visor
+ *             'B' traje · 'A' accesorio · 'P' parche
+ */
+import type { MapaDePixeles } from './sprites';
+
+export const ANCHO = 10;
+export const ALTO = 14;
+
+/** Cuerpo y traje: la base sobre la que se monta todo lo demás. */
+export const CUERPO: MapaDePixeles = [
+  '..........',
+  '..........',
+  '..........',
+  '..........',
+  '..........',
+  '..........',
+  '..........',
+  '..........',
+  'KBBBBBBBBK',
+  'KBKBBBBKBK',
+  'KBKBBBBKBK',
+  '..KBBBBK..',
+  '..KBKKBK..',
+  '..KKKKKK..',
+];
+
+/** Cascos. Cada uno cubre las filas 0 a 7 y deja el visor a la vista. */
+export const CASCOS: Record<string, MapaDePixeles> = {
+  'casco-clasico': [
+    '..........',
+    '..........',
+    '.KKKKKKKK.',
+    '.KHHHHHHK.',
+    '.KHVVVVHK.',
+    '.KHVVVVHK.',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+  'casco-antena': [
+    '....KK....',
+    '....K.....',
+    '.KKKKKKKK.',
+    '.KHHHHHHK.',
+    '.KHVVVVHK.',
+    '.KHVVVVHK.',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+  'casco-gato': [
+    '.KK....KK.',
+    '.KAK..KAK.',
+    '.KKKKKKKK.',
+    '.KHHHHHHK.',
+    '.KHVVVVHK.',
+    '.KHVVVVHK.',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+  'casco-dragon': [
+    'KA......AK',
+    '.KAK..KAK.',
+    '.KKKKKKKK.',
+    '.KHHHHHHK.',
+    '.KHVVVVHK.',
+    '.KHVVVVHK.',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+  'casco-burbuja': [
+    '...KKKK...',
+    '.KKHHHHKK.',
+    'KHHHHHHHHK',
+    'KHHHHHHHHK',
+    'KHHVVVVHHK',
+    'KHHVVVVHHK',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+  'casco-corona': [
+    'KA.KA.KA.K',
+    'KAAAAAAAAK',
+    '.KKKKKKKK.',
+    '.KHHHHHHK.',
+    '.KHVVVVHK.',
+    '.KHVVVVHK.',
+    '.KHHHHHHK.',
+    '.KKKKKKKK.',
+  ],
+};
+
+/** Accesorios: se dibujan detrás del cuerpo (mochila, capa) o encima. */
+export const ACCESORIOS: Record<string, MapaDePixeles> = {
+  'accesorio-mochila': [
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    'AA......AA',
+    'AA......AA',
+    'AA......AA',
+    '.A......A.',
+    '..........',
+    '..........',
+  ],
+  'accesorio-bufanda': [
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '.AAAAAAAA.',
+    '.A......A.',
+    '.A........',
+    '.A........',
+    '..........',
+    '..........',
+    '..........',
+  ],
+  'accesorio-capa': [
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    'AA......AA',
+    'AA......AA',
+    'AA......AA',
+    'AA......AA',
+    'AA......AA',
+    '.A......A.',
+    '..........',
+  ],
+  'accesorio-alas': [
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    '..........',
+    'A........A',
+    'AA......AA',
+    'AAA....AAA',
+    'AA......AA',
+    'A........A',
+    '..........',
+    '..........',
+    '..........',
+  ],
+};
+
+/** Mascotas: sprites de 8 × 8 que acompañan al avatar en la base. */
+export const MASCOTAS: Record<string, MapaDePixeles> = {
+  'mascota-gato': [
+    'K......K',
+    'KK....KK',
+    'KBBBBBBK',
+    'KBVBBVBK',
+    'KBBBBBBK',
+    'KBBKKBBK',
+    '.KBBBBK.',
+    '..K..K..',
+  ],
+  'mascota-zorro': [
+    'K......K',
+    'KKK..KKK',
+    'KBBBBBBK',
+    'KBVBBVBK',
+    'KBBKKBBK',
+    '.KBBBBK.',
+    '.KBBBBK.',
+    'K.K..K.K',
+  ],
+  'mascota-robotito': [
+    '...KK...',
+    '...K....',
+    'KKKKKKKK',
+    'KBVVVVBK',
+    'KBBBBBBK',
+    'KKBBBBKK',
+    '.KBBBBK.',
+    '.K....K.',
+  ],
+  'mascota-pulpo': [
+    '..KKKK..',
+    '.KBBBBK.',
+    'KBVBBVBK',
+    'KBBBBBBK',
+    '.KBBBBK.',
+    'K.K..K.K',
+    'K.K..K.K',
+    '.K....K.',
+  ],
+  'mascota-ajolote': [
+    'K......K',
+    'KK....KK',
+    '.KBBBBK.',
+    'KBVBBVBK',
+    'KBBBBBBK',
+    '.KBBBBK.',
+    '..KBBK..',
+    '...KK...',
+  ],
+  'mascota-dragon': [
+    '.K....K.',
+    '.KK..KK.',
+    'KBBBBBBK',
+    'KBVBBVBK',
+    'KBBKKBBK',
+    'AKBBBBKA',
+    'A.KBBK.A',
+    '...KK...',
+  ],
+};
+
+/** Naves: sprites de 10 × 8 para el minijuego de meteoritos y la base. */
+export const NAVES: Record<string, MapaDePixeles> = {
+  'nave-exploradora': [
+    '....KK....',
+    '...KVVK...',
+    '...KVVK...',
+    '..KBBBBK..',
+    '.KBBBBBBK.',
+    'KBBKBBKBBK',
+    'K.K....K.K',
+    '....AA....',
+  ],
+  'nave-cometa': [
+    '....KK....',
+    '...KVVK...',
+    '..KBBBBK..',
+    '..KBBBBK..',
+    '.KBBBBBBK.',
+    'KBBBBBBBBK',
+    '.K.AAAA.K.',
+    '...AAAA...',
+  ],
+  'nave-ballena': [
+    '..KKKKKK..',
+    '.KBBBBBBK.',
+    'KBVBBBBBBK',
+    'KBBBBBBBBK',
+    '.KBBBBBBK.',
+    '..KBBBBK..',
+    'K.KKKKKK.K',
+    'KK......KK',
+  ],
+  'nave-castillo': [
+    'K.K.KK.K.K',
+    'KAKAKAKAKA',
+    'KBBBBBBBBK',
+    'KBVBBBBVBK',
+    'KBBBBBBBBK',
+    '.KBBBBBBK.',
+    '..KBBBBK..',
+    '...AAAA...',
+  ],
+};
+
+/** Picos: sprites de 7 × 7 para el Minero de cristales. */
+export const PICOS: Record<string, MapaDePixeles> = {
+  'pico-basico': [
+    '..KKK..',
+    '.KAAAK.',
+    'KA...AK',
+    'K..B..K',
+    '...B...',
+    '...B...',
+    '...B...',
+  ],
+  'pico-dorado': [
+    '.KKKKK.',
+    'KAAAAAK',
+    'KA...AK',
+    'K..B..K',
+    '...B...',
+    '...B...',
+    '...B...',
+  ],
+  'pico-hielo': [
+    '..K.K..',
+    '.KAKAK.',
+    'KAAAAAK',
+    'K..B..K',
+    '...B...',
+    '...B...',
+    '...B...',
+  ],
+  'pico-laser': [
+    '..KAK..',
+    '.KAAAK.',
+    'KAAAAAK',
+    'KK.B.KK',
+    '...B...',
+    '...B...',
+    '...B...',
+  ],
+};
+
+/** Formas de las estelas, dibujadas como partículas detrás de la nave. */
+export const ESTELAS: Record<string, MapaDePixeles> = {
+  'estela-chispas': ['.A.', 'A.A', '.A.'],
+  'estela-burbujas': ['.AA.', 'A..A', 'A..A', '.AA.'],
+  'estela-corazones': ['.A.A.', 'AAAAA', '.AAA.', '..A..'],
+  'estela-estrellas': ['..A..', '.AAA.', 'AAAAA', '.AAA.', '..A..'],
+  'estela-arcoiris': ['AAAAA', '.AAA.', '..A..'],
+};

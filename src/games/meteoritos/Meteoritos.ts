@@ -298,6 +298,7 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
         acierto,
         tiempoReaccionMs: tiempoMs - objeto.nacidoMs,
         esEnsayoDeConfianza: objeto.esEnsayoDeConfianza,
+        detalle: objeto.tipo,
       });
     }
 

@@ -43,6 +43,7 @@ function completar(datos: Datos): Estado {
     economia: { ...base.economia, ...(esObjeto(datos.economia) ? datos.economia : {}) },
     racha: { ...base.racha, ...(esObjeto(datos.racha) ? datos.racha : {}) },
     escaleras: esObjeto(datos.escaleras) ? (datos.escaleras as Estado['escaleras']) : {},
+    contadores: { ...base.contadores, ...(esObjeto(datos.contadores) ? datos.contadores : {}) },
     progreso: { ...base.progreso },
   };
 

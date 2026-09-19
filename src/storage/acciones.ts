@@ -9,9 +9,15 @@ import {
   type Estado,
   type EstadoEscalera,
   type Perfil,
+  type Contadores,
   type ResumenDeJuegoEnSesion,
+  type TipoDeMision,
 } from './esquema';
 import { diaISO, horaISO } from '../engine/fechas';
+import {
+  avanzar as avanzarMision,
+  fijarProgreso as fijarProgresoDeMision,
+} from '../rewards/mision';
 
 export type Accion =
   | { tipo: 'reemplazar'; estado: Estado }
@@ -36,7 +42,10 @@ export type Accion =
   | { tipo: 'progreso/avanzar'; juego: IdJuego; mundo: number; nivel: number }
   | { tipo: 'economia/sumar'; monedas?: number; cristales?: number }
   | { tipo: 'records/registrar'; clave: string; px: number; mm: number | null; dia: string }
-  | { tipo: 'galeria/agregar'; figura: string };
+  | { tipo: 'galeria/agregar'; figura: string }
+  | { tipo: 'contadores/sumar'; cambios: Partial<Contadores> }
+  | { tipo: 'mision/avanzar'; dia: string; tipoDeMision: TipoDeMision; cantidad: number }
+  | { tipo: 'mision/fijar'; dia: string; tipoDeMision: TipoDeMision; total: number };
 
 export function reducir(estado: Estado, accion: Accion): Estado {
   switch (accion.tipo) {
@@ -218,6 +227,31 @@ export function reducir(estado: Estado, accion: Accion): Estado {
     case 'galeria/agregar':
       if (estado.galeria.includes(accion.figura)) return estado;
       return { ...estado, galeria: [...estado.galeria, accion.figura] };
+
+    case 'contadores/sumar': {
+      const contadores = { ...estado.contadores };
+      for (const [clave, cantidad] of Object.entries(accion.cambios)) {
+        const nombre = clave as keyof Contadores;
+        contadores[nombre] = contadores[nombre] + (cantidad ?? 0);
+      }
+      return { ...estado, contadores };
+    }
+
+    case 'mision/avanzar': {
+      const mision = estado.misiones[accion.dia];
+      if (!mision) return estado;
+      const actualizada = avanzarMision(mision, accion.tipoDeMision, accion.cantidad);
+      if (actualizada === mision) return estado;
+      return { ...estado, misiones: { ...estado.misiones, [accion.dia]: actualizada } };
+    }
+
+    case 'mision/fijar': {
+      const mision = estado.misiones[accion.dia];
+      if (!mision) return estado;
+      const actualizada = fijarProgresoDeMision(mision, accion.tipoDeMision, accion.total);
+      if (actualizada === mision) return estado;
+      return { ...estado, misiones: { ...estado.misiones, [accion.dia]: actualizada } };
+    }
 
     default:
       return estado;

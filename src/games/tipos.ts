@@ -15,6 +15,11 @@ export interface ResultadoDeEnsayo {
   acierto: boolean;
   tiempoReaccionMs: number;
   esEnsayoDeConfianza: boolean;
+  /**
+   * Detalle propio del juego, para los contadores de insignias y misiones.
+   * En Meteoritos dice si el objeto era 'estrella' o 'roca'.
+   */
+  detalle?: string;
 }
 
 export interface ResumenDeNivel {

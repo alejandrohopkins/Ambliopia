@@ -158,6 +158,16 @@ export interface Nota {
   texto: string;
 }
 
+/** Totales de toda la vida del perfil, para insignias y récords. */
+export interface Contadores {
+  cristalesEncontrados: number;
+  saboteadoresAtrapados: number;
+  estrellasAtrapadas: number;
+  nivelesCompletados: number;
+  /** Niveles terminados tras tres fallos seguidos (insignia Perseverante). */
+  nivelesTrasTresFallos: number;
+}
+
 export interface Estado {
   version: number;
   perfil: Perfil;
@@ -176,6 +186,7 @@ export interface Estado {
   records: Record<string, Record_>;
   eventos: EventoDeMolestia[];
   notas: Nota[];
+  contadores: Contadores;
   /** Último día cuyo cierre ya se aplicó. */
   ultimoCierre: string | null;
   /** Minutos extra concedidos por el adulto, válidos solo para esa fecha. */
@@ -246,6 +257,13 @@ export function estadoInicial(): Estado {
     records: {},
     eventos: [],
     notas: [],
+    contadores: {
+      cristalesEncontrados: 0,
+      saboteadoresAtrapados: 0,
+      estrellasAtrapadas: 0,
+      nivelesCompletados: 0,
+      nivelesTrasTresFallos: 0,
+    },
     ultimoCierre: null,
     extraDelDia: null,
     asistenteCompletado: false,

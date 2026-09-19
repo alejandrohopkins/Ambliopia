@@ -15,6 +15,10 @@ import { Descanso } from './ui/Descanso';
 import { LimiteDiario } from './ui/LimiteDiario';
 import { Base } from './ui/base/Base';
 import { Galeria } from './ui/Galeria';
+import { Tienda } from './ui/Tienda';
+import { MiAvatar } from './ui/MiAvatar';
+import { Insignias } from './ui/Insignias';
+import { MisRecords } from './ui/MisRecords';
 import { ElegirJuego } from './ui/juego/ElegirJuego';
 import { PantallaDeJuego } from './ui/juego/PantallaDeJuego';
 import { ResumenDeSesion } from './ui/juego/ResumenDeSesion';
@@ -171,9 +175,11 @@ function Contenido(props: PropsDeContenido) {
     );
   }
 
-  if (pantalla === 'galeria') {
-    return <Galeria alVolver={() => setPantalla('base')} />;
-  }
+  if (pantalla === 'galeria') return <Galeria alVolver={() => setPantalla('base')} />;
+  if (pantalla === 'tienda') return <Tienda alVolver={() => setPantalla('base')} />;
+  if (pantalla === 'avatar') return <MiAvatar alVolver={() => setPantalla('base')} />;
+  if (pantalla === 'insignias') return <Insignias alVolver={() => setPantalla('base')} />;
+  if (pantalla === 'records') return <MisRecords alVolver={() => setPantalla('base')} />;
 
   if (pantalla === 'descanso') {
     return <Descanso alTerminar={() => setPantalla(juego ? 'juego' : 'base')} />;

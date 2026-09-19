@@ -22,7 +22,7 @@ export interface ResumenDeCierre {
 
 export interface OpcionesDeCierre {
   hoy?: string;
-  /** Ganchos de las fases posteriores: cofre semanal y misión del día. */
+  /** Gancho para las recompensas del día (meta, racha, misión y cofre). */
   alCerrarDia?: (estado: Estado, dia: string) => Estado;
 }
 
