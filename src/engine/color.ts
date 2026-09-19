@@ -98,6 +98,38 @@ export function aplicarContrasteWeber(fondo: RGB, contraste: number): ColorConCo
 }
 
 /**
+ * Gris con el contraste de Weber pedido sobre un fondo de cualquier tono.
+ * Sirve para el plano de la Torre en modo parche, que es gris tenue sobre el
+ * color del mundo: el tono no se puede conservar porque el objetivo ES gris,
+ * así que se busca el nivel de gris cuya luminancia da el contraste pedido.
+ */
+export function grisConContraste(fondo: RGB, contraste: number): ColorConContraste {
+  const lFondo = luminancia(fondo);
+  const objetivo = lFondo * (1 + contraste);
+
+  let mejor = 0;
+  let mejorError = Infinity;
+  for (let g = 0; g <= 255; g += 1) {
+    const error = Math.abs(luminancia(gris(g)) - objetivo);
+    if (error < mejorError) {
+      mejorError = error;
+      mejor = g;
+    }
+  }
+
+  let rgb = gris(mejor);
+  let limitadoPor8Bits = false;
+  // Si el gris elegido queda a la misma luminancia que el fondo, no se vería:
+  // se usa el paso mínimo representable en la dirección pedida.
+  if (contraste !== 0 && Math.abs(luminancia(rgb) - lFondo) < 1e-9) {
+    limitadoPor8Bits = true;
+    rgb = gris(limitar8(mejor + (contraste > 0 ? 1 : -1)));
+  }
+
+  return { rgb, contrasteReal: contrasteWeber(rgb, fondo), limitadoPor8Bits };
+}
+
+/**
  * Intensidad de una capa en modo lentes:
  * valor = sRGB(factor × lineal(intensidad máxima calibrada)).
  */

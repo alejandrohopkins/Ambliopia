@@ -14,6 +14,7 @@ import { ChequeoPrevio } from './ui/ChequeoPrevio';
 import { Descanso } from './ui/Descanso';
 import { LimiteDiario } from './ui/LimiteDiario';
 import { Base } from './ui/base/Base';
+import { Galeria } from './ui/Galeria';
 import { ElegirJuego } from './ui/juego/ElegirJuego';
 import { PantallaDeJuego } from './ui/juego/PantallaDeJuego';
 import { ResumenDeSesion } from './ui/juego/ResumenDeSesion';
@@ -168,6 +169,10 @@ function Contenido(props: PropsDeContenido) {
         alMolestia={() => setPantalla('base')}
       />
     );
+  }
+
+  if (pantalla === 'galeria') {
+    return <Galeria alVolver={() => setPantalla('base')} />;
   }
 
   if (pantalla === 'descanso') {

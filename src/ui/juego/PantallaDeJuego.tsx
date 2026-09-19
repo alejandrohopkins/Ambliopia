@@ -14,6 +14,7 @@ import { Staircase } from '../../engine/Staircase';
 import { SessionTimer, type MotivoDeParada } from '../../engine/SessionTimer';
 import { pxAMm } from '../../engine/color';
 import { minijuego } from '../../games/registro';
+import { figuraDeNivel } from '../../games/torre/figuras';
 import type { InstanciaDeJuego, ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { premioDeNivel } from '../../rewards/economia';
 import { estrellasDeMundo, mundoDesbloqueado } from '../../storage/selectores';
@@ -76,6 +77,15 @@ export function PantallaDeJuego({
   const terminarNivel = useCallback(
     (resumen: ResumenDeNivel) => {
       const premio = premioDeNivel(resumen);
+
+      // En la Torre cada nivel es una figura: completarla la guarda en la galería.
+      if (juego === 'torre') {
+        despachar({
+          tipo: 'galeria/agregar',
+          figura: figuraDeNivel(progreso.mundo, progreso.nivel).id,
+        });
+      }
+
       const huboRecord = registrarNivel({
         resumen,
         escaleras,
@@ -92,7 +102,7 @@ export function PantallaDeJuego({
         mundoNuevo: mundoReciennDesbloqueado(estado, juego, progreso, resumen.estrellas),
       });
     },
-    [escaleras, estado, juego, progreso.mundo, progreso.nivel, registrarNivel],
+    [despachar, escaleras, estado, juego, progreso.mundo, progreso.nivel, registrarNivel],
   );
 
   alTerminarNivel.current = terminarNivel;

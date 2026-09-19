@@ -242,6 +242,48 @@ export const es = {
     balance: 'Contraste del ojo dominante',
   },
 
+  nombresDeFigura: {
+    escalera: 'Escalera',
+    piramide: 'Pirámide',
+    torre: 'Torre',
+    copa: 'Copa',
+    muralla: 'Muralla',
+    castillo: 'Castillo',
+    cohete: 'Cohete',
+    pino: 'Pino',
+    puente: 'Puente',
+    antena: 'Antena',
+    ciudad: 'Ciudad',
+    montana: 'Montaña',
+    faro: 'Faro',
+    corona: 'Corona',
+    cascada: 'Cascada',
+    robot: 'Robot gigante',
+    castillo_grande: 'Castillo grande',
+    puerto_espacial: 'Puerto espacial',
+    dragon: 'Dragón de bloques',
+    doble_torre: 'Doble torre',
+    cohete_lunar: 'Cohete lunar',
+    estacion_orbital: 'Estación orbital',
+    antena_larga: 'Antena larga',
+    cometa: 'Cometa',
+    cristal_gigante: 'Cristal gigante',
+  } as Record<string, string>,
+
+  galeria: {
+    titulo: 'Galería de figuras',
+    vacia: 'Todavía no has construido ninguna figura. ¡La Torre de bloques te espera!',
+    construidas: (hechas: number, total: number) => `${hechas} de ${total} construidas`,
+    porConstruir: 'Por construir',
+  },
+
+  torre: {
+    figuraCompleta: (nombre: string) => `¡${nombre} terminada!`,
+    izquierda: 'Mover a la izquierda',
+    derecha: 'Mover a la derecha',
+    bajar: 'Bajar rápido',
+  },
+
   finDeNivel: {
     titulo: '¡Nivel completado!',
     estrellas: (n: number) => `${n} de 3 estrellas`,
