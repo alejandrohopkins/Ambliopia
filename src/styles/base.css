@@ -148,3 +148,56 @@ canvas {
     transition-duration: 0.001ms !important;
   }
 }
+
+/*
+ * Un solo momento orquestado: la pixelnauta aterriza en la base al abrir la
+ * app. El resto del movimiento solo responde a acciones de la jugadora.
+ */
+@keyframes aterrizaje {
+  0% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes polvoDeAterrizaje {
+  0%,
+  60% {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  72% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1.25);
+    opacity: 0;
+  }
+}
+
+.aterriza {
+  animation: aterrizaje 900ms steps(12, end) both;
+}
+
+.aterriza-polvo {
+  animation: polvoDeAterrizaje 900ms steps(8, end) both;
+}
+
+/* Con movimiento reducido, la pixelnauta simplemente está ahí. */
+.sin-movimiento .aterriza,
+.sin-movimiento .aterriza-polvo {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}

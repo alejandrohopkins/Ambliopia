@@ -21,6 +21,7 @@ import { estrellasDeMundo, mundoDesbloqueado } from '../../storage/selectores';
 import { OverlayDeDesarrollo } from '../componentes/OverlayDeDesarrollo';
 import { modoDesarrollo } from '../navegacion';
 import { avanzarUnDiaDeDesarrollo } from '../reloj';
+import { audio } from '../../engine/audio';
 import { MenuDePausa } from './MenuDePausa';
 import { FinDeNivel } from './FinDeNivel';
 
@@ -77,6 +78,7 @@ export function PantallaDeJuego({
   const terminarNivel = useCallback(
     (resumen: ResumenDeNivel) => {
       const premio = premioDeNivel(resumen);
+      audio().reproducir('nivel');
 
       // En la Torre cada nivel es una figura: completarla la guarda en la galería.
       if (juego === 'torre') {
@@ -148,6 +150,7 @@ export function PantallaDeJuego({
       onEnsayo: (resultado) => {
         ensayos.current.push(resultado);
         temporizador.marcarInteraccion();
+        audio().reproducir(resultado.acierto ? 'acierto' : 'fallo');
       },
       // Por referencia: el cierre del nivel debe leer el estado más reciente,
       // no el que había cuando se montó el minijuego.

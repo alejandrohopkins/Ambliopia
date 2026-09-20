@@ -9,7 +9,9 @@ import { lentesCalibrados } from '../../storage/esquema';
 import { minutosDelDia, modosDisponibles } from '../../storage/selectores';
 import { rachaVigente } from '../../engine/racha';
 import { hoyDelJuego } from '../reloj';
+import { useEffect, useRef, useState } from 'react';
 import { Portal } from './Portal';
+import { useMovimientoReducido } from '../movimiento';
 import { Contadores } from './Contadores';
 import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
 import { MisionDelDia } from './MisionDelDia';
@@ -17,21 +19,39 @@ import type { Pantalla } from '../navegacion';
 
 const PORTALES: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos'];
 
+/** El aterrizaje es una sola vez por apertura de la app, no cada visita. */
+let yaAterrizo = false;
+
+function usarSoloLaPrimeraVez(): boolean {
+  const [primera] = useState(() => !yaAterrizo);
+  const marcado = useRef(false);
+  useEffect(() => {
+    if (!marcado.current) {
+      marcado.current = true;
+      yaAterrizo = true;
+    }
+  }, []);
+  return primera;
+}
+
 /**
  * El avatar grande sobre su plataforma: el elemento memorable de la base.
+ * Aterriza una sola vez al abrir la app; después solo respira.
  * Todo lo demás de la pantalla es sobrio a propósito.
  */
-function Plataforma() {
+function Plataforma({ aterrizar }: { aterrizar: boolean }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div
         className="pixelado"
         style={{ padding: '14px 18px 0', background: 'var(--superficie)' }}
       >
-        <AvatarCompuesto escala={12} conMascota />
+        <div className={aterrizar ? 'aterriza' : undefined}>
+          <AvatarCompuesto escala={12} conMascota respira />
+        </div>
         <div
           aria-hidden
-          className="pixelado"
+          className={`pixelado${aterrizar ? ' aterriza-polvo' : ''}`}
           style={{
             height: 14,
             marginTop: 6,
@@ -56,6 +76,8 @@ export function Base({
   alEmpezar: (juego?: IdJuego) => void;
 }) {
   const { estado } = useEstado();
+  const sinMovimiento = useMovimientoReducido();
+  const primeraVez = usarSoloLaPrimeraVez();
   const dia = hoyDelJuego();
   const minutos = minutosDelDia(estado, dia);
   const meta = estado.ajustes.metaDiariaMin;
@@ -81,7 +103,7 @@ export function Base({
           marginBottom: 18,
         }}
       >
-        <Plataforma />
+        <Plataforma aterrizar={!sinMovimiento && primeraVez} />
 
         <div style={{ flex: '1 1 260px' }}>
           <h1 style={{ marginBottom: 4 }}>{es.base.saludoCorto(estado.perfil.nombre)}</h1>

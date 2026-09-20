@@ -29,6 +29,8 @@ import { OverlayDeDesarrollo } from './ui/componentes/OverlayDeDesarrollo';
 import { modoDesarrollo, type Pantalla } from './ui/navegacion';
 import { avanzarUnDiaDeDesarrollo, hoyDelJuego } from './ui/reloj';
 import { useCierreDelDia } from './ui/useCierreDelDia';
+import { useAudio } from './ui/useAudio';
+import { useMovimientoReducido } from './ui/movimiento';
 
 /** Pantallas de calibración: se pueden abrir desde el asistente o desde el panel. */
 type Calibrando = 'pantalla' | 'lentes' | null;
@@ -50,7 +52,9 @@ function Rutas() {
   const [calibrando, setCalibrando] = useState<Calibrando>(null);
 
   useCierreDelDia(dia);
+  useAudio();
 
+  const sinMovimiento = useMovimientoReducido();
   const desarrollo = modoDesarrollo();
   const overlay = desarrollo ? (
     <OverlayDeDesarrollo
@@ -69,7 +73,7 @@ function Rutas() {
   ) : null;
 
   return (
-    <>
+    <div className={sinMovimiento ? 'sin-movimiento' : undefined}>
       {overlay}
       <Contenido
         dia={dia}
@@ -82,7 +86,7 @@ function Rutas() {
         calibrando={calibrando}
         setCalibrando={setCalibrando}
       />
-    </>
+    </div>
   );
 }
 

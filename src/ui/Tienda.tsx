@@ -11,6 +11,7 @@ import {
 import { comprar, equipar, loTiene, puedePagar } from '../rewards/tienda';
 import { AvatarCompuesto } from './componentes/AvatarCompuesto';
 import { Contadores } from './base/Contadores';
+import { audio } from '../engine/audio';
 
 export function Tienda({ alVolver }: { alVolver: () => void }) {
   const { estado, despachar } = useEstado();
@@ -26,6 +27,7 @@ export function Tienda({ alVolver }: { alVolver: () => void }) {
       return;
     }
     setAviso(null);
+    audio().reproducir('compra');
     despachar({ tipo: 'reemplazar', estado: { ...estado, economia: resultado.economia } });
   }
 

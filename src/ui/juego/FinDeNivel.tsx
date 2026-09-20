@@ -4,6 +4,8 @@ import { es } from '../../i18n/es';
 import type { ResumenDeNivel } from '../../games/tipos';
 import { Pixelnauta } from '../../avatar/Pixelnauta';
 import { PIXELNAUTA } from '../../avatar/sprites';
+import { useEffect } from 'react';
+import { audio } from '../../engine/audio';
 
 export function FinDeNivel({
   juego,
@@ -26,6 +28,12 @@ export function FinDeNivel({
   alRepetir: () => void;
   alVolver: () => void;
 }) {
+  // El tintineo de monedas llega justo después de la fanfarria del nivel.
+  useEffect(() => {
+    const id = setTimeout(() => audio().reproducir('monedas'), 450);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <main style={{ padding: 24, maxWidth: 620, margin: '0 auto', textAlign: 'center' }}>
       <Pixelnauta mapa={PIXELNAUTA} escala={8} etiqueta={es.juegos[juego]} />
