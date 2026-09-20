@@ -186,6 +186,31 @@ export const config = {
     energiaMaxima: 100,
     energiaPorChoque: 15,
     energiaRecargaPorSeg: 6,
+
+    /**
+     * Teclado. La velocidad va en fracción del ancho del área por segundo, y
+     * arranca baja para poder colocar la nave con precisión: un toque corto
+     * la mueve unos pocos píxeles. Si se mantiene la flecha, acelera hasta la
+     * velocidad máxima para cruzar la pantalla sin castigar los dedos.
+     */
+    tecladoVelocidadInicial: 0.12,
+    tecladoVelocidadMaxima: 0.55,
+    /** Segundos manteniendo la flecha hasta llegar a la velocidad máxima. */
+    tecladoSegundosHastaMaxima: 0.7,
+
+    /** Chispas al atrapar una estrella de energía. */
+    chispasPorEstrella: 12,
+    chispasDuracionMs: 340,
+    /**
+     * Radio del estallido: el mayor entre estos píxeles y el tamaño de la
+     * estrella por el factor. El mínimo importa porque la escalera llega a
+     * estrellas de 6 px y el premio no puede desaparecer justo cuando le
+     * está saliendo bien.
+     */
+    chispasRadioMinimoPx: 34,
+    chispasRadioFactor: 1.6,
+    /** Lado de cada chispa al nacer, en píxeles. */
+    chispasLadoPx: 4,
   },
 
   economia: {

@@ -12,6 +12,7 @@ import {
   hayChoque,
   dificultad,
   escalerasDeMeteoritos,
+  velocidadDeTeclado,
 } from '../src/games/meteoritos/Meteoritos';
 import { Staircase } from '../src/engine/Staircase';
 import { crearAleatorio } from '../src/engine/rng';
@@ -198,5 +199,87 @@ describe('escalera con varios estímulos en el aire', () => {
     escalera.record(false, true);
     expect(escalera.current()).toBe(antes);
     expect(escalera.inversiones).toBe(0);
+  });
+});
+
+describe('teclado de meteoritos', () => {
+  const ANCHO = 1000;
+
+  it('un toque corto mueve la nave solo unos píxeles', () => {
+    // 80 ms de pulsación, que es un toque normal.
+    const px = velocidadDeTeclado(0.08, ANCHO) * 0.08;
+    expect(px).toBeGreaterThan(0);
+    expect(px).toBeLessThan(15);
+  });
+
+  it('arranca a la velocidad fina de la configuración', () => {
+    expect(velocidadDeTeclado(0, ANCHO)).toBeCloseTo(
+      config.meteoritos.tecladoVelocidadInicial * ANCHO,
+      6,
+    );
+  });
+
+  it('acelera al mantener la flecha, hasta un tope', () => {
+    const inicial = velocidadDeTeclado(0, ANCHO);
+    const media = velocidadDeTeclado(config.meteoritos.tecladoSegundosHastaMaxima / 2, ANCHO);
+    const maxima = velocidadDeTeclado(config.meteoritos.tecladoSegundosHastaMaxima, ANCHO);
+
+    expect(media).toBeGreaterThan(inicial);
+    expect(maxima).toBeGreaterThan(media);
+    expect(maxima).toBeCloseTo(config.meteoritos.tecladoVelocidadMaxima * ANCHO, 6);
+    // Mantenerla más tiempo ya no la acelera más.
+    expect(velocidadDeTeclado(10, ANCHO)).toBeCloseTo(maxima, 6);
+  });
+
+  it('nunca retrocede ni se dispara', () => {
+    let anterior = 0;
+    for (let s = 0; s <= 2; s += 0.05) {
+      const v = velocidadDeTeclado(s, ANCHO);
+      expect(v).toBeGreaterThanOrEqual(anterior - 1e-9);
+      expect(v).toBeLessThanOrEqual(config.meteoritos.tecladoVelocidadMaxima * ANCHO + 1e-9);
+      anterior = v;
+    }
+  });
+
+  it('es mucho más fina que antes: cruzar la pantalla ya no es un toque', () => {
+    // Antes se movía al 80 % del ancho por segundo desde el primer instante.
+    expect(config.meteoritos.tecladoVelocidadInicial).toBeLessThan(0.8 / 4);
+  });
+
+  it('se adapta al ancho de la pantalla', () => {
+    expect(velocidadDeTeclado(0, 2000)).toBeCloseTo(velocidadDeTeclado(0, 1000) * 2, 6);
+  });
+
+  it('un valor de tiempo negativo no invierte el movimiento', () => {
+    expect(velocidadDeTeclado(-5, ANCHO)).toBeCloseTo(velocidadDeTeclado(0, ANCHO), 6);
+  });
+});
+
+describe('chispas al atrapar una estrella', () => {
+  it('el estallido dura poco y no parpadea', () => {
+    expect(config.meteoritos.chispasDuracionMs).toBeGreaterThan(100);
+    expect(config.meteoritos.chispasDuracionMs).toBeLessThan(600);
+    // Un estallido por estrella atrapada queda muy por debajo del límite de
+    // tres destellos por segundo.
+    const porSegundo = 1000 / config.meteoritos.chispasDuracionMs;
+    expect(porSegundo).toBeLessThanOrEqual(config.accesibilidad.maxParpadeosPorSegundo);
+  });
+
+  it('el anillo se abre alrededor del objeto', () => {
+    expect(config.meteoritos.chispasRadioFactor).toBeGreaterThan(1);
+    expect(config.meteoritos.chispasPorEstrella).toBeGreaterThanOrEqual(8);
+    expect(config.meteoritos.chispasLadoPx).toBeGreaterThanOrEqual(2);
+  });
+
+  it('el premio sigue viéndose con las estrellas más pequeñas', () => {
+    // Con la estrella mínima el factor daría un anillo casi invisible, así
+    // que manda el radio mínimo.
+    const porFactor = config.meteoritos.tamanoMinimoPx * config.meteoritos.chispasRadioFactor;
+    expect(config.meteoritos.chispasRadioMinimoPx).toBeGreaterThan(porFactor);
+    // Y con la estrella más grande manda el factor, para que el estallido
+    // siempre rodee al objeto en vez de quedarse dentro.
+    expect(config.meteoritos.tamanoMaximoPx * config.meteoritos.chispasRadioFactor).toBeGreaterThan(
+      config.meteoritos.chispasRadioMinimoPx,
+    );
   });
 });

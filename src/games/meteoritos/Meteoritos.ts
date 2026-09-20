@@ -13,7 +13,8 @@
  * Capas en modo lentes:
  *   ojo ambliope → estrellas y rocas que caen
  *   ojo dominante → nave, estela y estrellas del fondo
- *   ambos → bordes laterales, medidor de energía y HUD
+ *   ambos → bordes laterales, medidor de energía, HUD y las chispas del
+ *           estallido al atrapar una estrella
  */
 import { config, type Modo } from '../../config';
 import { crearAleatorio, type Aleatorio } from '../../engine/rng';
@@ -58,6 +59,25 @@ export function dificultad(mundo: number, nivel: number) {
 }
 
 /**
+ * Velocidad de la nave con el teclado, en píxeles por segundo.
+ *
+ * Arranca lenta para poder colocarla con precisión —un toque corto la mueve
+ * unos pocos píxeles— y acelera si se mantiene la flecha, para no obligar a
+ * teclear veinte veces al cruzar la pantalla.
+ */
+export function velocidadDeTeclado(segundosPulsada: number, anchoDelArea: number): number {
+  const { tecladoVelocidadInicial, tecladoVelocidadMaxima, tecladoSegundosHastaMaxima } =
+    config.meteoritos;
+  const avance = Math.max(
+    0,
+    Math.min(1, segundosPulsada / Math.max(0.001, tecladoSegundosHastaMaxima)),
+  );
+  const fraccion =
+    tecladoVelocidadInicial + (tecladoVelocidadMaxima - tecladoVelocidadInicial) * avance;
+  return fraccion * anchoDelArea;
+}
+
+/**
  * ¿Este objeto pasó lo bastante cerca de la nave como para contar?
  * Todas las distancias en píxeles CSS.
  */
@@ -79,6 +99,16 @@ export function hayChoque(
 }
 
 type Tipo = 'estrella' | 'roca';
+
+/** Chispa del estallido al atrapar una estrella de energía. */
+interface Chispa {
+  x: number;
+  y: number;
+  /** Dirección de salida, en radianes. */
+  angulo: number;
+  radioFinal: number;
+  nacidaMs: number;
+}
 
 interface Objeto {
   tipo: Tipo;
@@ -110,6 +140,9 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
   private arrastrando = false;
   private teclaIzquierda = false;
   private teclaDerecha = false;
+  /** Segundos que lleva pulsada la flecha actual, para la aceleración. */
+  private segundosPulsada = 0;
+  private chispas: Chispa[] = [];
   private fondo: Array<{ x: number; y: number }> = [];
 
   constructor(
@@ -195,6 +228,8 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
   private alSubirTecla = (evento: KeyboardEvent) => {
     if (evento.key === 'ArrowLeft') this.teclaIzquierda = false;
     if (evento.key === 'ArrowRight') this.teclaDerecha = false;
+    // Al soltar, la próxima pulsación vuelve a empezar despacio.
+    if (!this.teclaIzquierda && !this.teclaDerecha) this.segundosPulsada = 0;
   };
 
   private limitarNave() {
@@ -249,11 +284,15 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
     const dt = dtMs / 1000;
     const area = areaDeJuego(this.ctx.renderer);
 
-    // Teclado: la nave se desliza mientras la flecha está pulsada.
-    const pasoTeclado = area.ancho * 0.8 * dt;
-    if (this.teclaIzquierda) this.naveX -= pasoTeclado;
-    if (this.teclaDerecha) this.naveX += pasoTeclado;
-    if (this.teclaIzquierda || this.teclaDerecha) this.limitarNave();
+    // Teclado: empieza fino para apuntar y acelera si se mantiene la flecha.
+    if (this.teclaIzquierda !== this.teclaDerecha) {
+      this.segundosPulsada += dt;
+      const paso = velocidadDeTeclado(this.segundosPulsada, area.ancho) * dt;
+      this.naveX += this.teclaDerecha ? paso : -paso;
+      this.limitarNave();
+    } else {
+      this.segundosPulsada = 0;
+    }
 
     // Nacen escalonados: un hueco vertical mínimo evita que caigan en racimo.
     const enElAire = this.objetos.filter((o) => !o.resuelto);
@@ -279,7 +318,10 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
       const choque = hayChoque(distancia, anchoNave, objeto.tamano);
       const acierto = objeto.tipo === 'estrella' ? choque : !choque;
 
-      if (objeto.tipo === 'estrella' && choque) this.estrellasAtrapadas += 1;
+      if (objeto.tipo === 'estrella' && choque) {
+        this.estrellasAtrapadas += 1;
+        this.estallar(objeto, tiempoMs);
+      }
       if (objeto.tipo === 'roca' && choque) {
         // La nave nunca se destruye: solo baja la energía, que se recarga sola.
         this.energia = Math.max(0, this.energia - config.meteoritos.energiaPorChoque);
@@ -347,6 +389,8 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
       else this.dibujarRoca(objeto);
     }
 
+    this.dibujarChispas(tiempoMs);
+
     // Medidor de energía y HUD: capa de ambos ojos.
     // Va pegado al borde derecho para no chocar con el botón de pausa.
     const anchoMedidor = Math.round(area.ancho * 0.25);
@@ -358,6 +402,55 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
 
     const restante = Math.max(0, 1 - tiempoMs / (config.meteoritos.duracionNivelSeg * 1000));
     dibujarMarcoYHud(renderer, `${this.estrellasAtrapadas}`, `${Math.ceil(restante * config.meteoritos.duracionNivelSeg)} s`, restante);
+  }
+
+  /**
+   * Estallido al atrapar una estrella: un anillo de chispas que se abre desde
+   * donde estaba la estrella. Va en la capa de ambos ojos, porque es la
+   * respuesta al acierto y conviene que la vean los dos; además ocurre cuando
+   * el ensayo ya está resuelto, así que no interfiere con la medida.
+   */
+  private estallar(objeto: Objeto, tiempoMs: number): void {
+    const cuantas = config.meteoritos.chispasPorEstrella;
+    // Un radio mínimo para que el premio se vea igual de bien cuando la
+    // escalera ya bajó a estrellas diminutas.
+    const radioFinal = Math.max(
+      config.meteoritos.chispasRadioMinimoPx,
+      objeto.tamano * config.meteoritos.chispasRadioFactor,
+    );
+    for (let i = 0; i < cuantas; i += 1) {
+      this.chispas.push({
+        x: objeto.x,
+        y: objeto.y,
+        angulo: (i / cuantas) * Math.PI * 2,
+        radioFinal,
+        nacidaMs: tiempoMs,
+      });
+    }
+  }
+
+  /**
+   * Las chispas salen hacia fuera y se encogen hasta desaparecer.
+   * Se apagan menguando, no atenuando el color: el gris de "ambos ojos" vive
+   * dentro de su banda neutra y no se puede oscurecer sin romper la regla.
+   */
+  private dibujarChispas(tiempoMs: number): void {
+    const duracion = config.meteoritos.chispasDuracionMs;
+    this.chispas = this.chispas.filter((c) => tiempoMs - c.nacidaMs < duracion);
+
+    for (const chispa of this.chispas) {
+      const avance = (tiempoMs - chispa.nacidaMs) / duracion;
+      // Sale rápido y frena al final, como una chispa de verdad.
+      const radio = chispa.radioFinal * (1 - (1 - avance) ** 2);
+      const lado = Math.max(1, Math.round(config.meteoritos.chispasLadoPx * (1 - avance)));
+      this.ctx.renderer.rect(
+        'ambos',
+        chispa.x + Math.cos(chispa.angulo) * radio - lado / 2,
+        chispa.y + Math.sin(chispa.angulo) * radio - lado / 2,
+        lado,
+        lado,
+      );
+    }
   }
 
   private dibujarNave(): void {
