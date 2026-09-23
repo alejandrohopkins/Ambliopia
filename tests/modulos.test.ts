@@ -37,8 +37,8 @@ describe('registro de juegos', () => {
       const modos = juego.modulo === 'ambos' ? (['parche', 'lentes'] as const) : ([juego.modulo] as const);
       for (const modo of modos) {
         const escaleras = juego.escaleras(modo, 1);
-        // Los de los módulos siempre miden algo; la Torre en lentes no usa escalera.
-        if (juego.modulo !== 'ambos') expect(escaleras.length).toBeGreaterThan(0);
+        // Todos miden algo en cada modo en que se juegan.
+        expect(escaleras.length, `${juego.id} en ${modo}`).toBeGreaterThan(0);
         for (const escalera of escaleras) {
           expect(escalera.clave.startsWith(claveDeEscalera(juego.id, modo, ''))).toBe(true);
           expect(escalera.minimo).toBeLessThan(escalera.maximo);

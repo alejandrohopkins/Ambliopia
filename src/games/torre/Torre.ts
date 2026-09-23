@@ -8,6 +8,11 @@
  * plano: sin juntar los dos no se puede acertar. Ahí está el entrenamiento
  * binocular.
  *
+ * Cada pieza es un ensayo, y cuenta como acierto si se soltó en un sitio
+ * donde cabía dentro del plano con alguno de sus giros: se mide si se vio
+ * dónde va, no si se acertó el giro. En parche la escalera mueve el contraste
+ * del plano; en lentes, el brillo de la pieza dentro del color de su lente.
+ *
  * Capas en modo lentes:
  *   ojo ambliope → la pieza que cae, su sombra de aterrizaje y la siguiente
  *   ojo dominante → el plano (silueta objetivo)
@@ -41,6 +46,7 @@ import {
   esDeFigura,
   figuraCompleta,
   piezasQueCaben,
+  sitioAcertado,
   tableroVacio,
   type EstadoDeTablero,
 } from './tablero';
@@ -79,13 +85,23 @@ export function piezasDelMundo(mundo: number): Pieza[] {
 }
 
 /**
- * En parche, el plano se lee con una escalera de contraste.
- * En lentes no hay escalera: el plano va en la capa del ojo dominante con el
- * contraste de balance, que ya lo controla la regla diaria.
+ * En parche, la escalera mueve el contraste del plano: hay que leerlo para
+ * saber dónde va la pieza. En lentes mueve el brillo de la pieza que cae, que
+ * solo ve el ojo ambliope; el plano va al dominante con el contraste de
+ * balance, que ya ajusta la regla diaria.
  */
 export function escalerasDeTorre(modo: Modo, mundo: number): ConfigDeEscalera[] {
   void mundo;
-  if (modo === 'lentes') return [];
+  if (modo === 'lentes') {
+    return [
+      {
+        clave: claveDeEscalera('torre', modo, PARAMETRO),
+        valorInicial: config.torre.brilloPiezaLentesInicial,
+        minimo: config.torre.brilloPiezaLentesMinimo,
+        maximo: config.torre.brilloPiezaLentesMaximo,
+      },
+    ];
+  }
   return [
     {
       clave: claveDeEscalera('torre', modo, PARAMETRO),
@@ -102,6 +118,7 @@ interface PiezaEnJuego {
   col: number;
   /** Fila desde el suelo, con decimales mientras cae. */
   fila: number;
+  /** Lo que pide la escalera: contraste del plano en parche, brillo de la pieza en lentes. */
   contraste: number;
   esEnsayoDeConfianza: boolean;
   /** Cuándo apareció: mide lo que tarda en decidir dónde ponerla. */
@@ -222,7 +239,8 @@ class InstanciaDeTorre implements InstanciaDeJuego {
     const forma = this.siguiente ?? this.sortearPieza();
     this.siguiente = this.sortearPieza();
 
-    let contraste = config.torre.contrastePlanoMaximo;
+    let contraste =
+      this.ctx.modo === 'lentes' ? config.torre.brilloPiezaLentesMaximo : config.torre.contrastePlanoMaximo;
     let esEnsayoDeConfianza = false;
     const escalera = this.ctx.escaleras[claveDeEscalera('torre', this.ctx.modo, PARAMETRO)];
     if (escalera) {
@@ -249,20 +267,23 @@ class InstanciaDeTorre implements InstanciaDeJuego {
     const pieza = this.pieza;
     if (!pieza) return;
 
+    // Se juzga con el tablero de antes de fijarla: ¿cabía ahí con algún giro?
+    const sitioBueno = sitioAcertado(this.tablero, pieza.forma, pieza.col);
     const resultado = colocar(this.tablero, this.celdasActuales(), pieza.col, Math.round(pieza.fila));
     this.tablero = { ...this.tablero, ocupado: resultado.ocupado };
+    const acierto = resultado.acierto || sitioBueno;
 
     const escalera = this.ctx.escaleras[claveDeEscalera('torre', this.ctx.modo, PARAMETRO)];
-    if (escalera) escalera.record(resultado.acierto, pieza.esEnsayoDeConfianza);
+    if (escalera) escalera.record(acierto, pieza.esEnsayoDeConfianza);
 
     const tiempoReaccionMs = tiempoMs - pieza.nacidaMs;
-    this.contador.registrar(resultado.acierto, tiempoReaccionMs, pieza.esEnsayoDeConfianza);
+    this.contador.registrar(acierto, tiempoReaccionMs, pieza.esEnsayoDeConfianza);
     this.ctx.onEnsayo({
       juego: 'torre',
       modo: this.ctx.modo,
       parametro: PARAMETRO,
       valor: pieza.contraste,
-      acierto: resultado.acierto,
+      acierto,
       tiempoReaccionMs,
       esEnsayoDeConfianza: pieza.esEnsayoDeConfianza,
       detalle: pieza.forma.id,
@@ -589,6 +610,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
   /** El plano: tenue en parche según la escalera, capa del ojo dominante en lentes. */
   private dibujarPlano(lado: number): void {
     const { renderer } = this.ctx;
+    // En lentes el valor de la escalera es el brillo de la pieza, no el del plano.
     const contraste = this.pieza?.contraste ?? config.torre.contrastePlanoMaximo;
     const tono =
       renderer.modo === 'parche'
@@ -673,10 +695,18 @@ class InstanciaDeTorre implements InstanciaDeJuego {
     for (const [f, c] of celdasEn(this.celdasActuales(), pieza.col, fila)) {
       const { x, y } = this.celda(c, f);
       renderer.marco('ojoAmbliope', x + 1, y + 1, lado - 2, lado - 2, 1, {
-        factor: config.torre.factorDeSombra,
+        factor: config.torre.factorDeSombra * this.brilloDePieza(),
         tono: renderer.paleta.acento,
       });
     }
+  }
+
+  /**
+   * Brillo de lo que va al ojo ambliope. En lentes lo mueve la escalera; en
+   * parche la escalera está en el plano y la pieza va a pleno color.
+   */
+  private brilloDePieza(): number {
+    return this.ctx.modo === 'lentes' ? (this.pieza?.contraste ?? 1) : 1;
   }
 
   /** La pieza que cae: capa del ojo ambliope. */
@@ -688,6 +718,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
       const { x, y } = this.celda(c, f);
       renderer.rect('ojoAmbliope', x + 1, y + 1, lado - 2, lado - 2, {
         tono: renderer.paleta.acento,
+        factor: this.brilloDePieza(),
       });
     }
     // Marca de la columna elegida: ancla de fusión, sin revelar la forma.
@@ -719,6 +750,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
     for (const [f, c] of celdas) {
       renderer.rect('ojoAmbliope', cx + c * mini + 1, cy + (alto - 1 - f) * mini + 1, mini - 2, mini - 2, {
         tono: renderer.paleta.acento,
+        factor: this.brilloDePieza(),
       });
     }
   }

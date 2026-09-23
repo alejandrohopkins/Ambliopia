@@ -18,20 +18,33 @@ Desde la base se elige entre dos modos de entrenamiento:
 - **Lentes rojo/cian** — con los dos ojos abiertos. Cada ojo ve elementos
   distintos, así que el cerebro tiene que usar los dos juntos.
 
-Cinco minijuegos, cada uno entrenando algo diferente:
+Quince minijuegos. Los cinco primeros se juegan en los dos modos; los otros
+diez forman dos módulos, uno para cada modo, y la base solo muestra los del
+modo elegido.
 
-| Juego | Habilidad |
-|---|---|
-| Minero de cristales | Agudeza (tamaño mínimo) y sensibilidad al contraste |
-| ¿Quién es el saboteador? | Agudeza con amontonamiento y discriminación de detalle |
-| Torre de bloques | Visión binocular, planificación y coordinación |
-| Lluvia de meteoritos | Seguimiento visual y coordinación ojo-mano |
-| Túnel de escape | Resolver un hueco pequeño en movimiento y decidir rápido |
+| Juego | Modo | Habilidad |
+|---|---|---|
+| Minero de cristales | Los dos | Agudeza (tamaño mínimo) y sensibilidad al contraste |
+| ¿Quién es el saboteador? | Los dos | Agudeza con amontonamiento y discriminación de detalle |
+| Torre de bloques | Los dos | Visión binocular, planificación y coordinación |
+| Lluvia de meteoritos | Los dos | Seguimiento visual y coordinación ojo-mano |
+| Túnel de escape | Los dos | Resolver un hueco pequeño en movimiento y decidir rápido |
+| Cazador de objetivos | Parche | Reacción y búsqueda con la mirada |
+| Rebote ágil | Parche | Anticipar trayectorias |
+| Detector de patrones | Parche | Sensibilidad al contraste (parches de Gabor) |
+| Corte de precisión | Parche | Seguir objetos en movimiento |
+| Laberinto de trazado | Parche | Control fino con la mirada fija |
+| Pozo de bloques | Lentes | Juntar lo que ve cada ojo |
+| La serpiente | Lentes | Buscar con el ojo ambliope |
+| El ave voladora | Lentes | Guiar con los dos ojos |
+| El sapo cruzador | Lentes | Seguir al personaje con el ojo ambliope |
+| Mosaicos y secuencias | Lentes | Detalle fino y lógica |
 
 La dificultad visual la lleva una **escalera adaptativa** invisible, que busca
-el punto donde acierta alrededor del 71 % de las veces. Los mundos y niveles
+el punto donde acierta alrededor del 79 % de las veces. Los mundos y niveles
 solo cambian temática, velocidad y variedad, para que las estrellas premien el
-esfuerzo y no la agudeza.
+esfuerzo y no la agudeza. Ningún juego tiene fin de partida: fallar nunca
+quita monedas ni progreso.
 
 Un panel de adultos, con PIN, muestra minutos por modo, umbrales a lo largo del
 tiempo y permite exportar los datos para llevarlos a consulta.

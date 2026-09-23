@@ -93,8 +93,13 @@ export const config = {
     inversionesParaPasoFino: 4,
     factorFinoMasDificil: 0.9,
     factorFinoMasFacil: 1.11,
-    /** Aciertos seguidos necesarios para endurecer. */
-    aciertosParaBajar: 2,
+    /**
+     * Aciertos seguidos necesarios para endurecer; un fallo siempre facilita.
+     * Con pasos iguales en escala logarítmica, la escalera se asienta donde
+     * se acierta 0,5^(1/n): con 2 es el 71 %, con 3 el 79 %. Se usa 3 para
+     * que se falle menos sin dejar de exigir.
+     */
+    aciertosParaBajar: 3,
     /** Inversiones usadas para estimar el umbral. */
     inversionesParaUmbral: 6,
     /** Si hay menos inversiones, se promedian los últimos N valores. */
@@ -119,9 +124,14 @@ export const config = {
     mundos: 5,
     nivelesPorMundo: 5,
     estrellasParaDesbloquearMundo: 8,
-    precisionDosEstrellas: 0.65,
-    precisionTresEstrellas: 0.75,
-    rachaTresEstrellas: 5,
+    /**
+     * Estrellas pensadas para una escalera que busca el 79 %: una sola
+     * estrella es rara, dos son lo habitual y la tercera pide un nivel por
+     * encima de lo que busca la escalera o una buena racha.
+     */
+    precisionDosEstrellas: 0.72,
+    precisionTresEstrellas: 0.84,
+    rachaTresEstrellas: 7,
   },
 
   minero: {
@@ -211,6 +221,13 @@ export const config = {
     desvanecerBloqueFueraMs: 2500,
     contrastePlanoInicial: 0.5,
     contrastePlanoMaximo: 1.0,
+    /**
+     * En lentes la escalera mueve el brillo de la pieza que cae, dentro del
+     * color del lente del ojo ambliope (0–1).
+     */
+    brilloPiezaLentesInicial: 0.8,
+    brilloPiezaLentesMinimo: 0.08,
+    brilloPiezaLentesMaximo: 1,
   },
 
   meteoritos: {
@@ -281,12 +298,18 @@ export const config = {
     celdasPorTramo: 2,
 
     /**
-     * Abertura del muro en píxeles, medida al llegar a la corredora. Es el
-     * hueco que hay que resolver de lejos, y lo mueve la escalera.
+     * La escalera mide la abertura tal como se ve cuando todavía se está a
+     * tiempo de decidir: a la distancia que el muro recorre en estos segundos
+     * antes de la ventana de juicio. Medida al llegar a la corredora salía
+     * cerca de un 40 % más grande de lo que de verdad hubo que resolver.
      */
-    aberturaInicialPx: 44,
+    segundosParaDecidir: 0.6,
+    /** Abertura vista al decidir, en píxeles: es la que mueve la escalera. */
+    aberturaVistaInicialPx: 30,
+    aberturaVistaMinimaPx: 3,
+    aberturaVistaMaximaPx: 75,
+    /** Abertura dibujada al llegar: nunca menos que esto, para que exista. */
     aberturaMinimaPx: 4,
-    aberturaMaximaPx: 110,
     /** La abertura nunca pasa de esta fracción del alto del túnel. */
     fraccionMaximaDeAbertura: 0.45,
 
@@ -774,3 +797,11 @@ export const config = {
 };
 
 export type Config = typeof config;
+
+/**
+ * Nivel de aciertos en el que se asienta la escalera: con n aciertos
+ * seguidos para endurecer y un fallo para facilitar, es 0,5^(1/n).
+ */
+export function nivelDeAciertosBuscado(): number {
+  return 0.5 ** (1 / config.escalera.aciertosParaBajar);
+}

@@ -21,13 +21,19 @@ export interface Muro {
   /** Carril donde está la abertura. */
   carril: number;
   abertura: Abertura;
-  /** Alto de la abertura en píxeles, medido al llegar a la corredora. */
+  /** Alto de la abertura en píxeles al llegar a la corredora: es lo que se dibuja. */
   aberturaPx: number;
+  /** Alto con que se ve la abertura cuando hay que decidir: es lo que se mide. */
+  vistaPx: number;
   esEnsayoDeConfianza: boolean;
   nacidoMs: number;
   resuelto: boolean;
-  /** Se acertó carril y postura en algún momento de la ventana de juicio. */
+  /** Se pasó de verdad: carril y postura a la vez dentro de la ventana. Mueve la energía. */
   logrado: boolean;
+  /** Estuvo en el carril de la abertura en algún momento de la ventana. */
+  carrilAcertado: boolean;
+  /** Última postura que se pidió mientras este muro era el que venía. */
+  intencion: Postura | null;
 }
 
 export interface CeldaDeEnergia {
@@ -59,6 +65,26 @@ export function enVentanaDeJuicio(z: number, zDeJuicio = config.tunel.zDeJuicio)
 /** Ya pasó del todo: es el momento de anotar el resultado. */
 export function muroResuelto(z: number, zDeJuicio = config.tunel.zDeJuicio): boolean {
   return z <= -zDeJuicio;
+}
+
+/**
+ * ¿Se vio bien la abertura? Carril correcto y la postura pedida es la que
+ * pasa, aunque el salto saliera antes o después de tiempo: lo que se mide es
+ * haber resuelto el hueco, no la puntería del instante. El tropiezo por mal
+ * tiempo sigue existiendo en el juego, pero no cuenta como fallo de vista.
+ */
+export function aberturaIdentificada(muro: Muro): boolean {
+  return muro.carrilAcertado && muro.intencion === posturaQuePasa(muro.abertura);
+}
+
+/** Distancia a la que hay que haber visto la abertura para llegar a tiempo. */
+export function zDeDecision(velocidad: number): number {
+  return config.tunel.zDeJuicio + velocidad * config.tunel.segundosParaDecidir;
+}
+
+/** Cuánto mide la abertura al decidir, respecto a lo que mide al llegar. */
+export function escalaAlDecidir(velocidad: number): number {
+  return escalaDeZ(zDeDecision(velocidad));
 }
 
 /** Carril de al lado, sin salirse de la pista. */

@@ -2,7 +2,7 @@
  * Regla diaria del balance dicóptico (modo lentes).
  *
  * Por qué el umbral y no la precisión: la escalera mantiene la precisión cerca
- * del 71 % siempre, así que la precisión no revela si el ojo ambliope está
+ * del mismo nivel siempre, así que la precisión no revela si el ojo ambliope está
  * siendo suprimido. Si al subir el contraste del ojo dominante el umbral del
  * ambliope empeora mucho, es señal de supresión y hay que retroceder.
  */

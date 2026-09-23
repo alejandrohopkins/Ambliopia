@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { config } from '../src/config';
+import { config, nivelDeAciertosBuscado } from '../src/config';
 import { escalerasDeMinero, paredDelMundo, segundosPorEnsayo } from '../src/games/minero/Minero';
 import { estrellasDeNivel, ContadorDeNivel, factorDePulso, areaDeJuego } from '../src/games/comun';
 import { claveDeEscalera } from '../src/games/tipos';
@@ -69,17 +69,18 @@ describe('estrellas del nivel', () => {
     expect(estrellasDeNivel(config.progresion.precisionDosEstrellas - 0.01, 0)).toBe(1);
   });
 
-  it('la tercera llega con el 75 % o con una racha de cinco', () => {
+  it('la tercera llega con la precisión alta o con una buena racha', () => {
     expect(estrellasDeNivel(config.progresion.precisionTresEstrellas, 0)).toBe(3);
     expect(estrellasDeNivel(0.5, config.progresion.rachaTresEstrellas)).toBe(3);
     expect(estrellasDeNivel(0.5, config.progresion.rachaTresEstrellas - 1)).toBe(1);
   });
 
   it('con la precisión que persigue la escalera las tres estrellas son alcanzables', () => {
-    // La escalera converge cerca del 71 %: dos estrellas seguras, y la tercera
-    // con una racha de cinco, que ocurre a menudo a ese nivel de aciertos.
-    expect(estrellasDeNivel(0.71, 0)).toBe(2);
-    expect(estrellasDeNivel(0.71, 5)).toBe(3);
+    // A la precisión que busca la escalera salen dos estrellas seguras, y la
+    // tercera con una buena racha, que a ese nivel de aciertos es frecuente.
+    const buscado = nivelDeAciertosBuscado();
+    expect(estrellasDeNivel(buscado, 0)).toBe(2);
+    expect(estrellasDeNivel(buscado, config.progresion.rachaTresEstrellas)).toBe(3);
   });
 });
 

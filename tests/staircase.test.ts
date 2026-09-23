@@ -13,6 +13,10 @@ function crear(parcial: Partial<ConfigDeEscalera> = {}) {
   });
 }
 
+/** Los aciertos seguidos que endurecen la escalera, según la configuración. */
+const N = config.escalera.aciertosParaBajar;
+const racha = (n = N) => Array<boolean>(n).fill(true);
+
 /**
  * Responde una lista de ensayos REALES. Los ensayos de confianza que caigan
  * en medio se responden acertando y no cuentan: no mueven la escalera.
@@ -29,9 +33,9 @@ function responder(escalera: Staircase, respuestas: boolean[]) {
 }
 
 describe('reglas de la escalera', () => {
-  it('dos aciertos seguidos la hacen más difícil', () => {
+  it('solo la endurecen los aciertos seguidos que pide la configuración', () => {
     const e = crear();
-    responder(e, [true]);
+    responder(e, racha(N - 1));
     expect(e.current()).toBe(60);
     responder(e, [true]);
     expect(e.current()).toBeCloseTo(60 * config.escalera.factorMasDificil, 6);
@@ -61,18 +65,18 @@ describe('reglas de la escalera', () => {
 
   it('cuenta una inversión cada vez que cambia de sentido', () => {
     const e = crear();
-    responder(e, [true, true]); // baja
+    responder(e, racha()); // baja
     expect(e.inversiones).toBe(0);
     responder(e, [false]); // sube: primera inversión
     expect(e.inversiones).toBe(1);
-    responder(e, [true, true]); // baja: segunda
+    responder(e, racha()); // baja: segunda
     expect(e.inversiones).toBe(2);
   });
 
   it('tras cuatro inversiones usa pasos finos', () => {
     const e = crear();
-    // Alternar fallo / dos aciertos genera inversiones rápido.
-    responder(e, [true, true, false, true, true, false, true, true, false, true, true]);
+    // Alternar una racha y un fallo genera inversiones rápido.
+    responder(e, [...racha(), false, ...racha(), false, ...racha(), false, ...racha()]);
     expect(e.inversiones).toBeGreaterThanOrEqual(config.escalera.inversionesParaPasoFino);
     const antes = e.current();
     responder(e, [false]);
@@ -139,7 +143,7 @@ describe('umbral estimado', () => {
 
   it('con seis o más inversiones usa las últimas seis', () => {
     const e = crear();
-    responder(e, Array.from({ length: 60 }, (_, i) => i % 3 !== 2));
+    responder(e, Array.from({ length: 60 }, (_, i) => i % (N + 1) !== N));
     expect(e.inversiones).toBeGreaterThanOrEqual(config.escalera.inversionesParaUmbral);
     const ultimas = e.reversals.slice(-config.escalera.inversionesParaUmbral);
     expect(e.threshold()).toBeCloseTo(mediaGeometrica(ultimas), 6);
@@ -164,7 +168,7 @@ describe('guardar y continuar', () => {
 
   it('la sesión siguiente arranca en el umbral por el factor de calentamiento', () => {
     const e = crear();
-    responder(e, Array.from({ length: 40 }, (_, i) => i % 3 !== 2));
+    responder(e, Array.from({ length: 40 }, (_, i) => i % (N + 1) !== N));
     const guardado = e.toJSON();
     const siguiente = Staircase.continuar(guardado, {
       clave: e.clave,

@@ -1,7 +1,8 @@
 /**
- * Escalera adaptativa 2-abajo / 1-arriba en escala logarítmica.
- * Converge cerca del 71 % de aciertos, que es donde la tarea exige de verdad
- * sin desmoralizar.
+ * Escalera adaptativa n-abajo / 1-arriba en escala logarítmica: n aciertos
+ * seguidos la endurecen y un fallo la facilita. Se asienta donde se acierta
+ * 0,5^(1/n) —el 79 % con los tres de la configuración—: la tarea exige de
+ * verdad sin desmoralizar.
  *
  * Solo sirve para parámetros donde MENOR = MÁS DIFÍCIL (tamaño y contraste).
  * La velocidad la controlan los niveles, nunca la escalera.

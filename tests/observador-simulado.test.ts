@@ -6,16 +6,17 @@
  * estima la escalera debe quedar a ±15 % del umbral simulado.
  */
 import { describe, it, expect } from 'vitest';
+import { nivelDeAciertosBuscado } from '../src/config';
 import { Staircase, mediaGeometrica } from '../src/engine/Staircase';
 import { crearAleatorio, type Aleatorio } from '../src/engine/rng';
 
-/** La escalera 2-abajo/1-arriba converge a este nivel de aciertos. */
-const NIVEL_DE_CONVERGENCIA = 0.707;
+/** Nivel de aciertos al que converge la escalera con la configuración actual. */
+const NIVEL_DE_CONVERGENCIA = nivelDeAciertosBuscado();
 
 interface Observador {
   /** Probabilidad de acertar con este valor del parámetro. */
   probabilidad(valor: number): number;
-  /** Valor en el que acierta el 70.7 % de las veces. */
+  /** Valor en el que acierta tanto como busca la escalera. */
   umbral: number;
 }
 
@@ -92,7 +93,7 @@ describe('observador simulado', () => {
     expect(estimar(dificil)).toBeLessThan(estimar(facil));
   });
 
-  it('la precisión alcanzada ronda el 71 % que persigue la escalera', () => {
+  it('la precisión alcanzada ronda la que persigue la escalera', () => {
     const observador = crearObservador(10, 3, 0.25);
     let aciertos = 0;
     let total = 0;
@@ -123,7 +124,6 @@ describe('observador simulado', () => {
     }
 
     const precision = aciertos / total;
-    expect(precision).toBeGreaterThan(0.6);
-    expect(precision).toBeLessThan(0.82);
+    expect(Math.abs(precision - NIVEL_DE_CONVERGENCIA)).toBeLessThan(0.06);
   });
 });

@@ -17,6 +17,7 @@ import {
   figuraCompleta,
   ocupada,
   piezasQueCaben,
+  sitioAcertado,
   tableroVacio,
   type EstadoDeTablero,
 } from '../src/games/torre/tablero';
@@ -108,6 +109,37 @@ describe('caída y colisión', () => {
       [3, 2],
       [3, 3],
     ]);
+  });
+});
+
+describe('el ensayo mide el sitio, no el giro', () => {
+  const par = piezaPorId('par')!;
+
+  it('un par tumbado sobre una columna de dos cuenta: de pie cabía', () => {
+    // Plano: una sola columna de altura dos. El par de pie encaja; tumbado no.
+    const tablero = tableroVacio([2, 0, 0], 5);
+    const tumbado = rotaciones(par)[0];
+    expect(colocar(tablero, tumbado, 0, 0).acierto).toBe(false);
+    expect(sitioAcertado(tablero, par, 0)).toBe(true);
+  });
+
+  it('un sitio donde no cabe con ningún giro no cuenta', () => {
+    const tablero = tableroVacio([2, 0, 0], 5);
+    expect(sitioAcertado(tablero, par, 1)).toBe(false);
+    expect(sitioAcertado(tablero, par, 2)).toBe(false);
+  });
+
+  it('una columna ya terminada tampoco cuenta', () => {
+    const lleno = soltar(soltar(tableroVacio([2, 0], 5), BLOQUE, 0), BLOQUE, 0);
+    expect(sitioAcertado(lleno, BLOQUE_SUELTO, 0)).toBe(false);
+  });
+
+  it('en lentes también hay escalera: el brillo de la pieza', () => {
+    const [escalera] = escalerasDeTorre('lentes', 1);
+    expect(escalera.clave).toBe('torre:lentes:contraste');
+    expect(escalera.valorInicial).toBe(config.torre.brilloPiezaLentesInicial);
+    expect(escalera.minimo).toBe(config.torre.brilloPiezaLentesMinimo);
+    expect(escalera.maximo).toBeLessThanOrEqual(1);
   });
 });
 
@@ -349,13 +381,14 @@ describe('dificultad de la Torre', () => {
     expect(config.torre.factorCaidaSuave).toBeLessThan(20);
   });
 
-  it('en parche hay escalera de contraste del plano; en lentes no', () => {
+  it('en parche la escalera va al contraste del plano; en lentes, al brillo de la pieza', () => {
     const parche = escalerasDeTorre('parche', 1);
     expect(parche).toHaveLength(1);
     expect(parche[0].clave).toContain('contraste');
     expect(parche[0].valorInicial).toBe(config.torre.contrastePlanoInicial);
-    // En lentes el plano va en la capa del ojo dominante con el contraste de balance.
-    expect(escalerasDeTorre('lentes', 1)).toEqual([]);
+    const lentes = escalerasDeTorre('lentes', 1);
+    expect(lentes).toHaveLength(1);
+    expect(lentes[0].valorInicial).toBe(config.torre.brilloPiezaLentesInicial);
   });
 });
 

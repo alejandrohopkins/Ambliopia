@@ -4,31 +4,38 @@
 import { describe, it, expect } from 'vitest';
 import { config } from '../src/config';
 import {
+  aberturaIdentificada,
   aberturaVisible,
   enVentanaDeJuicio,
   muroResuelto,
   alturaDelSalto,
   altoDeLaCorredora,
   carrilAlLado,
+  escalaAlDecidir,
   escalaDeZ,
   pasaElMuro,
   posturaQuePasa,
   segundosDeAviso,
   velocidadDeNivel,
+  zDeDecision,
   type Muro,
 } from '../src/games/tunel/pista';
 import { escalerasDeTunel } from '../src/games/tunel/Tunel';
+import { montarJuego } from './ayudas/juegoFalso';
 
 function muro(parcial: Partial<Muro> = {}): Muro {
   return {
     z: config.tunel.zDeNacimiento,
     carril: 1,
     abertura: 'arriba',
-    aberturaPx: config.tunel.aberturaInicialPx,
+    aberturaPx: 44,
+    vistaPx: 30,
     esEnsayoDeConfianza: false,
     nacidoMs: 0,
     resuelto: false,
     logrado: false,
+    carrilAcertado: false,
+    intencion: null,
     ...parcial,
   };
 }
@@ -202,7 +209,7 @@ describe('la abertura que se muestra', () => {
   });
 
   it('nunca se come el muro: sigue siendo una pared con un hueco', () => {
-    const grande = aberturaVisible(config.tunel.aberturaMaximaPx * 10, altoTunel);
+    const grande = aberturaVisible(10_000, altoTunel);
     expect(grande).toBeLessThanOrEqual(altoTunel * config.tunel.fraccionMaximaDeAbertura);
     expect(grande).toBeLessThan(altoTunel / 2);
   });
@@ -212,10 +219,11 @@ describe('la abertura que se muestra', () => {
   });
 
   it('el recorrido de la escalera es amplio: de unos pocos píxeles a muchos', () => {
-    expect(config.tunel.aberturaMinimaPx).toBeGreaterThanOrEqual(1);
-    expect(config.tunel.aberturaMaximaPx / config.tunel.aberturaMinimaPx).toBeGreaterThan(10);
-    expect(config.tunel.aberturaInicialPx).toBeGreaterThan(config.tunel.aberturaMinimaPx);
-    expect(config.tunel.aberturaInicialPx).toBeLessThan(config.tunel.aberturaMaximaPx);
+    const { aberturaVistaMinimaPx, aberturaVistaMaximaPx, aberturaVistaInicialPx } = config.tunel;
+    expect(aberturaVistaMinimaPx).toBeGreaterThanOrEqual(1);
+    expect(aberturaVistaMaximaPx / aberturaVistaMinimaPx).toBeGreaterThan(10);
+    expect(aberturaVistaInicialPx).toBeGreaterThan(aberturaVistaMinimaPx);
+    expect(aberturaVistaInicialPx).toBeLessThan(aberturaVistaMaximaPx);
   });
 });
 
@@ -263,14 +271,61 @@ describe('fallar no rompe nada', () => {
 });
 
 describe('escalera del túnel', () => {
-  it('mide la abertura en los dos modos', () => {
+  it('mide la abertura vista al decidir, en los dos modos', () => {
     for (const modo of ['parche', 'lentes'] as const) {
       const escaleras = escalerasDeTunel(modo, 1);
       expect(escaleras).toHaveLength(1);
-      expect(escaleras[0].clave).toBe(`tunel:${modo}:abertura`);
-      expect(escaleras[0].valorInicial).toBe(config.tunel.aberturaInicialPx);
-      expect(escaleras[0].minimo).toBe(config.tunel.aberturaMinimaPx);
-      expect(escaleras[0].maximo).toBe(config.tunel.aberturaMaximaPx);
+      expect(escaleras[0].clave).toBe(`tunel:${modo}:aberturaVista`);
+      expect(escaleras[0].valorInicial).toBe(config.tunel.aberturaVistaInicialPx);
+      expect(escaleras[0].minimo).toBe(config.tunel.aberturaVistaMinimaPx);
+      expect(escaleras[0].maximo).toBe(config.tunel.aberturaVistaMaximaPx);
     }
+  });
+});
+
+describe('lo que se mide es la vista, no el instante', () => {
+  it('se mide cuando todavía hay tiempo de decidir, no al llegar', () => {
+    const lento = velocidadDeNivel(1, 1);
+    const rapido = velocidadDeNivel(5, 5);
+    // Cuanto más rápido, antes hay que decidir: más lejos y más pequeña.
+    expect(zDeDecision(rapido)).toBeGreaterThan(zDeDecision(lento));
+    expect(escalaAlDecidir(rapido)).toBeLessThan(escalaAlDecidir(lento));
+    // Medirla al llegar la inflaba entre un 40 y un 75 %.
+    expect(1 / escalaAlDecidir(lento)).toBeGreaterThan(1.3);
+    expect(escalaAlDecidir(lento)).toBeLessThan(1);
+  });
+
+  it('acierta quien elige carril y postura, aunque el salto salga a destiempo', () => {
+    expect(aberturaIdentificada(muro({ carrilAcertado: true, intencion: 'saltando' }))).toBe(true);
+    expect(aberturaIdentificada(muro({ carrilAcertado: true, intencion: 'deslizando' }))).toBe(false);
+    expect(aberturaIdentificada(muro({ carrilAcertado: false, intencion: 'saltando' }))).toBe(false);
+    expect(aberturaIdentificada(muro({ carrilAcertado: true, intencion: null }))).toBe(false);
+    expect(
+      aberturaIdentificada(muro({ abertura: 'abajo', carrilAcertado: true, intencion: 'deslizando' })),
+    ).toBe(true);
+  });
+
+  it('en partida: saltar demasiado pronto tropieza, pero cuenta como vista', () => {
+    const juego = montarJuego('tunel', 'parche');
+    const dentro = juego.instancia as unknown as {
+      muros: Muro[];
+      carril: number;
+      energia: number;
+    };
+    // Se espera al primer muro y se va a su carril.
+    juego.avanzar(100);
+    const primero = dentro.muros[0];
+    while (dentro.carril < primero.carril) juego.tecla('ArrowRight');
+    while (dentro.carril > primero.carril) juego.tecla('ArrowLeft');
+    // Se pide la postura correcta enseguida, cuando el muro está todavía lejos.
+    juego.tecla(primero.abertura === 'arriba' ? 'ArrowUp' : 'ArrowDown');
+    juego.avanzar(8000);
+    const [ensayo] = juego.ensayos;
+    expect(primero.logrado).toBe(false);
+    expect(ensayo.acierto).toBe(true);
+    expect(ensayo.parametro).toBe('aberturaVista');
+    // Se anota lo que se vio al decidir, más pequeño que lo que llega.
+    expect(ensayo.valor).toBeCloseTo(primero.vistaPx, 6);
+    expect(ensayo.valor).toBeLessThan(primero.aberturaPx);
   });
 });

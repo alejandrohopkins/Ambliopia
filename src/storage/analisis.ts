@@ -193,5 +193,5 @@ export function medidasDeUmbral(estado: Estado, px: number) {
 /** Los parámetros de tamaño se pueden convertir a milímetros; el contraste no. */
 export function esParametroDeTamano(parametro: string): boolean {
   const base = parametro.split(':')[0];
-  return base === 'tamano' || base === 'diametro';
+  return ['tamano', 'diametro', 'abertura', 'aberturaVista'].includes(base);
 }

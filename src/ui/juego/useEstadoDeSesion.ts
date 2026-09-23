@@ -12,11 +12,9 @@ import type { ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { monedasPorMinutos } from '../../rewards/economia';
 import { aportesDelNivel } from '../../rewards/progresoDeJuego';
 import { juegosDelDia, minutosDelDia } from '../../storage/selectores';
+import { esParametroDeTamano } from '../../storage/analisis';
 import { pxAMm } from '../../engine/color';
 import { hoyDelJuego } from '../reloj';
-
-/** Parámetros cuyo valor es un tamaño en píxeles: de ahí salen los récords. */
-const PARAMETROS_DE_TAMANO = new Set(['tamano', 'diametro', 'abertura']);
 
 export interface NivelTerminado {
   resumen: ResumenDeNivel;
@@ -88,7 +86,8 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
       let menor = Infinity;
       for (const ensayo of ensayos) {
         if (!ensayo.acierto || ensayo.esEnsayoDeConfianza) continue;
-        if (!PARAMETROS_DE_TAMANO.has(ensayo.parametro.split(':')[0])) continue;
+        // Solo los parámetros que son un tamaño en píxeles dan récord.
+        if (!esParametroDeTamano(ensayo.parametro)) continue;
         menor = Math.min(menor, ensayo.valor);
       }
       if (!Number.isFinite(menor) || menor >= previo) return false;

@@ -125,6 +125,20 @@ export function colocar(
   return { ocupado, acierto: sobran === 0, sobran, nuevasDeFigura, filasLlenas };
 }
 
+/**
+ * ¿Se eligió bien el sitio? Vale si, soltada desde arriba en esa columna, la
+ * pieza cabía entera dentro del plano con alguno de sus giros. El ensayo mide
+ * si se vio dónde va —eso es lo visual—, no si se acertó el giro: exigir el
+ * giro exacto convertía un error de orientación espacial en un fallo de vista.
+ */
+export function sitioAcertado(estado: EstadoDeTablero, pieza: Pieza, col: number): boolean {
+  return rotaciones(pieza).some((celdas) => {
+    const columna = Math.max(0, Math.min(col, estado.cols - anchoDe(celdas)));
+    const fila = aterrizaje(estado, celdas, columna, estado.filas);
+    return colocar(estado, celdas, columna, fila).acierto;
+  });
+}
+
 /** Celdas ocupadas que no son de figura. */
 export function escombro(estado: EstadoDeTablero): Celda[] {
   const fuera: Celda[] = [];

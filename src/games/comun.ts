@@ -5,8 +5,9 @@ import type { ResumenDeNivel } from './tipos';
 
 /**
  * Estrellas del nivel.
- * Como la escalera mantiene la precisión cerca del 71-75 %, las estrellas
- * siempre son alcanzables: premian el esfuerzo y la constancia, no ver bien.
+ * Como la escalera mantiene la precisión cerca del mismo nivel —vea bien o
+ * no tanto—, las estrellas siempre son alcanzables: premian el esfuerzo y la
+ * constancia, no ver bien.
  */
 export function estrellasDeNivel(precision: number, mejorRacha: number): number {
   let estrellas = 1;

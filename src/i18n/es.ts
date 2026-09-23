@@ -4,7 +4,10 @@
  * Los textos para la jugadora van en femenino.
  * Nada de "derecho"/"izquierdo" en duro: se derivan del ojo ambliope.
  */
-import type { Ojo, Modo, IdJuego } from '../config';
+import { nivelDeAciertosBuscado, type Ojo, type Modo, type IdJuego } from '../config';
+
+/** Porcentaje de aciertos que persigue la escalera, redondeado para leerlo. */
+const META_DE_ACIERTOS = Math.round(nivelDeAciertosBuscado() * 100);
 
 /** El ojo que se tapa en modo parche es siempre el contrario al ambliope. */
 export function ojoContrario(ojo: Ojo): Ojo {
@@ -623,7 +626,8 @@ export const es = {
     tamano: 'Tamaño del objetivo',
     contraste: 'Contraste del objetivo',
     diametro: 'Diámetro del visor',
-    abertura: 'Abertura del muro',
+    abertura: 'Abertura del muro (al llegar)',
+    aberturaVista: 'Abertura del muro (vista al decidir)',
   } as Record<string, string>,
 
   /** 'diametro:1.2' → 'Diámetro del visor (separación 1.2×)'. */
@@ -675,13 +679,13 @@ export const es = {
 
     comoLeer: {
       umbralTamano:
-        'Umbral de tamaño: el objeto más pequeño que logra encontrar con cerca de 70 % de aciertos. Más bajo es mejor.',
+        `Umbral de tamaño: el objeto más pequeño que logra encontrar con cerca de ${META_DE_ACIERTOS} % de aciertos. Más bajo es mejor.`,
       umbralContraste:
         'Umbral de contraste: la diferencia de brillo más pequeña que logra distinguir. Más bajo es mejor.',
       balance:
         'Contraste del ojo dominante: cuánta señal recibe el ojo que ve bien. Sube cuando el otro ojo aguanta el reto y baja si le cuesta demasiado.',
       precision:
-        'Precisión: porcentaje de aciertos. El juego la mantiene cerca del 71 %, así que casi no cambia; sirve para detectar días raros.',
+        `Precisión: porcentaje de aciertos. El juego la mantiene cerca del ${META_DE_ACIERTOS} %, así que casi no cambia; sirve para detectar días raros.`,
       tiempo:
         'Tiempo de reacción: lo que tarda en responder. Bajar es señal de soltura, no de mejor visión.',
     } as Record<string, string>,

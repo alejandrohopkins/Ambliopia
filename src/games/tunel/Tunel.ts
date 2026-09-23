@@ -8,6 +8,11 @@
  * carril y saltar o rodar. Fallar no destruye nada: solo baja un poco el
  * medidor de energía, que se recarga solo.
  *
+ * Cada muro es un ensayo de vista: acierta quien llega a su carril y pide la
+ * postura que pasa, aunque el salto salga un pelo antes o después. La
+ * escalera mueve la abertura tal como se ve cuando todavía hay tiempo de
+ * decidir, que es el tamaño que de verdad hay que resolver.
+ *
  * Capas en modo lentes:
  *   ojo ambliope → los muros y su abertura
  *   ojo dominante → el túnel, las franjas del suelo y la corredora
@@ -31,11 +36,13 @@ import {
 } from '../../avatar/enJuego';
 import { respirar } from '../../avatar/compositor';
 import {
+  aberturaIdentificada,
   aberturaVisible,
   alturaDelSalto,
   altoDeLaCorredora,
   carrilAlLado,
   enVentanaDeJuicio,
+  escalaAlDecidir,
   escalaDeZ,
   muroResuelto,
   pasaElMuro,
@@ -45,16 +52,17 @@ import {
   type Postura,
 } from './pista';
 
-const PARAMETRO = 'abertura';
+/** La abertura vista al decidir. Es otra medida que la antigua 'abertura' al llegar. */
+const PARAMETRO = 'aberturaVista';
 
 export function escalerasDeTunel(modo: Modo, mundo: number): ConfigDeEscalera[] {
   void mundo;
   return [
     {
       clave: claveDeEscalera('tunel', modo, PARAMETRO),
-      valorInicial: config.tunel.aberturaInicialPx,
-      minimo: config.tunel.aberturaMinimaPx,
-      maximo: config.tunel.aberturaMaximaPx,
+      valorInicial: config.tunel.aberturaVistaInicialPx,
+      minimo: config.tunel.aberturaVistaMinimaPx,
+      maximo: config.tunel.aberturaVistaMaximaPx,
     },
   ];
 }
@@ -213,11 +221,23 @@ class InstanciaDeTunel implements InstanciaDeJuego {
   }
 
   private saltar(): void {
+    this.anotarIntencion('saltando');
     this.cambiarPostura('saltando', config.tunel.saltoMs);
   }
 
   private rodar(): void {
+    this.anotarIntencion('deslizando');
     this.cambiarPostura('deslizando', config.tunel.deslizamientoMs);
+  }
+
+  /** La postura pedida cuenta para el muro que viene: el más cercano sin resolver. */
+  private anotarIntencion(postura: Postura): void {
+    let cercano: Muro | null = null;
+    for (const muro of this.muros) {
+      if (muro.resuelto) continue;
+      if (!cercano || Math.abs(muro.z) < Math.abs(cercano.z)) cercano = muro;
+    }
+    if (cercano) cercano.intencion = postura;
   }
 
   // -------------------------------------------------------------------------
@@ -228,17 +248,23 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     const propuesto = this.ctx.escaleras[this.clave].proximoEnsayo();
     const { altoTunel } = this.geometria();
     const anterior = this.muros[this.muros.length - 1];
+    // La escalera pide cómo se ve al decidir; se dibuja lo que eso mide al
+    // llegar, y se anota lo que de verdad se vio tras los recortes.
+    const escala = escalaAlDecidir(this.velocidad);
+    const aberturaPx = aberturaVisible(propuesto.valor / escala, altoTunel);
 
     this.muros.push({
       z: config.tunel.zDeNacimiento,
       carril: this.aleatorio.entero(0, config.tunel.carriles - 1),
       abertura: this.aleatorio.probabilidad(0.5) ? 'arriba' : 'abajo',
-      // Se guarda la abertura que de verdad se muestra, no la pedida.
-      aberturaPx: aberturaVisible(propuesto.valor, altoTunel),
+      aberturaPx,
+      vistaPx: aberturaPx * escala,
       esEnsayoDeConfianza: propuesto.esEnsayoDeConfianza,
       nacidoMs: tiempoMs,
       resuelto: false,
       logrado: false,
+      carrilAcertado: false,
+      intencion: null,
     });
 
     // Las celdas llegan antes que este muro, o sea justo después del anterior:
@@ -257,8 +283,9 @@ class InstanciaDeTunel implements InstanciaDeJuego {
 
   private resolverMuro(muro: Muro, tiempoMs: number): void {
     muro.resuelto = true;
-    const acierto = muro.logrado;
-    if (!acierto) {
+    // El juego castiga el tropiezo; la medida solo mira si se vio la abertura.
+    const acierto = aberturaIdentificada(muro);
+    if (!muro.logrado) {
       // La corredora nunca se destruye: solo pierde un poco de energía.
       this.energia = Math.max(0, this.energia - config.tunel.energiaPorTropiezo);
       this.tropiezoHasta = tiempoMs + config.tunel.avisoTropiezoMs;
@@ -271,7 +298,7 @@ class InstanciaDeTunel implements InstanciaDeJuego {
       juego: 'tunel',
       modo: this.ctx.modo,
       parametro: PARAMETRO,
-      valor: muro.aberturaPx,
+      valor: muro.vistaPx,
       acierto,
       tiempoReaccionMs,
       esEnsayoDeConfianza: muro.esEnsayoDeConfianza,
@@ -311,8 +338,9 @@ class InstanciaDeTunel implements InstanciaDeJuego {
       muro.z -= avance;
       if (muro.resuelto) continue;
       // Basta con acertar en cualquier instante de la ventana.
-      if (enVentanaDeJuicio(muro.z) && pasaElMuro(muro, this.carril, this.postura)) {
-        muro.logrado = true;
+      if (enVentanaDeJuicio(muro.z)) {
+        if (this.carril === muro.carril) muro.carrilAcertado = true;
+        if (pasaElMuro(muro, this.carril, this.postura)) muro.logrado = true;
       }
       if (muroResuelto(muro.z)) this.resolverMuro(muro, tiempoMs);
     }
