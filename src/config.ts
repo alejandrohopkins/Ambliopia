@@ -177,6 +177,11 @@ export const config = {
     altoDeBotonesPx: 70,
     /** Cuánto se resalta una fila recién completada. */
     avisoFilaMs: 450,
+    /**
+     * Cuánto se marcan los huecos que ya no se pueden rellenar antes de cerrar
+     * el nivel. Da tiempo a ver por qué se acabó, sin dejarlo eterno.
+     */
+    avisoFinMs: 1600,
     desvanecerBloqueFueraMs: 2500,
     contrastePlanoInicial: 0.5,
     contrastePlanoMaximo: 1.0,
@@ -273,6 +278,25 @@ export const config = {
     cambioDeCarrilMs: 140,
     /** Recorrido mínimo de un deslizamiento del dedo para que cuente. */
     deslizarMinimoPx: 26,
+    /**
+     * Ventana en la que se juzga un muro, en unidades de pista a cada lado.
+     * Basta con acertar carril y postura en cualquier instante de ella: saltar
+     * un pelo antes o después sigue valiendo.
+     */
+    zDeJuicio: 0.8,
+    /** Un gesto pulsado antes de tiempo se guarda y se aplica al aterrizar. */
+    bufferDeGestoMs: 300,
+    /** Distancia a la que ya se recoge una celda de energía. */
+    zDeRecogida: 0.6,
+
+    /** Grosor del muro en unidades de pista: hace que la abertura sea un túnel. */
+    grosorDeMuro: 0.8,
+    /** Luminancia de la cara de atrás del muro, que se ve por la abertura. */
+    factorCaraDeAtras: 0.45,
+    /** Altura de las celdas de energía sobre el suelo, en fracción del túnel. */
+    alturaDeCelda: 0.22,
+    /** Luminancia de las marcas en el suelo (la sombra de la corredora). */
+    factorDeSombra: 0.5,
 
     energiaMaxima: 100,
     energiaPorTropiezo: 12,

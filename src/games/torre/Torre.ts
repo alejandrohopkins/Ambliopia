@@ -35,6 +35,7 @@ import {
   bloquesRestantes,
   cabe,
   celdasEn,
+  celdasPerdidas,
   colocar,
   escombro,
   esDeFigura,
@@ -140,6 +141,10 @@ class InstanciaDeTorre implements InstanciaDeJuego {
   /** Filas recién completadas y hasta cuándo se resaltan. */
   private filasBrillando: number[] = [];
   private brilloHasta = 0;
+  /** Huecos de la figura que ya no se pueden rellenar. */
+  private perdidas: Celda[] = [];
+  /** Cuándo se cierra el nivel tras marcar esos huecos. 0 = no se está cerrando. */
+  private finHasta = 0;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -279,8 +284,22 @@ class InstanciaDeTorre implements InstanciaDeJuego {
         : Infinity;
 
     this.pieza = null;
-    if (figuraCompleta(this.tablero)) this.terminarNivel();
-    else this.nuevaPieza();
+    if (figuraCompleta(this.tablero)) {
+      this.terminarNivel();
+      return;
+    }
+
+    // Si un hueco de la figura quedó tapado por la propia figura, la gravedad
+    // ya no puede llegar ahí y no hay forma de terminarla. Se marca lo que se
+    // perdió y el nivel se cierra con lo construido, sin quitarle nada.
+    const perdidas = celdasPerdidas(this.tablero);
+    if (perdidas.length > 0) {
+      this.perdidas = perdidas;
+      this.finHasta = this.bucle.tiempoMs + config.torre.avisoFinMs;
+      return;
+    }
+
+    this.nuevaPieza();
   }
 
   private terminarNivel(): void {
@@ -291,7 +310,14 @@ class InstanciaDeTorre implements InstanciaDeJuego {
     for (const [clave, escalera] of Object.entries(this.ctx.escaleras)) {
       umbrales[clave.split(':').slice(2).join(':')] = escalera.threshold();
     }
-    this.ctx.onFinNivel(this.contador.resumen(umbrales));
+    const total = bloquesDeFigura(this.figura);
+    this.ctx.onFinNivel(
+      this.contador.resumen(umbrales, {
+        hecho: total - bloquesRestantes(this.tablero),
+        total,
+        cumplido: figuraCompleta(this.tablero),
+      }),
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -493,6 +519,16 @@ class InstanciaDeTorre implements InstanciaDeJuego {
   private cuadro(dtMs: number, tiempoMs: number): void {
     if (this.destruido || this.terminado) return;
 
+    // Cerrando el nivel: solo se ven los huecos marcados un momento.
+    if (this.finHasta > 0) {
+      if (tiempoMs >= this.finHasta) {
+        this.terminarNivel();
+        return;
+      }
+      this.dibujar(tiempoMs);
+      return;
+    }
+
     if (this.pieza) {
       const factor = this.cayendoRapido ? config.torre.factorCaidaSuave : 1;
       this.pieza.fila -= this.velocidad * factor * (dtMs / 1000);
@@ -520,6 +556,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
 
     this.dibujarCuadricula(lado);
     this.dibujarPlano(lado);
+    this.dibujarPerdidas(lado);
     this.dibujarColocados(lado, tiempoMs);
     this.dibujarSombra(lado);
     this.dibujarPieza(lado);
@@ -564,6 +601,37 @@ class InstanciaDeTorre implements InstanciaDeJuego {
         const { x, y } = this.celda(columna, fila);
         renderer.rect('ojoDominante', x + 1, y + 1, lado - 2, lado - 2, tono ? { tono } : undefined);
       }
+    }
+  }
+
+  /**
+   * Huecos que ya no se pueden rellenar, marcados con un aspa. Van en la capa
+   * de ambos ojos, como el resto de los avisos del juego.
+   */
+  private dibujarPerdidas(lado: number): void {
+    if (this.perdidas.length === 0) return;
+    const { renderer } = this.ctx;
+    const grosor = Math.max(2, Math.round(lado / 9));
+    const margen = Math.round(lado * 0.24);
+
+    for (const [fila, col] of this.perdidas) {
+      const { x, y } = this.celda(col, fila);
+      const a = x + margen;
+      const b = y + margen;
+      const c = x + lado - margen;
+      const d = y + lado - margen;
+      renderer.poligono('ambos', [
+        [a, b],
+        [a + grosor, b],
+        [c, d],
+        [c - grosor, d],
+      ]);
+      renderer.poligono('ambos', [
+        [c, b],
+        [c - grosor, b],
+        [a, d],
+        [a + grosor, d],
+      ]);
     }
   }
 

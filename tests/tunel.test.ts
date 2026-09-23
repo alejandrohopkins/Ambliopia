@@ -5,6 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { config } from '../src/config';
 import {
   aberturaVisible,
+  enVentanaDeJuicio,
+  muroResuelto,
   alturaDelSalto,
   altoDeLaCorredora,
   carrilAlLado,
@@ -26,6 +28,7 @@ function muro(parcial: Partial<Muro> = {}): Muro {
     esEnsayoDeConfianza: false,
     nacidoMs: 0,
     resuelto: false,
+    logrado: false,
     ...parcial,
   };
 }
@@ -62,6 +65,64 @@ describe('pasar un muro', () => {
         expect(pasaElMuro(pared, carril, posturaQuePasa(abertura))).toBe(true);
       }
     }
+  });
+});
+
+describe('ventana de juicio', () => {
+  it('cuenta un poco antes y un poco después de llegar el muro', () => {
+    const z = config.tunel.zDeJuicio;
+    expect(enVentanaDeJuicio(z * 0.9)).toBe(true);
+    expect(enVentanaDeJuicio(0)).toBe(true);
+    expect(enVentanaDeJuicio(-z * 0.9)).toBe(true);
+  });
+
+  it('fuera de ella no cuenta', () => {
+    const z = config.tunel.zDeJuicio;
+    expect(enVentanaDeJuicio(z * 1.1)).toBe(false);
+    expect(enVentanaDeJuicio(-z * 1.1)).toBe(false);
+  });
+
+  it('el muro se anota cuando ya pasó del todo', () => {
+    const z = config.tunel.zDeJuicio;
+    expect(muroResuelto(0)).toBe(false);
+    expect(muroResuelto(-z * 0.9)).toBe(false);
+    expect(muroResuelto(-z)).toBe(true);
+  });
+
+  it('la ventana dura lo bastante para no pedir precisión de milésimas', () => {
+    // Un salto entero cabe de sobra dentro de la ventana en el nivel más rápido.
+    const segundos = (2 * config.tunel.zDeJuicio) / velocidadDeNivel(5, 5);
+    expect(segundos).toBeGreaterThan(0.2);
+    // Pero tampoco es tan larga como para que valga saltar en cualquier momento.
+    const entreMuros = config.tunel.separacionDeMuros / velocidadDeNivel(1, 1);
+    expect(segundos).toBeLessThan(entreMuros / 2);
+  });
+
+  it('el gesto guardado no caduca antes de un salto normal', () => {
+    expect(config.tunel.bufferDeGestoMs).toBeGreaterThan(150);
+    expect(config.tunel.bufferDeGestoMs).toBeLessThan(config.tunel.saltoMs);
+  });
+});
+
+describe('profundidad y celdas', () => {
+  it('las celdas se recogen con margen, no solo al pasar justo por encima', () => {
+    expect(config.tunel.zDeRecogida).toBeGreaterThan(0);
+    expect(config.tunel.zDeRecogida).toBeLessThan(config.tunel.separacionDeMuros / 4);
+  });
+
+  it('las celdas van a media altura, alcanzables sin saltar', () => {
+    expect(config.tunel.alturaDeCelda).toBeGreaterThan(0);
+    expect(config.tunel.alturaDeCelda).toBeLessThan(altoDeLaCorredora('corriendo'));
+  });
+
+  it('el muro tiene grosor, pero menos que la separación entre muros', () => {
+    expect(config.tunel.grosorDeMuro).toBeGreaterThan(0);
+    expect(config.tunel.grosorDeMuro).toBeLessThan(config.tunel.separacionDeMuros / 4);
+  });
+
+  it('la cara de atrás del muro se ve más apagada que la de delante', () => {
+    expect(config.tunel.factorCaraDeAtras).toBeGreaterThan(0);
+    expect(config.tunel.factorCaraDeAtras).toBeLessThan(1);
   });
 });
 

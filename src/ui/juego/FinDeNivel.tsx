@@ -28,6 +28,12 @@ export function FinDeNivel({
   alRepetir: () => void;
   alVolver: () => void;
 }) {
+  const aMedias = resumen.objetivo !== undefined && !resumen.objetivo.cumplido;
+  // Con la figura a medias no se pasa de nivel: cada nivel de la Torre es una
+  // figura de la galería y el progreso solo avanza, así que saltársela la
+  // dejaría fuera para siempre. Repetir queda como la puerta natural.
+  const puedeSeguir = hayNivelSiguiente && !aMedias;
+
   // El tintineo de monedas llega justo después de la fanfarria del nivel.
   useEffect(() => {
     const id = setTimeout(() => audio().reproducir('monedas'), 450);
@@ -37,7 +43,7 @@ export function FinDeNivel({
   return (
     <main style={{ padding: 24, maxWidth: 620, margin: '0 auto', textAlign: 'center' }}>
       <Pixelnauta mapa={PIXELNAUTA} escala={8} etiqueta={es.juegos[juego]} />
-      <h1>{es.finDeNivel.titulo}</h1>
+      <h1>{aMedias ? es.finDeNivel.tituloAMedias : es.finDeNivel.titulo}</h1>
 
       <p
         className="numero"
@@ -47,7 +53,11 @@ export function FinDeNivel({
         {'★'.repeat(resumen.estrellas)}
         <span style={{ color: 'var(--borde)' }}>{'★'.repeat(3 - resumen.estrellas)}</span>
       </p>
+      {resumen.objetivo && (
+        <p>{es.finDeNivel.objetivo(resumen.objetivo.hecho, resumen.objetivo.total)}</p>
+      )}
       <p>{es.finDeNivel.precision(resumen.precision * 100)}</p>
+      {aMedias && <p style={{ color: 'var(--texto-tenue)' }}>{es.finDeNivel.figuraAMedias}</p>}
       <p className="numero" style={{ fontSize: 22 }}>
         {es.finDeNivel.monedasGanadas(monedas)}
       </p>
@@ -58,13 +68,13 @@ export function FinDeNivel({
       )}
 
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        {hayNivelSiguiente && (
+        {puedeSeguir && (
           <button className="pixelado" onClick={alSiguiente}>
             {es.finDeNivel.siguienteNivel}
           </button>
         )}
-        <button className="pixelado secundario" onClick={alRepetir}>
-          {es.finDeNivel.repetir}
+        <button className={aMedias ? 'pixelado' : 'pixelado secundario'} onClick={alRepetir}>
+          {aMedias ? es.finDeNivel.intentarla : es.finDeNivel.repetir}
         </button>
         <button className="pixelado secundario" onClick={alVolver}>
           {es.comun.volverALaBase}

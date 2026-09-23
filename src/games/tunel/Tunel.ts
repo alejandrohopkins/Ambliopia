@@ -20,13 +20,15 @@ import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
 import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
-import { dibujarCeldaDeEnergia, dibujarCorredora } from './arte';
+import { dibujarCeldaDeEnergia, dibujarCorredora, dibujarMarcaDeSuelo } from './arte';
 import {
   aberturaVisible,
   alturaDelSalto,
   altoDeLaCorredora,
   carrilAlLado,
+  enVentanaDeJuicio,
   escalaDeZ,
+  muroResuelto,
   pasaElMuro,
   velocidadDeNivel,
   type CeldaDeEnergia,
@@ -77,6 +79,8 @@ class InstanciaDeTunel implements InstanciaDeJuego {
   private energia = config.tunel.energiaMaxima;
   private celdasRecogidas = 0;
   private tropiezoHasta = 0;
+  /** Gesto pulsado mientras saltaba o rodaba: se aplica al aterrizar. */
+  private gestoPendiente: { postura: Postura; enMs: number } | null = null;
   private terminado = false;
   private destruido = false;
   private tocandoDesde: { x: number; y: number } | null = null;
@@ -180,12 +184,23 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     this.carril = carrilAlLado(this.carril, direccion, config.tunel.carriles);
   }
 
-  /** Saltar y rodar no se interrumpen: una vez empezado, el gesto se cumple. */
+  /**
+   * Saltar y rodar no se interrumpen: una vez empezado, el gesto se cumple.
+   * Si se pulsa mientras está en el aire, el gesto se guarda y se aplica solo
+   * al aterrizar, para que pulsar un pelo antes de tiempo no se pierda.
+   */
   private cambiarPostura(postura: Postura, duracionMs: number): void {
-    if (this.postura !== 'corriendo') return;
+    if (this.postura !== 'corriendo') {
+      this.gestoPendiente = { postura, enMs: this.bucle.tiempoMs };
+      return;
+    }
     this.postura = postura;
     this.posturaDesdeMs = this.bucle.tiempoMs;
     this.posturaHastaMs = this.bucle.tiempoMs + duracionMs;
+  }
+
+  private duracionDePostura(postura: Postura): number {
+    return postura === 'saltando' ? config.tunel.saltoMs : config.tunel.deslizamientoMs;
   }
 
   private saltar(): void {
@@ -203,25 +218,29 @@ class InstanciaDeTunel implements InstanciaDeJuego {
   private nacerMuro(tiempoMs: number): void {
     const propuesto = this.ctx.escaleras[this.clave].proximoEnsayo();
     const { altoTunel } = this.geometria();
-    const carril = this.aleatorio.entero(0, config.tunel.carriles - 1);
+    const anterior = this.muros[this.muros.length - 1];
 
     this.muros.push({
       z: config.tunel.zDeNacimiento,
-      carril,
+      carril: this.aleatorio.entero(0, config.tunel.carriles - 1),
       abertura: this.aleatorio.probabilidad(0.5) ? 'arriba' : 'abajo',
       // Se guarda la abertura que de verdad se muestra, no la pedida.
       aberturaPx: aberturaVisible(propuesto.valor, altoTunel),
       esEnsayoDeConfianza: propuesto.esEnsayoDeConfianza,
       nacidoMs: tiempoMs,
       resuelto: false,
+      logrado: false,
     });
 
-    // Celdas de energía repartidas por el tramo que viene detrás del muro.
+    // Las celdas llegan antes que este muro, o sea justo después del anterior:
+    // van en el carril por el que se sale de aquel, que es donde ya estará.
+    // Así se pueden recoger de verdad en vez de quedar en un carril imposible.
+    const carrilDeCeldas = anterior ? anterior.carril : this.carril;
     const hueco = config.tunel.separacionDeMuros / (config.tunel.celdasPorTramo + 1);
     for (let i = 1; i <= config.tunel.celdasPorTramo; i += 1) {
       this.celdas.push({
         z: config.tunel.zDeNacimiento - hueco * i,
-        carril: this.aleatorio.entero(0, config.tunel.carriles - 1),
+        carril: carrilDeCeldas,
         tomada: false,
       });
     }
@@ -229,7 +248,7 @@ class InstanciaDeTunel implements InstanciaDeJuego {
 
   private resolverMuro(muro: Muro, tiempoMs: number): void {
     muro.resuelto = true;
-    const acierto = pasaElMuro(muro, this.carril, this.postura);
+    const acierto = muro.logrado;
     if (!acierto) {
       // La corredora nunca se destruye: solo pierde un poco de energía.
       this.energia = Math.max(0, this.energia - config.tunel.energiaPorTropiezo);
@@ -260,6 +279,14 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     if (this.postura !== 'corriendo' && tiempoMs >= this.posturaHastaMs) {
       this.postura = 'corriendo';
     }
+    // Al aterrizar se cobra el gesto guardado, si todavía está fresco.
+    if (this.postura === 'corriendo' && this.gestoPendiente) {
+      const { postura, enMs } = this.gestoPendiente;
+      this.gestoPendiente = null;
+      if (tiempoMs - enMs <= config.tunel.bufferDeGestoMs) {
+        this.cambiarPostura(postura, this.duracionDePostura(postura));
+      }
+    }
 
     // El carril se mueve suave solo para el dibujo; la lógica ya está en el nuevo.
     const paso = dt / (config.tunel.cambioDeCarrilMs / 1000);
@@ -273,13 +300,18 @@ class InstanciaDeTunel implements InstanciaDeJuego {
 
     for (const muro of this.muros) {
       muro.z -= avance;
-      if (!muro.resuelto && muro.z <= 0) this.resolverMuro(muro, tiempoMs);
+      if (muro.resuelto) continue;
+      // Basta con acertar en cualquier instante de la ventana.
+      if (enVentanaDeJuicio(muro.z) && pasaElMuro(muro, this.carril, this.postura)) {
+        muro.logrado = true;
+      }
+      if (muroResuelto(muro.z)) this.resolverMuro(muro, tiempoMs);
     }
-    this.muros = this.muros.filter((muro) => muro.z > -1);
+    this.muros = this.muros.filter((muro) => muro.z > -2);
 
     for (const celda of this.celdas) {
       celda.z -= avance;
-      if (!celda.tomada && celda.z <= 0 && celda.carril === this.carril) {
+      if (!celda.tomada && celda.z <= config.tunel.zDeRecogida && celda.carril === this.carril) {
         celda.tomada = true;
         this.celdasRecogidas += 1;
         this.energia = Math.min(
@@ -379,31 +411,18 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     );
   }
 
-  /** Franjas del suelo y contorno del túnel: dan la sensación de avanzar. */
+  /**
+   * El túnel: paredes, franjas del suelo y del techo, y costillas que unen
+   * los dos. El techo importa tanto como el suelo, porque sin él "arriba" no
+   * significa nada y una abertura alta no se distingue de una baja.
+   */
   private dibujarTunel(): void {
     const { renderer } = this.ctx;
     const { franjasDelSuelo, zDeNacimiento } = config.tunel;
     const bordes = this.ladosDeCarril(0)[0];
     const separacion = zDeNacimiento / franjasDelSuelo;
 
-    for (let i = 0; i < franjasDelSuelo; i += 1) {
-      // Las franjas se desplazan con el recorrido y reaparecen al fondo.
-      const z = ((i * separacion - this.recorrido) % zDeNacimiento + zDeNacimiento) % zDeNacimiento;
-      const cerca = this.punto(z, 0);
-      const izquierda = this.punto(z, bordes);
-      const derecha = this.punto(z, -bordes);
-      const grosor = Math.max(1, Math.round(4 * cerca.escala));
-      renderer.rect(
-        'ojoDominante',
-        izquierda.x,
-        cerca.y - grosor,
-        derecha.x - izquierda.x,
-        grosor,
-        { factor: 0.5 },
-      );
-    }
-
-    // Paredes del túnel: dos cintas que van del suelo al techo en cada lado.
+    // Paredes laterales: el fondo sobre el que va todo lo demás.
     for (const lado of [bordes, -bordes]) {
       const cercaSuelo = this.punto(0, lado);
       const cercaTecho = this.punto(0, lado, 1);
@@ -417,37 +436,74 @@ class InstanciaDeTunel implements InstanciaDeJuego {
           [lejosTecho.x, lejosTecho.y],
           [lejosSuelo.x, lejosSuelo.y],
         ],
-        { factor: 0.28 },
+        { factor: 0.25 },
       );
+    }
+
+    for (let i = 0; i < franjasDelSuelo; i += 1) {
+      // Las franjas se desplazan con el recorrido y reaparecen al fondo.
+      const z = ((i * separacion - this.recorrido) % zDeNacimiento + zDeNacimiento) % zDeNacimiento;
+      const izquierdaSuelo = this.punto(z, bordes);
+      const derechaSuelo = this.punto(z, -bordes);
+      const izquierdaTecho = this.punto(z, bordes, 1);
+      const derechaTecho = this.punto(z, -bordes, 1);
+      const grosor = Math.max(1, Math.round(4 * izquierdaSuelo.escala));
+      const ancho = derechaSuelo.x - izquierdaSuelo.x;
+
+      renderer.rect('ojoDominante', izquierdaSuelo.x, izquierdaSuelo.y - grosor, ancho, grosor, {
+        factor: 0.55,
+      });
+      renderer.rect('ojoDominante', izquierdaTecho.x, izquierdaTecho.y, ancho, grosor, {
+        factor: 0.38,
+      });
+
+      // Costillas: unen suelo y techo en los dos lados y marcan la distancia.
+      for (const [abajo, arriba] of [
+        [izquierdaSuelo, izquierdaTecho],
+        [derechaSuelo, derechaTecho],
+      ] as const) {
+        renderer.rect(
+          'ojoDominante',
+          abajo.x - grosor / 2,
+          arriba.y,
+          grosor,
+          abajo.y - arriba.y,
+          { factor: 0.38 },
+        );
+      }
     }
   }
 
   /**
-   * Líneas de los carriles y marca del carril de la corredora.
+   * Líneas de los carriles, arriba y abajo, y marca del carril de la corredora.
    * Van en la capa de ambos ojos: son el marco de referencia común, lo único
    * que permite juntar lo que ve cada ojo.
    */
   private dibujarCarriles(): void {
     const { renderer } = this.ctx;
     const { zDeNacimiento, carriles } = config.tunel;
-    const lejos = zDeNacimiento;
 
     for (let i = 0; i <= carriles; i += 1) {
       const u = i - carriles / 2;
-      const cerca = this.punto(0, u);
-      const fondo = this.punto(lejos, u);
-      const grosorCerca = 2;
-      const grosorLejos = Math.max(1, grosorCerca * escalaDeZ(lejos));
-      renderer.poligono(
-        'ambos',
-        [
-          [cerca.x - grosorCerca, cerca.y],
-          [cerca.x + grosorCerca, cerca.y],
-          [fondo.x + grosorLejos, fondo.y],
-          [fondo.x - grosorLejos, fondo.y],
-        ],
-        { factor: 0.55 },
-      );
+      for (const [altura, factor] of [
+        [0, 0.6],
+        [1, 0.32],
+      ] as const) {
+        const cerca = this.punto(0, u, altura);
+        const fondo = this.punto(zDeNacimiento, u, altura);
+        const grosorCerca = 2;
+        const grosorLejos = Math.max(1, grosorCerca * escalaDeZ(zDeNacimiento));
+        renderer.poligono(
+          'ambos',
+          [
+            [cerca.x - grosorCerca, cerca.y],
+            [cerca.x + grosorCerca, cerca.y],
+            [fondo.x + grosorLejos, fondo.y],
+            [fondo.x - grosorLejos, fondo.y],
+          ],
+          { factor },
+        );
+      }
     }
 
     // Corchete a los pies: dice a los dos ojos en qué carril va la corredora.
@@ -460,41 +516,72 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     renderer.rect('ambos', b.x - 3, a.y - alto, 3, alto);
   }
 
-  /** Un muro con su única abertura: la tarea visual del juego. */
+  /**
+   * Un muro con su única abertura. Se dibuja con dos caras —la de atrás más
+   * apagada— para que tenga cuerpo y la abertura se lea como un hueco por el
+   * que se pasa, no como una muesca pintada.
+   */
   private dibujarMuro(muro: Muro): void {
+    const { altoTunel } = this.geometria();
+    // El hueco se mide en píxeles al llegar y se mantiene igual en las dos
+    // caras: si la de atrás lo estrechara, la prueba mediría otra cosa.
+    const huecoPx = aberturaVisible(muro.aberturaPx, altoTunel) * escalaDeZ(muro.z);
+    this.dibujarCaraDeMuro(
+      muro,
+      muro.z + config.tunel.grosorDeMuro,
+      huecoPx,
+      config.tunel.factorCaraDeAtras,
+    );
+    this.dibujarCaraDeMuro(muro, muro.z, huecoPx, 1);
+  }
+
+  private dibujarCaraDeMuro(muro: Muro, z: number, huecoPx: number, factor: number): void {
     const { renderer } = this.ctx;
-    const g = this.geometria();
-    const e = escalaDeZ(muro.z);
-    const alto = g.altoTunel * e;
-    const hueco = aberturaVisible(muro.aberturaPx, g.altoTunel) * e;
+    const alto = this.geometria().altoTunel * escalaDeZ(z);
+    if (alto < 2) return;
 
     for (let carril = 0; carril < config.tunel.carriles; carril += 1) {
       const [u0, u1] = this.ladosDeCarril(carril);
-      const a = this.punto(muro.z, u0);
-      const b = this.punto(muro.z, u1);
+      const a = this.punto(z, u0);
+      const b = this.punto(z, u1);
       const ancho = b.x - a.x;
       const yPie = a.y;
       const yTecho = yPie - alto;
 
       if (carril !== muro.carril) {
-        renderer.rect('ojoAmbliope', a.x, yTecho, ancho, alto);
+        renderer.rect('ojoAmbliope', a.x, yTecho, ancho, alto, { factor });
         continue;
       }
+      const altoMuro = alto - huecoPx;
+      if (altoMuro < 1) continue;
       // Abertura arriba: el muro sube del suelo. Abajo: cuelga del techo.
-      const altoMuro = Math.max(1, alto - hueco);
       const y = muro.abertura === 'arriba' ? yPie - altoMuro : yTecho;
-      renderer.rect('ojoAmbliope', a.x, y, ancho, altoMuro);
+      renderer.rect('ojoAmbliope', a.x, y, ancho, altoMuro, { factor });
     }
   }
 
   private dibujarCeldas(tiempoMs: number): void {
     const { renderer } = this.ctx;
+    const { anchoCarril } = this.geometria();
+
     for (const celda of this.celdas) {
       if (celda.tomada || celda.z < 0) continue;
       const [u0, u1] = this.ladosDeCarril(celda.carril);
       const centro = (u0 + u1) / 2;
-      const p = this.punto(celda.z, centro, config.tunel.alturaDeSalto * 0.5);
-      const lado = Math.max(2, this.geometria().anchoCarril * 0.12 * p.escala);
+      const suelo = this.punto(celda.z, centro);
+      const p = this.punto(celda.z, centro, config.tunel.alturaDeCelda);
+      const lado = Math.max(2, anchoCarril * 0.2 * p.escala);
+
+      // La marca en el suelo dice a qué distancia está: sin ella no hay forma
+      // de calcular cuándo llega ni en qué carril cae.
+      dibujarMarcaDeSuelo(
+        renderer,
+        'ambos',
+        suelo.x,
+        suelo.y,
+        lado * 1.7,
+        config.tunel.factorDeSombra,
+      );
       dibujarCeldaDeEnergia(renderer, 'ambos', p.x, p.y, lado, (tiempoMs / 900) % 1);
     }
   }
@@ -505,17 +592,26 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     const [u0, u1] = this.ladosDeCarril(this.carrilVisual);
     const centro = (u0 + u1) / 2;
     const avanceDeSalto =
-      this.postura === 'saltando'
-        ? (tiempoMs - this.posturaDesdeMs) / config.tunel.saltoMs
-        : 0;
+      this.postura === 'saltando' ? (tiempoMs - this.posturaDesdeMs) / config.tunel.saltoMs : 0;
     const altura = alturaDelSalto(this.postura, avanceDeSalto);
+    const enSuelo = this.punto(0, centro);
     const pies = this.punto(0, centro, altura);
     const alto = altoDeLaCorredora(this.postura) * g.altoTunel;
     const ancho = g.anchoCarril * (this.postura === 'deslizando' ? 0.62 : 0.42);
 
-    // Un tropiezo se marca con la corredora un poco más apagada, sin destellos.
-    const tropezando = tiempoMs < this.tropiezoHasta;
-    if (tropezando) {
+    // La marca se queda en el suelo mientras ella sube: es lo que hace que el
+    // salto se lea de un vistazo en vez de parecer que encoge.
+    dibujarMarcaDeSuelo(
+      renderer,
+      'ambos',
+      enSuelo.x,
+      enSuelo.y,
+      ancho * (1 - altura * 0.6),
+      config.tunel.factorDeSombra,
+    );
+
+    // Un tropiezo se marca con un recuadro alrededor, sin destellos.
+    if (tiempoMs < this.tropiezoHasta) {
       renderer.marco('ambos', pies.x - ancho / 2 - 3, pies.y - alto - 3, ancho + 6, alto + 6, 2, {
         factor: 0.7,
       });

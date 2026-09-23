@@ -297,6 +297,11 @@ export const es = {
 
   finDeNivel: {
     titulo: '¡Nivel completado!',
+    tituloAMedias: '¡Hasta aquí llegó la torre!',
+    objetivo: (hecho: number, total: number) => `Colocaste ${hecho} de ${total} bloques`,
+    figuraAMedias:
+      'Un hueco quedó tapado y ya no se podía rellenar. Todo lo que ganaste se queda contigo, y esta figura te espera para otro intento.',
+    intentarla: 'Intentarla otra vez',
     estrellas: (n: number) => `${n} de 3 estrellas`,
     precision: (pct: number) => `${Math.round(pct)} % de aciertos`,
     monedasGanadas: (n: number) => `+${n} monedas`,

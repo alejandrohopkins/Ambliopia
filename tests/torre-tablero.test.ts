@@ -3,6 +3,8 @@ import { config } from '../src/config';
 import {
   aterrizaje,
   barrerEscombro,
+  celdasPerdidas,
+  hayJugadasPosibles,
   bloquesDelPlano,
   bloquesRestantes,
   cabe,
@@ -157,6 +159,65 @@ describe('escombro', () => {
     expect(ocupada(tablero, 0, 1)).toBe(true);
     expect(ocupada(tablero, 1, 0)).toBe(false);
     expect(figuraCompleta(tablero)).toBe(true);
+  });
+});
+
+describe('cuando la figura ya no se puede terminar', () => {
+  it('un tablero recién empezado no tiene nada perdido', () => {
+    const tablero = tableroVacio([3, 3], 6);
+    expect(celdasPerdidas(tablero)).toEqual([]);
+    expect(hayJugadasPosibles(tablero)).toBe(true);
+  });
+
+  it('una pieza que hace puente entierra las celdas de debajo', () => {
+    let tablero = tableroVacio([3, 3], 6);
+    tablero = soltar(tablero, BLOQUE, 0);
+    tablero = soltar(tablero, BLOQUE, 0);
+    // El par se apoya en la columna 0 y deja la columna 1 hueca por debajo.
+    tablero = soltar(tablero, PAR, 0);
+    expect(ocupada(tablero, 2, 1)).toBe(true);
+    expect(celdasPerdidas(tablero)).toEqual([
+      [1, 1],
+      [0, 1],
+    ]);
+    expect(hayJugadasPosibles(tablero)).toBe(false);
+  });
+
+  it('el escombro por encima no cuenta: se desmorona solo', () => {
+    let tablero = tableroVacio([1, 1], 6);
+    tablero = soltar(tablero, BLOQUE, 0);
+    // El par queda por encima del plano en las dos columnas: es escombro.
+    tablero = soltar(tablero, PAR, 0);
+    expect(ocupada(tablero, 1, 1)).toBe(true);
+    expect(ocupada(tablero, 0, 1)).toBe(false);
+    expect(celdasPerdidas(tablero)).toEqual([]);
+    expect(hayJugadasPosibles(tablero)).toBe(true);
+  });
+
+  it('con la figura terminada tampoco quedan jugadas, pero no hay nada perdido', () => {
+    const tablero = soltar(tableroVacio([1], 4), BLOQUE, 0);
+    expect(figuraCompleta(tablero)).toBe(true);
+    expect(celdasPerdidas(tablero)).toEqual([]);
+    expect(hayJugadasPosibles(tablero)).toBe(false);
+  });
+
+  it('jugando bien nunca se entierra nada', () => {
+    for (const figura of FIGURAS.slice(0, 10)) {
+      const { filas } = tableroDelMundo(figura.mundo);
+      const catalogo = piezasDelMundo(figura.mundo);
+      let tablero = tableroVacio(figura.alturas, filas);
+
+      while (!figuraCompleta(tablero)) {
+        const caben = piezasQueCaben(catalogo, tablero);
+        const opciones = colocacionesPerfectas(
+          caben.length > 0 ? caben[0] : BLOQUE_SUELTO,
+          tablero,
+        );
+        const { celdas, col, fila } = opciones[0];
+        tablero = { ...tablero, ocupado: colocar(tablero, celdas, col, fila).ocupado };
+        expect(celdasPerdidas(tablero), figura.id).toEqual([]);
+      }
+    }
   });
 });
 

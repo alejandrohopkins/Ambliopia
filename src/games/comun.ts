@@ -52,9 +52,13 @@ export class ContadorDeNivel {
     return this.tiemposDeReaccion.reduce((a, b) => a + b, 0) / this.tiemposDeReaccion.length;
   }
 
-  resumen(umbrales: Record<string, number>): ResumenDeNivel {
+  resumen(
+    umbrales: Record<string, number>,
+    objetivo?: ResumenDeNivel['objetivo'],
+  ): ResumenDeNivel {
     const precision = this.ensayos > 0 ? this.aciertos / this.ensayos : 0;
     return {
+      objetivo,
       ensayos: this.ensayos,
       aciertos: this.aciertos,
       precision,

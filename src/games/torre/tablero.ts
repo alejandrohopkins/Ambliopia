@@ -201,6 +201,31 @@ export function huecosEnterrados(estado: EstadoDeTablero, ocupado = estado.ocupa
   return enterrados;
 }
 
+/**
+ * Celdas de figura que ya no se pueden construir nunca.
+ *
+ * Una celda se pierde cuando está vacía y tiene encima, en su misma columna,
+ * otra celda de figura ya puesta: la gravedad no puede meter nada ahí abajo.
+ * El escombro no cuenta, porque se desmorona solo; lo que tapa de verdad es la
+ * propia figura.
+ */
+export function celdasPerdidas(estado: EstadoDeTablero): Celda[] {
+  const perdidas: Celda[] = [];
+  for (let col = 0; col < estado.cols; col += 1) {
+    let tapado = false;
+    for (let fila = estado.plano[col] - 1; fila >= 0; fila -= 1) {
+      if (estado.ocupado[indice(estado, fila, col)]) tapado = true;
+      else if (tapado) perdidas.push([fila, col]);
+    }
+  }
+  return perdidas;
+}
+
+/** ¿Queda alguna jugada que sirva? Si no, la figura ya no se puede terminar. */
+export function hayJugadasPosibles(estado: EstadoDeTablero): boolean {
+  return !figuraCompleta(estado) && celdasPerdidas(estado).length === 0;
+}
+
 export interface Colocacion {
   pieza: Pieza;
   rotacion: number;

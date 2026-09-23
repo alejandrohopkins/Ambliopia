@@ -80,8 +80,9 @@ export function PantallaDeJuego({
       const premio = premioDeNivel(resumen);
       audio().reproducir('nivel');
 
-      // En la Torre cada nivel es una figura: completarla la guarda en la galería.
-      if (juego === 'torre') {
+      // En la Torre cada nivel es una figura: solo entra en la galería si se
+      // terminó. Una figura a medias no se guarda, pero tampoco quita nada.
+      if (juego === 'torre' && resumen.objetivo?.cumplido) {
         despachar({
           tipo: 'galeria/agregar',
           figura: figuraDeNivel(progreso.mundo, progreso.nivel).id,

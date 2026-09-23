@@ -26,6 +26,8 @@ export interface Muro {
   esEnsayoDeConfianza: boolean;
   nacidoMs: number;
   resuelto: boolean;
+  /** Se acertó carril y postura en algún momento de la ventana de juicio. */
+  logrado: boolean;
 }
 
 export interface CeldaDeEnergia {
@@ -42,6 +44,21 @@ export function posturaQuePasa(abertura: Abertura): Postura {
 /** Un muro se pasa estando en su carril y en la postura que pide la abertura. */
 export function pasaElMuro(muro: Muro, carril: number, postura: Postura): boolean {
   return carril === muro.carril && postura === posturaQuePasa(muro.abertura);
+}
+
+/**
+ * ¿El muro está dentro de la ventana en la que se juzga?
+ * Se mira un tramo antes y otro después de llegar, para que saltar un poco
+ * antes o un poco después siga contando: lo que se mide es ver la abertura,
+ * no clavar el instante exacto.
+ */
+export function enVentanaDeJuicio(z: number, zDeJuicio = config.tunel.zDeJuicio): boolean {
+  return z <= zDeJuicio && z > -zDeJuicio;
+}
+
+/** Ya pasó del todo: es el momento de anotar el resultado. */
+export function muroResuelto(z: number, zDeJuicio = config.tunel.zDeJuicio): boolean {
+  return z <= -zDeJuicio;
 }
 
 /** Carril de al lado, sin salirse de la pista. */
