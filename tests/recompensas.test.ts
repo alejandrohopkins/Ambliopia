@@ -19,6 +19,15 @@ import { es } from '../src/i18n/es';
 import { aportesDelNivel, huboTresFallosSeguidos } from '../src/rewards/progresoDeJuego';
 import { componerAvatar, paletaDeAvatar } from '../src/avatar/compositor';
 import { ACCESORIOS, CASCOS, ESTELAS, MASCOTAS, NAVES, PICOS } from '../src/avatar/piezas';
+import { FONDOS } from '../src/avatar/fondos';
+import {
+  avatarDeJuego,
+  estelaDeJuego,
+  mascotaDeJuego,
+  naveDeJuego,
+  picoDeJuego,
+  tumbar,
+} from '../src/avatar/enJuego';
 
 function economia(parcial: Partial<Economia> = {}): Economia {
   return { monedas: 0, cristales: 0, inventario: [], equipado: {}, ...parcial };
@@ -79,10 +88,82 @@ describe('catálogo', () => {
     }
   });
 
-  it('hay ocho colores de traje, dos de ellos gratis', () => {
+  it('hay colores de traje de sobra y dos son gratis', () => {
     const trajes = articulosDe('trajes').filter((a) => a.color);
-    expect(trajes).toHaveLength(8);
+    expect(trajes.length).toBeGreaterThanOrEqual(8);
     expect(trajes.filter((a) => a.rareza === 'gratis')).toHaveLength(2);
+    // Dos trajes nunca comparten color: si no, comprarlo no se notaría.
+    expect(new Set(trajes.map((a) => a.color)).size).toBe(trajes.length);
+  });
+});
+
+/**
+ * Lo que se compra tiene que verse. Sin esto, una categoría entera puede
+ * quedarse sin dibujo y la tienda se convierte en un catálogo de nombres:
+ * gastas monedas y no cambia nada en pantalla.
+ */
+describe('todo lo que se compra tiene su dibujo', () => {
+  const PIEZAS: Record<string, Record<string, unknown>> = {
+    cascos: CASCOS,
+    accesorios: ACCESORIOS,
+    mascotas: MASCOTAS,
+    naves: NAVES,
+    estelas: ESTELAS,
+    picos: PICOS,
+    fondos: FONDOS,
+  };
+
+  it('cada artículo con dibujo propio lo tiene de verdad', () => {
+    for (const art of CATALOGO) {
+      const piezas = PIEZAS[art.categoria];
+      if (!piezas) continue;
+      expect(piezas[art.id], `${art.categoria}: ${art.id}`).toBeTruthy();
+    }
+  });
+
+  it('los trajes y los visores cambian de color', () => {
+    for (const categoria of ['trajes', 'visores'] as const) {
+      for (const art of articulosDe(categoria)) {
+        expect(art.color, art.id).toMatch(/^#[0-9A-F]{6}$/i);
+      }
+    }
+  });
+
+  it('cada casco deja sitio al visor', () => {
+    for (const [id, casco] of Object.entries(CASCOS)) {
+      expect(casco.some((fila) => fila.includes('V')), id).toBe(true);
+    }
+  });
+
+  it('el avatar de los juegos sale con lo equipado', () => {
+    const equipo = { cascos: 'casco-corona', accesorios: 'accesorio-alas' };
+    const mapa = avatarDeJuego(equipo);
+    expect(mapa.some((fila) => fila.includes('A'))).toBe(true);
+    expect(mapa.some((fila) => fila.includes('V'))).toBe(true);
+  });
+
+  it('de espaldas no se le ve el visor, pero sí la mochila', () => {
+    const equipo = { accesorios: 'accesorio-mochila' };
+    const mapa = avatarDeJuego(equipo, { deEspaldas: true });
+    expect(mapa.some((fila) => fila.includes('V'))).toBe(false);
+    expect(mapa.some((fila) => fila.includes('A'))).toBe(true);
+  });
+
+  it('tumbarla gira el dibujo sin perder ningún píxel', () => {
+    const mapa = avatarDeJuego({});
+    const tumbada = tumbar(mapa);
+    const cuenta = (m: string[]) => m.join('').replace(/\./g, '').length;
+    expect(cuenta(tumbada)).toBe(cuenta(mapa));
+    expect(tumbada).toHaveLength(mapa[0].length);
+    expect(tumbada[0]).toHaveLength(mapa.length);
+  });
+
+  it('sin nada equipado se cae a lo gratis, nunca a un hueco', () => {
+    expect(picoDeJuego({})).toBeTruthy();
+    expect(naveDeJuego({})).toBeTruthy();
+    expect(estelaDeJuego({})).toBeTruthy();
+    expect(mascotaDeJuego({})).toBeUndefined();
+    expect(picoDeJuego({ picos: 'no-existe' })).toBe(PICOS['pico-basico']);
   });
 });
 

@@ -2,7 +2,8 @@
  * Contrato común de los minijuegos. La base, las métricas y las recompensas
  * hablan con esta interfaz, nunca con cada juego por separado.
  */
-import type { config as Config, IdJuego, Modo } from '../config';
+import type { config as Config, IdJuego, Modo, Ojo } from '../config';
+import type { EquipoDeJuego } from '../avatar/enJuego';
 import type { DichopticRenderer } from '../engine/DichopticRenderer';
 import type { Staircase, ConfigDeEscalera } from '../engine/Staircase';
 
@@ -42,6 +43,10 @@ export interface ResumenDeNivel {
 export interface ContextoDeJuego {
   modo: Modo;
   renderer: DichopticRenderer;
+  /** Lo que la jugadora lleva puesto: sale en el juego, no solo en su avatar. */
+  equipo: EquipoDeJuego;
+  /** Ojo que lleva el parche mientras juega, o null si juega con lentes. */
+  ojoTapado: Ojo | null;
   escaleras: Record<string, Staircase>;
   config: typeof Config;
   mundo: number;

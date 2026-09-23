@@ -257,13 +257,21 @@ export class DichopticRenderer {
 
   /**
    * Sprite de mapa de píxeles con escalado entero.
+   *
    * En lentes todo el sprite es monocromático: cada carácter aporta solo su
-   * factor de luminancia dentro del color de la capa.
+   * factor de luminancia dentro del color de la capa, y así se sigue
+   * distinguiendo el traje del casco sin sacar un quinto color.
+   *
+   * En parche cada carácter sale con su color tal cual. El factor es para las
+   * lentes —lo dice su nombre—: si también se aplicara aquí, el traje que la
+   * jugadora eligió saldría más apagado que el que compró.
    */
   sprite(capa: Capa, sprite: Sprite, x: number, y: number, escala: number): void {
     const e = Math.max(1, Math.round(escala));
     const x0 = Math.round(x);
     const y0 = Math.round(y);
+    const enLentes = this.opciones.modo === 'lentes';
+
     for (let fila = 0; fila < sprite.pixeles.length; fila += 1) {
       const texto = sprite.pixeles[fila];
       for (let columna = 0; columna < texto.length; columna += 1) {
@@ -273,7 +281,10 @@ export class DichopticRenderer {
         if (!entrada) continue;
         const factor = entrada.factorLentes ?? 1;
         if (factor <= 0) continue;
-        this.ctx.fillStyle = this.cssDeCapa(capa, { tono: entrada.color, factor });
+        this.ctx.fillStyle = this.cssDeCapa(capa, {
+          tono: entrada.color,
+          factor: enLentes ? factor : 1,
+        });
         this.ctx.fillRect(x0 + columna * e, y0 + fila * e, e, e);
       }
     }

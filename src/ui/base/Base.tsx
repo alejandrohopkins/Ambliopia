@@ -14,6 +14,7 @@ import { Portal } from './Portal';
 import { useMovimientoReducido } from '../movimiento';
 import { Contadores } from './Contadores';
 import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
+import { fondoDeBase } from '../../avatar/fondos';
 import { MisionDelDia } from './MisionDelDia';
 import type { Pantalla } from '../navegacion';
 
@@ -39,23 +40,37 @@ function usarSoloLaPrimeraVez(): boolean {
  * Aterriza una sola vez al abrir la app; después solo respira.
  * Todo lo demás de la pantalla es sobrio a propósito.
  */
-function Plataforma({ aterrizar }: { aterrizar: boolean }) {
+function Plataforma({ aterrizar, fondo }: { aterrizar: boolean; fondo: string | undefined }) {
+  const paisaje = fondoDeBase(fondo);
   return (
     <div style={{ textAlign: 'center' }}>
       <div
         className="pixelado"
-        style={{ padding: '14px 18px 0', background: 'var(--superficie)' }}
+        style={{ position: 'relative', padding: '14px 18px 0', background: paisaje.cielo }}
       >
-        <div className={aterrizar ? 'aterriza' : undefined}>
+        {/* El paisaje comprado, detrás del avatar. */}
+        <svg
+          aria-hidden
+          viewBox="0 0 32 14"
+          preserveAspectRatio="none"
+          shapeRendering="crispEdges"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        >
+          {paisaje.puntos.map(([x, y]) => (
+            <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={paisaje.adorno} />
+          ))}
+        </svg>
+        <div style={{ position: 'relative' }} className={aterrizar ? 'aterriza' : undefined}>
           <AvatarCompuesto escala={12} conMascota respira />
         </div>
         <div
           aria-hidden
           className={`pixelado${aterrizar ? ' aterriza-polvo' : ''}`}
           style={{
+            position: 'relative',
             height: 14,
             marginTop: 6,
-            background: 'var(--nebulosa)',
+            background: paisaje.suelo,
             borderTop: '3px solid var(--borde)',
           }}
         />
@@ -103,7 +118,10 @@ export function Base({
           marginBottom: 18,
         }}
       >
-        <Plataforma aterrizar={!sinMovimiento && primeraVez} />
+        <Plataforma
+          aterrizar={!sinMovimiento && primeraVez}
+          fondo={estado.economia.equipado.fondos}
+        />
 
         <div style={{ flex: '1 1 260px' }}>
           <h1 style={{ marginBottom: 4 }}>{es.base.saludoCorto(estado.perfil.nombre)}</h1>

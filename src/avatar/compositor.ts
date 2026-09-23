@@ -14,6 +14,15 @@ export interface Equipo {
   accesorios?: string;
 }
 
+export interface OpcionesDeComposicion {
+  /**
+   * De espaldas: el visor no se ve —es la nuca del casco— y el accesorio pasa
+   * al frente, porque la mochila, la capa y las alas se llevan a la espalda.
+   * Es lo que hace falta en un juego de correr.
+   */
+  deEspaldas?: boolean;
+}
+
 /** Superpone un mapa sobre otro; '.' deja ver lo de abajo. */
 function superponer(base: MapaDePixeles, encima: MapaDePixeles): MapaDePixeles {
   return base.map((fila, y) => {
@@ -29,17 +38,32 @@ function vacio(): MapaDePixeles {
   return Array.from({ length: ALTO }, () => '.'.repeat(ANCHO));
 }
 
-export function componerAvatar(equipo: Equipo): MapaDePixeles {
+export function componerAvatar(
+  equipo: Equipo,
+  opciones: OpcionesDeComposicion = {},
+): MapaDePixeles {
   let mapa = vacio();
-
-  // El accesorio va detrás del cuerpo: mochila, capa o alas asoman por los lados.
   const accesorio = equipo.accesorios ? ACCESORIOS[equipo.accesorios] : undefined;
-  if (accesorio) mapa = superponer(mapa, accesorio);
+
+  // De frente el accesorio va detrás del cuerpo y solo asoma por los lados.
+  if (accesorio && !opciones.deEspaldas) mapa = superponer(mapa, accesorio);
 
   mapa = superponer(mapa, CUERPO);
 
   const casco = CASCOS[equipo.cascos ?? 'casco-clasico'] ?? CASCOS['casco-clasico'];
   mapa = superponer(mapa, casco);
+
+  // Un traje de dos tonos sale a rayas: es lo que hace que un traje caro se
+  // vea distinto de uno de color liso y no solo "otro color".
+  if (equipo.trajes && articulo(equipo.trajes)?.color2) {
+    mapa = mapa.map((fila, y) => (y % 2 === 0 ? fila.replace(/B/g, 'C') : fila));
+  }
+
+  if (opciones.deEspaldas) {
+    // La nuca del casco: donde iba el visor va el casco.
+    mapa = mapa.map((fila) => fila.replace(/V/g, 'H'));
+    if (accesorio) mapa = superponer(mapa, accesorio);
+  }
 
   return mapa;
 }
@@ -51,6 +75,7 @@ export function paletaDeAvatar(equipo: Equipo): PaletaDeSprite {
   return {
     ...PALETA_POR_DEFECTO,
     B: traje?.color ?? PALETA_POR_DEFECTO.B,
+    C: traje?.color2 ?? traje?.color ?? PALETA_POR_DEFECTO.C,
     V: visor?.color ?? PALETA_POR_DEFECTO.V,
   };
 }

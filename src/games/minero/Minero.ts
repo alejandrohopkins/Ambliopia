@@ -25,7 +25,7 @@ import {
   type AreaDeJuego,
 } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
-import { PICO, dibujarMineraConPico } from './arte';
+import { dibujarMineraConPico } from './arte';
 
 const PARAMETRO_TAMANO = 'tamano';
 const PARAMETRO_CONTRASTE = 'contraste';
@@ -357,7 +357,14 @@ class InstanciaDeMinero implements InstanciaDeJuego {
     }
 
     // La pixelnauta con su pico, también en la capa del ojo dominante.
-    dibujarMineraConPico(renderer, this.area(), lado);
+    dibujarMineraConPico(
+      renderer,
+      this.area(),
+      lado,
+      this.origen().x,
+      this.ctx.equipo,
+      this.ctx.ojoTapado,
+    );
 
     // Cristal: capa del ojo ambliope.
     if (this.ensayo && (this.fase === 'jugando' || this.fase === 'revelando')) {
@@ -462,4 +469,3 @@ export const minero: Minijuego = {
   crear: (canvas, contexto) => new InstanciaDeMinero(canvas, contexto),
 };
 
-export { PICO };

@@ -111,6 +111,8 @@ export const config = {
       { cols: 5, filas: 4 },
       { cols: 6, filas: 4 },
     ],
+    /** Hueco que se deja abajo para que el botón de pausa no tape a la minera. */
+    margenDePausaPx: 70,
     tamanoInicialPx: 60,
     tamanoMinimoPx: 3,
     /** Máximo como fracción del lado del bloque. */
@@ -219,6 +221,11 @@ export const config = {
     tecladoVelocidadMaxima: 0.55,
     /** Segundos manteniendo la flecha hasta llegar a la velocidad máxima. */
     tecladoSegundosHastaMaxima: 0.7,
+
+    /** Copias de la estela que se dibujan detrás de la nave. */
+    pasosDeEstela: 3,
+    /** Lo que tarda la estela en recorrer un paso, en milisegundos. */
+    estelaMsPorPaso: 130,
 
     /** Chispas al atrapar una estrella de energía. */
     chispasPorEstrella: 12,

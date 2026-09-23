@@ -21,6 +21,13 @@ import { crearAleatorio, type Aleatorio } from '../../engine/rng';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
 import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud } from '../comun';
+import {
+  escalaPara,
+  estelaDeJuego,
+  medida,
+  naveDeJuego,
+  spriteDeEquipo,
+} from '../../avatar/enJuego';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
 
 const PARAMETRO = 'tamano';
@@ -381,7 +388,7 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
     for (const punto of this.fondo) {
       renderer.rect('ojoDominante', punto.x, punto.y, 1, 1, { tono: renderer.paleta.secundario });
     }
-    this.dibujarNave();
+    this.dibujarNave(tiempoMs);
 
     // Estrellas de energía y rocas: capa del ojo ambliope, mismo color y tamaño.
     for (const objeto of this.objetos) {
@@ -453,21 +460,41 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
     }
   }
 
-  private dibujarNave(): void {
+  /**
+   * La nave que lleva equipada, con su estela detrás. Capa del ojo dominante.
+   * Comprar una nave o una estela se nota aquí: es la mitad del sentido de
+   * juntar monedas.
+   */
+  private dibujarNave(tiempoMs: number): void {
     const { renderer } = this.ctx;
+    const { equipo } = this.ctx;
     const ancho = this.anchoDeNave();
-    const y = this.naveY();
-    const x = this.naveX;
-    const mitad = ancho / 2;
+    const nave = naveDeJuego(equipo);
+    const escala = escalaPara(nave, ancho);
+    const suya = medida(nave, escala);
+    const x0 = this.naveX - suya.ancho / 2;
+    const y0 = this.naveY() - suya.alto / 2;
 
-    renderer.poligono('ojoDominante', [
-      [x, y - mitad * 0.9],
-      [x + mitad, y + mitad * 0.6],
-      [x, y + mitad * 0.2],
-      [x - mitad, y + mitad * 0.6],
-    ]);
-    // Estela.
-    renderer.rect('ojoDominante', x - 2, y + mitad * 0.4, 4, mitad * 0.6, { factor: 0.6 });
+    // Estela: la forma equipada, repetida hacia atrás y cada vez más pequeña,
+    // desplazándose para que parezca que sale de los motores.
+    const estela = estelaDeJuego(equipo);
+    const spriteDeEstela = spriteDeEquipo(estela, renderer, equipo);
+    const paso = Math.max(2, escala * 2);
+    const desfase = (tiempoMs / config.meteoritos.estelaMsPorPaso) % 1;
+
+    for (let i = 0; i < config.meteoritos.pasosDeEstela; i += 1) {
+      const escalaEstela = Math.max(1, escala - i);
+      const suyaEstela = medida(estela, escalaEstela);
+      renderer.sprite(
+        'ojoDominante',
+        spriteDeEstela,
+        this.naveX - suyaEstela.ancho / 2,
+        y0 + suya.alto + (i + desfase) * paso,
+        escalaEstela,
+      );
+    }
+
+    renderer.sprite('ojoDominante', spriteDeEquipo(nave, renderer, equipo), x0, y0, escala);
   }
 
   /** Estrella de cuatro puntas. */

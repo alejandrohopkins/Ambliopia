@@ -29,10 +29,11 @@ export const PIXELNAUTA: MapaDePixeles = [
 /**
  * La misma pixelnauta con el parche sobre un ojo.
  * Nos mira de frente, así que su ojo derecho cae a la izquierda de quien mira.
+ * Sirve para cualquier avatar compuesto, no solo para el de serie.
  */
-export function conParche(ojoTapado: Ojo): MapaDePixeles {
+export function conParche(ojoTapado: Ojo, mapa: MapaDePixeles = PIXELNAUTA): MapaDePixeles {
   const ladoIzquierdoDeLaImagen = ojoTapado === 'derecho';
-  return PIXELNAUTA.map((fila, y) => {
+  return mapa.map((fila, y) => {
     if (y < 4 || y > 5) return fila;
     return [...fila]
       .map((caracter, x) => {
@@ -56,6 +57,8 @@ export interface PaletaDeSprite {
   H: string;
   V: string;
   B: string;
+  /** Segundo tono del traje, para los de rayas. */
+  C: string;
   P: string;
 }
 
@@ -64,5 +67,6 @@ export const PALETA_POR_DEFECTO: PaletaDeSprite = {
   H: '#EDE9FF',
   V: '#3FD6C6',
   B: '#5B3FA0',
+  C: '#7A5CC6',
   P: '#191233',
 };

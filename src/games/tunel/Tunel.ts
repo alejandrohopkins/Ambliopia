@@ -20,7 +20,16 @@ import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
 import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
-import { dibujarCeldaDeEnergia, dibujarCorredora, dibujarMarcaDeSuelo } from './arte';
+import { dibujarCeldaDeEnergia, dibujarMarcaDeSuelo } from './arte';
+import {
+  avatarDeJuego,
+  escalaPara,
+  mascotaDeJuego,
+  medida,
+  spriteDeEquipo,
+  tumbar,
+} from '../../avatar/enJuego';
+import { respirar } from '../../avatar/compositor';
 import {
   aberturaVisible,
   alturaDelSalto,
@@ -586,8 +595,13 @@ class InstanciaDeTunel implements InstanciaDeJuego {
     }
   }
 
+  /**
+   * La corredora es el avatar de la jugadora, de espaldas y con lo que lleve
+   * puesto: casco, traje, mochila y su mascota al lado. Correr con su propio
+   * personaje es lo que hace que comprar cosas valga la pena.
+   */
   private dibujarCorredora(tiempoMs: number): void {
-    const { renderer } = this.ctx;
+    const { renderer, equipo } = this.ctx;
     const g = this.geometria();
     const [u0, u1] = this.ladosDeCarril(this.carrilVisual);
     const centro = (u0 + u1) / 2;
@@ -610,19 +624,45 @@ class InstanciaDeTunel implements InstanciaDeJuego {
       config.tunel.factorDeSombra,
     );
 
+    // Rodando va tumbada; corriendo da un pasito arriba y abajo.
+    const deEspaldas = avatarDeJuego(equipo, { deEspaldas: true });
+    const mapa =
+      this.postura === 'deslizando'
+        ? tumbar(deEspaldas)
+        : respirar(deEspaldas, (this.recorrido * 2) % 1 > 0.5);
+
+    const escala = Math.max(
+      1,
+      Math.min(escalaPara(mapa, ancho), Math.floor(alto / mapa.length)),
+    );
+    const suya = medida(mapa, escala);
+    const x0 = pies.x - suya.ancho / 2;
+    const y0 = pies.y - suya.alto;
+
     // Un tropiezo se marca con un recuadro alrededor, sin destellos.
     if (tiempoMs < this.tropiezoHasta) {
-      renderer.marco('ambos', pies.x - ancho / 2 - 3, pies.y - alto - 3, ancho + 6, alto + 6, 2, {
-        factor: 0.7,
-      });
+      renderer.marco('ambos', x0 - 3, y0 - 3, suya.ancho + 6, suya.alto + 6, 2, { factor: 0.7 });
     }
 
-    dibujarCorredora(
-      renderer,
+    renderer.sprite('ojoDominante', spriteDeEquipo(mapa, renderer, equipo), x0, y0, escala);
+    this.dibujarMascota(pies.x - suya.ancho, enSuelo.y, escala);
+  }
+
+  /** La mascota corre a su lado, un poco más atrás y más pequeña. */
+  private dibujarMascota(x: number, suelo: number, escalaDeLaCorredora: number): void {
+    const { renderer, equipo } = this.ctx;
+    const mascota = mascotaDeJuego(equipo);
+    if (!mascota) return;
+    const escala = Math.max(1, Math.round(escalaDeLaCorredora * 0.6));
+    const suya = medida(mascota, escala);
+    // Un trotecito propio, medio paso desfasado del de ella.
+    const salto = (this.recorrido * 2 + 0.5) % 1 > 0.5 ? escala : 0;
+    renderer.sprite(
       'ojoDominante',
-      { x: pies.x - ancho / 2, suelo: pies.y, ancho, alto },
-      this.postura,
-      (this.recorrido * 0.9) % 1,
+      spriteDeEquipo(mascota, renderer, equipo),
+      x - suya.ancho / 2,
+      suelo - suya.alto - salto,
+      escala,
     );
   }
 

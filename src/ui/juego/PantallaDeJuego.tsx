@@ -17,6 +17,7 @@ import { minijuego } from '../../games/registro';
 import { figuraDeNivel } from '../../games/torre/figuras';
 import type { InstanciaDeJuego, ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { premioDeNivel } from '../../rewards/economia';
+import { ojoDominante } from '../../storage/esquema';
 import { estrellasDeMundo, mundoDesbloqueado } from '../../storage/selectores';
 import { OverlayDeDesarrollo } from '../componentes/OverlayDeDesarrollo';
 import { modoDesarrollo } from '../navegacion';
@@ -144,6 +145,9 @@ export function PantallaDeJuego({
     const creado = definicion.crear(canvas, {
       modo,
       renderer: dibujante,
+      // Lo comprado se ve jugando: casco, traje, pico, nave, estela y mascota.
+      equipo: estado.economia.equipado,
+      ojoTapado: modo === 'parche' ? ojoDominante(estado.perfil) : null,
       escaleras,
       config,
       mundo: progreso.mundo,
