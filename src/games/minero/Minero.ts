@@ -465,6 +465,7 @@ class InstanciaDeMinero implements InstanciaDeJuego {
 
 export const minero: Minijuego = {
   id: 'minero',
+  modulo: 'ambos',
   escaleras: escalerasDeMinero,
   crear: (canvas, contexto) => new InstanciaDeMinero(canvas, contexto),
 };

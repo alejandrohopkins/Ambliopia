@@ -1,13 +1,17 @@
-/** Elegir minijuego tras el chequeo previo, cuando no se entró por un portal. */
-import type { IdJuego } from '../../config';
+/**
+ * Elegir minijuego tras el chequeo previo, cuando no se entró por un portal.
+ * Solo se ofrecen los que sirven para el modo de hoy.
+ */
+import type { IdJuego, Modo } from '../../config';
 import { es } from '../../i18n/es';
-import { JUEGOS } from '../../storage/esquema';
-import { minijuego } from '../../games/registro';
+import { juegosDelModo } from '../../games/registro';
 
 export function ElegirJuego({
+  modo,
   alElegir,
   alVolver,
 }: {
+  modo: Modo;
   alElegir: (juego: IdJuego) => void;
   alVolver: () => void;
 }) {
@@ -15,13 +19,8 @@ export function ElegirJuego({
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto' }}>
       <h1>{es.elegirJuego.titulo}</h1>
       <div style={{ display: 'grid', gap: 12, marginBottom: 18 }}>
-        {JUEGOS.map((juego) => (
-          <button
-            key={juego}
-            className="pixelado"
-            onClick={() => alElegir(juego)}
-            disabled={!minijuego(juego)}
-          >
+        {juegosDelModo(modo).map((juego) => (
+          <button key={juego} className="pixelado" onClick={() => alElegir(juego)}>
             {es.juegos[juego]}
           </button>
         ))}

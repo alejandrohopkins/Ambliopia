@@ -255,10 +255,13 @@ describe('misión del día', () => {
     }
   });
 
-  it('usa todos sus tipos, uno por cada cosa que se puede pedir', () => {
-    // Un tipo por minijuego (cristales, saboteadores, figuras, estrellas de
-    // energía, celdas) más minutos, estrellas de nivel y juegos distintos.
-    expect(TIPOS).toHaveLength(JUEGOS.length + 3);
+  it('usa todos sus tipos, y los genéricos valen para cualquier minijuego', () => {
+    // Los juegos por módulo no tienen misión propia: aportan a las genéricas,
+    // que tienen que existir siempre.
+    for (const generico of ['minutos', 'estrellasDeNivel', 'juegosDistintos'] as const) {
+      expect(TIPOS).toContain(generico);
+    }
+    expect(new Set(TIPOS).size).toBe(TIPOS.length);
     const vistos = new Set<string>();
     for (let i = 0; i < 400; i += 1) {
       vistos.add(misionDelDia(`2026-01-${String((i % 28) + 1).padStart(2, '0')}-${i}`).tipo);
@@ -414,21 +417,22 @@ describe('insignias', () => {
     expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(1);
   });
 
-  it('exploradora pide todos los minijuegos el mismo día', () => {
+  it('exploradora pide varios minijuegos distintos el mismo día', () => {
     const definicion = INSIGNIAS.find((i) => i.id === 'exploradora')!;
+    const necesarios = config.insignias.juegosParaExploradora;
     const estado = estadoInicial();
     const resumen = { ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 0 };
-    // Todos menos el último: todavía no cuenta.
-    estado.sesiones = JUEGOS.slice(0, -1).map((juego) => ({
+    const sesionDe = (juego: (typeof JUEGOS)[number]) => ({
       ...sesion('2026-09-19', 5),
       porJuego: { [juego]: resumen },
-    }));
-    expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(0);
-    estado.sesiones.push({
-      ...sesion('2026-09-19', 5),
-      porJuego: { [JUEGOS[JUEGOS.length - 1]]: resumen },
     });
+    // Uno menos de los necesarios: todavía no cuenta.
+    estado.sesiones = JUEGOS.slice(0, necesarios - 1).map(sesionDe);
+    expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(0);
+    estado.sesiones.push(sesionDe(JUEGOS[necesarios - 1]));
     expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(1);
+    // Y se puede conseguir en un solo modo: hay juegos de sobra en cada uno.
+    expect(necesarios).toBeLessThanOrEqual(10);
   });
 
   it('solo informa de las insignias que mejoran', () => {

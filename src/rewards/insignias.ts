@@ -5,7 +5,6 @@
 import { config, type IdJuego } from '../config';
 import type { Estado } from '../storage/esquema';
 import { juegosDelDia } from '../storage/selectores';
-import { JUEGOS } from '../storage/esquema';
 
 export interface DefinicionDeInsignia {
   id: string;
@@ -81,7 +80,9 @@ export const INSIGNIAS: DefinicionDeInsignia[] = [
   },
   {
     id: 'exploradora',
-    niveles: [JUEGOS.length],
+    // Con quince minijuegos repartidos entre dos modos, "todos en un día" ya
+    // no es razonable: se pide un número fijo de juegos distintos.
+    niveles: [config.insignias.juegosParaExploradora],
     medir: (estado, dia) => juegosDelDia(estado, dia).length,
   },
 ];

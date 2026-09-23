@@ -159,6 +159,7 @@ function Contenido(props: PropsDeContenido) {
   if (pantalla === 'elegirJuego') {
     return (
       <ElegirJuego
+        modo={modo}
         alElegir={(elegido) => {
           setJuego(elegido);
           setPantalla('juego');

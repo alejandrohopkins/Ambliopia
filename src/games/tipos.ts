@@ -2,7 +2,7 @@
  * Contrato común de los minijuegos. La base, las métricas y las recompensas
  * hablan con esta interfaz, nunca con cada juego por separado.
  */
-import type { config as Config, IdJuego, Modo, Ojo } from '../config';
+import type { config as Config, IdJuego, Modo, Modulo, Ojo } from '../config';
 import type { EquipoDeJuego } from '../avatar/enJuego';
 import type { DichopticRenderer } from '../engine/DichopticRenderer';
 import type { Staircase, ConfigDeEscalera } from '../engine/Staircase';
@@ -66,6 +66,8 @@ export interface InstanciaDeJuego {
 
 export interface Minijuego {
   id: IdJuego;
+  /** Modo en el que se juega: los dos, solo con parche o solo con lentes. */
+  modulo: Modulo;
   /** Claves de escalera que este juego necesita en este modo y mundo. */
   escaleras(modo: Modo, mundo: number): ConfigDeEscalera[];
   crear(canvas: HTMLCanvasElement, contexto: ContextoDeJuego): InstanciaDeJuego;

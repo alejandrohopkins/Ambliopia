@@ -533,6 +533,7 @@ class InstanciaDeMeteoritos implements InstanciaDeJuego {
 
 export const meteoritos: Minijuego = {
   id: 'meteoritos',
+  modulo: 'ambos',
   escaleras: escalerasDeMeteoritos,
   crear: (canvas, contexto) => new InstanciaDeMeteoritos(canvas, contexto),
 };

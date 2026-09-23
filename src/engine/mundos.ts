@@ -29,7 +29,32 @@ function paleta(
   return { fondo, primario, secundario, acento, hud: '#EDE9FF', variantes };
 }
 
+/**
+ * Fondos de los cinco mundos de los juegos por módulo, de claro a profundo.
+ * Lo que distingue a cada juego es su color principal y su acento.
+ */
+const FONDOS_DE_MODULO = ['#141A2E', '#1A1433', '#0F1F26', '#261412', '#0E1030'];
+
+function mundosDe(primario: string, secundario: string, acento: string): PaletaDeMundo[] {
+  return FONDOS_DE_MODULO.map((fondo) =>
+    paleta(fondo, primario, secundario, acento, [primario, secundario]),
+  );
+}
+
 export const PALETAS: Record<IdJuego, PaletaDeMundo[]> = {
+  // Módulo de parche: aquí sí se ven los colores, porque se juega con un solo ojo.
+  cazador: mundosDe('#6F8AD6', '#4C63A3', '#FFC23D'),
+  rebote: mundosDe('#3FD6C6', '#2A8F85', '#EDE9FF'),
+  gabor: mundosDe('#8A8AA0', '#5E5E72', '#EDE9FF'),
+  corte: mundosDe('#7BD65A', '#4F9B3A', '#FF7A6B'),
+  laberinto: mundosDe('#C49BFF', '#7A5CC6', '#FFC23D'),
+  // Módulo de lentes: en ese modo el renderer ignora estos colores, pero la
+  // paleta existe igual para que todo juego tenga la suya.
+  pozo: mundosDe('#6F8AD6', '#4C63A3', '#EDE9FF'),
+  serpiente: mundosDe('#7BD65A', '#4F9B3A', '#FF7A6B'),
+  ave: mundosDe('#6FB3FF', '#3D6FA8', '#FFC23D'),
+  sapo: mundosDe('#7BD65A', '#4F9B3A', '#FFC23D'),
+  mosaicos: mundosDe('#C49BFF', '#7A5CC6', '#EDE9FF'),
   minero: [
     paleta('#241F2E', '#4A4257', '#5D5470', '#3FD6C6', ['#4A4257', '#544B63']),
     paleta('#2B2114', '#6B4F26', '#85642F', '#FFC23D', ['#6B4F26', '#7A5A2B']),

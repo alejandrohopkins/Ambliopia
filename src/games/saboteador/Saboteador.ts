@@ -490,6 +490,7 @@ class InstanciaDeSaboteador implements InstanciaDeJuego {
 
 export const saboteador: Minijuego = {
   id: 'saboteador',
+  modulo: 'ambos',
   escaleras: escalerasDeSaboteador,
   crear: (canvas, contexto) => new InstanciaDeSaboteador(canvas, contexto),
 };

@@ -6,7 +6,31 @@
 export type Ojo = 'derecho' | 'izquierdo';
 export type Modo = 'parche' | 'lentes';
 export type ColorLente = 'rojo' | 'cian';
-export type IdJuego = 'minero' | 'saboteador' | 'torre' | 'meteoritos' | 'tunel';
+export type IdJuego =
+  | 'minero'
+  | 'saboteador'
+  | 'torre'
+  | 'meteoritos'
+  | 'tunel'
+  // Módulo de parche: el ojo ambliope trabaja solo.
+  | 'cazador'
+  | 'rebote'
+  | 'gabor'
+  | 'corte'
+  | 'laberinto'
+  // Módulo de lentes: cada ojo recibe una parte y solo juntos se juega.
+  | 'pozo'
+  | 'serpiente'
+  | 'ave'
+  | 'sapo'
+  | 'mosaicos';
+
+/**
+ * En qué modo se juega cada minijuego. Los cinco primeros sirven para los
+ * dos; los de cada módulo están pensados solo para el suyo: con parche se
+ * mide el ojo ambliope a solas, con lentes se obliga a juntar los dos.
+ */
+export type Modulo = 'ambos' | 'parche' | 'lentes';
 
 export const config = {
   /** Ojo ambliope por defecto. Toda la lógica y los textos se derivan de aquí. */
@@ -312,6 +336,347 @@ export const config = {
     avisoTropiezoMs: 420,
   },
 
+  /** Lo que comparten los diez juegos de los módulos. */
+  modulos: {
+    /** Segundos que se ve la explicación al empezar cada nivel. */
+    ayudaSeg: 4,
+    /** Lo que se enseña la respuesta correcta tras elegir, en los juegos de elegir. */
+    revelarMs: 800,
+    /** Hueco que se deja abajo para el botón de pausa. */
+    margenInferiorPx: 60,
+    /** Ancho de la esquina de abajo a la izquierda que ocupa el botón de pausa. */
+    zonaDePausaPx: 120,
+    /** Recorrido mínimo del dedo para que un deslizamiento cuente como dirección. */
+    deslizarMinimoPx: 26,
+  },
+
+  cazador: {
+    duracionNivelSeg: 60,
+    rejillaPorMundo: [
+      { cols: 3, filas: 3 },
+      { cols: 3, filas: 3 },
+      { cols: 4, filas: 3 },
+      { cols: 4, filas: 4 },
+      { cols: 5, filas: 4 },
+    ],
+    /** Tiempo que una diana se queda asomada, del primer nivel al último. */
+    visibleMsInicial: 2000,
+    visibleMsFinal: 700,
+    /** Pausa entre una aparición y la siguiente. */
+    esperaMsInicial: 700,
+    esperaMsFinal: 250,
+    /** Irregularidad del ritmo: 0 es un metrónomo, 1 es muy variable. */
+    irregularidadInicial: 0,
+    irregularidadFinal: 0.8,
+    simultaneosInicial: 1,
+    simultaneosFinal: 3,
+    /** Probabilidad de que asome una bomba en vez de una diana. */
+    bombasInicial: 0,
+    bombasFinal: 0.3,
+    /** Vaivén de la rejilla, en fracción de la celda. */
+    vaivenInicial: 0,
+    vaivenFinal: 0.35,
+    vaivenPeriodoSeg: 6,
+    tamanoInicialPx: 56,
+    tamanoMinimoPx: 6,
+    tamanoMaximoPx: 120,
+    /** La diana nunca pasa de esta fracción del agujero. */
+    fraccionMaximaDelAgujero: 0.85,
+    /** El agujero ocupa esta fracción de su celda. */
+    agujeroEnCelda: 0.8,
+    /**
+     * Un toque vale si cae a esta distancia del centro, o dentro de la diana
+     * si es más grande: el dedo no tiene que ser más fino que la diana, pero
+     * tocar agujeros al azar no sirve.
+     */
+    toleranciaMinimaPx: 24,
+    avisoMs: 300,
+  },
+
+  rebote: {
+    duracionNivelSeg: 75,
+    /** Ancho de la paleta, en fracción del ancho del área. */
+    paletaInicial: 0.26,
+    paletaFinal: 0.12,
+    /** Velocidad de la bola, en fracción del alto del área por segundo. */
+    velocidadInicial: 0.4,
+    velocidadFinal: 0.9,
+    /** Bloques que aceleran la bola al chocar, por mundo. */
+    bloquesPorMundo: [0, 0, 2, 3, 4],
+    aceleracionDeBloque: 1.35,
+    /** Tamaño de los bloques, en fracción del área, y franja del alto donde van. */
+    bloqueEnAncho: 1 / 9,
+    bloqueEnAlto: 1 / 22,
+    franjaDeBloques: [0.22, 0.55] as [number, number],
+    /** Bolas a la vez, por mundo. */
+    bolasPorMundo: [1, 1, 1, 2, 2],
+    /** Ángulo máximo del rebote en la paleta, desde la vertical. */
+    anguloMaximoGrados: 60,
+    /**
+     * El golpe se juzga con el centro de la bola más este margen, no con su
+     * borde: así una bola pequeña no es más fácil de fallar por ser pequeña,
+     * solo por verse peor, que es lo que se mide.
+     */
+    margenDeGolpePx: 6,
+    reaparecerMs: 700,
+    altoDePaletaPx: 12,
+    anchoMinimoDePaletaPx: 48,
+    /** La paleta va por encima del botón de pausa, que está abajo a la izquierda. */
+    separacionInferiorPx: 50,
+    tamanoInicialPx: 28,
+    tamanoMinimoPx: 4,
+    tamanoMaximoPx: 60,
+  },
+
+  gabor: {
+    ensayosPorNivel: 14,
+    rejillaPorMundo: [
+      { cols: 2, filas: 2 },
+      { cols: 3, filas: 2 },
+      { cols: 3, filas: 3 },
+      { cols: 4, filas: 3 },
+      { cols: 4, filas: 3 },
+    ],
+    /** Ciclos de la onda dentro del parche: más ciclos, frecuencia espacial más alta. */
+    ciclosInicial: 2.5,
+    ciclosFinal: 6,
+    /** Diferencia de orientación del parche distinto, en grados. */
+    diferenciaInicialGrados: 90,
+    diferenciaFinalGrados: 30,
+    /** Segundos para responder, por mundo; 0 es sin límite. */
+    limiteSegPorMundo: [0, 0, 0, 8, 6],
+    /** Luminancia lineal media del panel gris (0–1). */
+    luminanciaMedia: 0.35,
+    /** Ancho de la envolvente gaussiana, en fracción del lado del parche. */
+    sigmaEnParche: 0.2,
+    /** El parche ocupa esta fracción de su celda, sin pasar del máximo. */
+    fraccionDeCelda: 0.82,
+    parcheMaximoPx: 190,
+    /** Contraste de Michelson. */
+    contrasteInicial: 0.6,
+    contrasteMinimo: 0.003,
+    contrasteMaximo: 1,
+  },
+
+  corte: {
+    duracionNivelSeg: 70,
+    /** Tamaño de las frutas: lo manda el nivel, no la escalera. */
+    tamanoInicialPx: 76,
+    tamanoFinalPx: 30,
+    /** Velocidad, en fracción del ancho del área por segundo. */
+    velocidadInicial: 0.18,
+    velocidadFinal: 0.4,
+    /** Probabilidad de que una fruta vuele en parábola en vez de en línea recta. */
+    curvaturaInicial: 0,
+    curvaturaFinal: 1,
+    /** Aceleración de caída de las parábolas, en fracción del alto por segundo². */
+    gravedad: 0.55,
+    /** Desde este mundo algunas frutas aceleran a mitad de vuelo. */
+    aceleronDesdeMundo: 4,
+    probabilidadDeAceleron: 0.5,
+    factorDeAceleron: 1.6,
+    simultaneosInicial: 1,
+    simultaneosFinal: 3,
+    esperaEntreFrutasMs: 700,
+    /** Altura de la cima de una parábola, en fracción del alto (mínima y máxima). */
+    cimaDeParabola: [0.45, 0.8] as [number, number],
+    /** Contraste de Weber de la fruta sobre el huerto. */
+    contrasteInicial: 0.9,
+    contrasteMinimo: 0.03,
+    contrasteMaximo: 2.5,
+    /** Lo que dura el rastro del dedo y las dos mitades de la fruta cortada. */
+    rastroMs: 200,
+    mitadesMs: 450,
+    /** Velocidad de la hoja con el teclado, en fracción del ancho por segundo. */
+    hojaTecladoVelocidad: 0.7,
+  },
+
+  laberinto: {
+    duracionNivelSeg: 90,
+    /**
+     * Tamaño máximo del laberinto por mundo, en celdas. En una tablet los
+     * primeros ocupan casi toda la pantalla; los últimos, con pasillos muy
+     * estrechos, quedan más pequeños pero con más recodos.
+     */
+    celdasPorMundo: [
+      { cols: 12, filas: 6 },
+      { cols: 14, filas: 7 },
+      { cols: 16, filas: 8 },
+      { cols: 18, filas: 9 },
+      { cols: 20, filas: 10 },
+    ],
+    /** Ancho del pasillo, del primer nivel al último. */
+    pasilloInicialPx: 64,
+    pasilloFinalPx: 22,
+    /** Grosor del muro, del primer nivel al último: al principio, guías gruesas. */
+    muroInicialPx: 8,
+    muroFinalPx: 4,
+    radioDelPuntoPx: 5,
+    /** Distancia desde la que el dedo "agarra" el punto. */
+    agarreMaximoPx: 44,
+    /** Celdas del camino entre control y control: cada tramo es un ensayo. */
+    celdasPorTramo: 4,
+    obstaculosPorMundo: [0, 0, 0, 1, 2],
+    velocidadObstaculoCeldasSeg: 1.2,
+    /** Lado del obstáculo, en fracción del pasillo. */
+    obstaculoEnPasillo: 0.5,
+    /** Un obstáculo patrulla un pasillo recto de al menos estas celdas. */
+    pasilloDeObstaculo: 3,
+    /** Segundos por tramo, por mundo; 0 es sin límite. */
+    limiteDeTramoSegPorMundo: [0, 0, 0, 15, 12],
+    velocidadTecladoCeldasSeg: 1.8,
+    /** Contraste de Weber de los muros sobre el suelo. */
+    contrasteInicial: 1.2,
+    contrasteMinimo: 0.03,
+    contrasteMaximo: 4,
+    avisoChoqueMs: 500,
+  },
+
+  pozo: {
+    duracionNivelSeg: 90,
+    cols: 10,
+    filas: 18,
+    velocidadCaidaInicialCeldasSeg: 1,
+    velocidadCaidaFinalCeldasSeg: 4.5,
+    factorCaidaSuave: 8,
+    /** Se enseña la pieza siguiente hasta este mundo. */
+    siguienteHastaMundo: 3,
+    /** Probabilidad de que la pieza gire sola una vez mientras cae, por mundo. */
+    giroSorpresaPorMundo: [0, 0, 0, 0.25, 0.4],
+    /** Filas de abajo que se hunden cuando el pozo se llena: nunca se pierde. */
+    filasQueSeHunden: 4,
+    /** Luminancia de la pieza en la capa del ojo ambliope (0–1). */
+    contrasteInicial: 0.8,
+    contrasteMinimo: 0.08,
+    contrasteMaximo: 1,
+    factorDeSombra: 0.5,
+    columnasParaSiguiente: 5,
+    avisoFilaMs: 350,
+    avisoHundidoMs: 1500,
+  },
+
+  serpiente: {
+    duracionNivelSeg: 75,
+    celdasPorMundo: [
+      { cols: 16, filas: 10 },
+      { cols: 18, filas: 11 },
+      { cols: 20, filas: 12 },
+      { cols: 22, filas: 13 },
+      { cols: 24, filas: 14 },
+    ],
+    velocidadInicialCeldasSeg: 3.5,
+    velocidadFinalCeldasSeg: 7.5,
+    largoInicial: 4,
+    /** Largo máximo, en fracción de las celdas libres. */
+    largoMaximo: 0.35,
+    /** Muros dentro del tablero, por mundo. */
+    murosPorMundo: [0, 0, 2, 4, 6],
+    largoDeMuro: 4,
+    /**
+     * Tiempo para llegar a la manzana: lo que tardaría por el camino más
+     * corto, por esta holgura, más un margen. Al terminarse cambia de sitio.
+     */
+    holguraInicial: 4,
+    holguraFinal: 1.8,
+    margenSeg: 2.5,
+    tamanoInicialPx: 24,
+    tamanoMinimoPx: 3,
+    tamanoMaximoPx: 48,
+  },
+
+  ave: {
+    duracionNivelSeg: 75,
+    /** Hueco entre barreras, en fracción del alto del área. */
+    huecoInicial: 0.42,
+    huecoFinal: 0.22,
+    /** Avance, en fracción del ancho del área por segundo. */
+    velocidadInicial: 0.16,
+    velocidadFinal: 0.3,
+    /** Aceleración del avance dentro del nivel, por mundo (fracción del ancho por s²). */
+    aceleracionPorMundo: [0, 0, 0, 0.003, 0.005],
+    /** Vaivén de las barreras, por mundo, en fracción del alto. */
+    vaivenPorMundo: [0, 0, 0.05, 0.1, 0.14],
+    vaivenPeriodoSeg: 3,
+    /** Distancia entre barreras y ancho de cada una, en fracción del ancho. */
+    separacionDeBarreras: 0.5,
+    anchoDeBarrera: 0.07,
+    anchoMinimoDeBarreraPx: 30,
+    /** Lo más que puede moverse el hueco de una barrera a la siguiente, en fracción del alto. */
+    saltoMaximoDeHueco: 0.3,
+    /** El ave vuela a esta fracción del ancho, y su suelo es una franja de este alto. */
+    posicionDelAve: 0.25,
+    sueloPx: 10,
+    /** El avance acelerado nunca pasa de este múltiplo del inicial. */
+    aceleracionMaxima: 1.5,
+    /** Luminancia de las nubes del fondo: acompañan sin distraer. */
+    factorDeNubes: 0.35,
+    /** Física del vuelo, en fracción del alto del área. */
+    gravedad: 1.5,
+    impulso: 0.55,
+    caidaMaxima: 0.75,
+    /** Tras chocar atraviesa un momento sin volver a chocar: nunca se acaba. */
+    fantasmaMs: 900,
+    /** Luminancia de las barreras en la capa del ojo ambliope (0–1). */
+    contrasteInicial: 0.8,
+    contrasteMinimo: 0.06,
+    contrasteMaximo: 1,
+  },
+
+  sapo: {
+    duracionNivelSeg: 90,
+    columnas: 11,
+    carrilesDeCallePorMundo: [2, 3, 3, 4, 4],
+    carrilesDeRioPorMundo: [0, 0, 2, 3, 3],
+    velocidadInicialCeldasSeg: 1.1,
+    velocidadFinalCeldasSeg: 2.4,
+    /**
+     * Cada carril va un poco más rápido o más lento que el de al lado, para
+     * que sus huecos no queden sincronizados y siempre acaben coincidiendo.
+     * En el último mundo la diferencia es mayor: tráfico desordenado.
+     */
+    variacionDeVelocidad: 0.15,
+    variacionDesordenada: 0.3,
+    /** Hueco entre coches, en celdas, del primer nivel al último. */
+    huecoInicialCeldas: 4,
+    huecoFinalCeldas: 2.5,
+    largoDeTroncoInicial: 4,
+    largoDeTroncoFinal: 3,
+    /** Agua entre tronco y tronco, en celdas. */
+    aguaEntreTroncos: 1.5,
+    /** Desde este mundo algunos troncos se hunden un rato. */
+    hundirseDesdeMundo: 4,
+    hundidoSeg: 1.6,
+    flotandoSeg: 3.5,
+    /** Antes de hundirse, el tronco se oscurece este rato para avisar. */
+    avisoHundirseSeg: 0.7,
+    /** Luminancias del agua, del tronco que avisa y del tronco hundido. */
+    factorDeAgua: 0.3,
+    factorAvisoHundirse: 0.65,
+    factorHundido: 0.4,
+    /** Desde este mundo la corriente del río cambia de sentido de vez en cuando. */
+    corrienteDesdeMundo: 5,
+    corrienteCadaSeg: 9,
+    /** Ancho con el que choca el sapo, en fracción de la celda: no depende de su tamaño. */
+    anchoDeChoque: 0.6,
+    saltoMs: 110,
+    tamanoInicialPx: 40,
+    tamanoMinimoPx: 5,
+    tamanoMaximoPx: 64,
+    avisoChoqueMs: 500,
+  },
+
+  mosaicos: {
+    ensayosPorNivel: 12,
+    /** Lado del mosaico, por mundo. */
+    ladoPorMundo: [3, 4, 4, 5, 6],
+    /** Segundos para responder, por mundo; 0 es sin límite. */
+    limiteSegPorMundo: [0, 0, 0, 20, 14],
+    tamanoInicialPx: 40,
+    /** Cinco píxeles es lo mínimo: cada trazo del símbolo mide un píxel. */
+    tamanoMinimoPx: 5,
+    tamanoMaximoPx: 80,
+  },
+
   economia: {
     monedasPorMinutoActivo: 2,
     monedasPorAcierto: 1,
@@ -367,6 +732,8 @@ export const config = {
     subidasParaDosOjos: 3,
     fallosSeguidosParaPerseverante: 3,
     articulosParaColeccionista: 10,
+    /** Minijuegos distintos en un mismo día para la insignia Exploradora. */
+    juegosParaExploradora: 5,
   },
 
   avatar: {

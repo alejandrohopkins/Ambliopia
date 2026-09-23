@@ -73,6 +73,16 @@ export const es = {
     torre: 'Torre de bloques',
     meteoritos: 'Lluvia de meteoritos',
     tunel: 'Túnel de escape',
+    cazador: 'Cazador de objetivos',
+    rebote: 'Rebote ágil',
+    gabor: 'Detector de patrones',
+    corte: 'Corte de precisión',
+    laberinto: 'Laberinto de trazado',
+    pozo: 'Pozo de bloques',
+    serpiente: 'La serpiente',
+    ave: 'El ave voladora',
+    sapo: 'El sapo cruzador',
+    mosaicos: 'Mosaicos y secuencias',
   } as Record<IdJuego, string>,
 
   mundos: {
@@ -81,6 +91,16 @@ export const es = {
     torre: ['Pradera de bloques', 'Ciudad flotante', 'Luna', 'Planeta rojo', 'Estación orbital'],
     meteoritos: ['Órbita baja', 'Cinturón de asteroides', 'Lluvia de cometas', 'Viento solar', 'Galaxia lejana'],
     tunel: ['Corredor de carga', 'Ducto de ventilación', 'Anillo exterior', 'Túnel de hielo', 'Núcleo de la estación'],
+    cazador: ['Campo de prácticas', 'Bosque de antenas', 'Ciudad de cráteres', 'Base secreta', 'Tormenta de señales'],
+    rebote: ['Cancha lunar', 'Pista de hielo', 'Anillo de Saturno', 'Estadio de lava', 'Arena galáctica'],
+    gabor: ['Franjas gruesas', 'Franjas medias', 'Franjas finas', 'Susurros de gris', 'Casi invisibles'],
+    corte: ['Huerto espacial', 'Invernadero', 'Mercado orbital', 'Cosecha nocturna', 'Lluvia de frutas'],
+    laberinto: ['Pasillos anchos', 'Túneles de cristal', 'Circuito de la nave', 'Red de conductos', 'Laberinto estelar'],
+    pozo: ['Pozo de arena', 'Pozo de hielo', 'Pozo de cristal', 'Pozo de magma', 'Pozo estelar'],
+    serpiente: ['Jardín tranquilo', 'Patio de piedras', 'Laberinto verde', 'Cueva de raíces', 'Selva estelar'],
+    ave: ['Cielo abierto', 'Columnas de nubes', 'Torres de hielo', 'Cañón de fuego', 'Cinturón de asteroides'],
+    sapo: ['Camino de tierra', 'Avenida', 'Río tranquilo', 'Río salvaje', 'Autopista estelar'],
+    mosaicos: ['Mosaico sencillo', 'Giros', 'Espejos', 'Patrones dobles', 'Gran mosaico'],
   } as Record<IdJuego, string[]>,
 
   habilidades: {
@@ -89,7 +109,38 @@ export const es = {
     torre: 'Visión binocular y planificación',
     meteoritos: 'Seguimiento y coordinación',
     tunel: 'Agudeza en movimiento y reflejos',
+    cazador: 'Reacción y búsqueda con la mirada',
+    rebote: 'Anticipar trayectorias',
+    gabor: 'Sensibilidad al contraste',
+    corte: 'Seguir objetos en movimiento',
+    laberinto: 'Control fino con la mirada fija',
+    pozo: 'Juntar lo que ve cada ojo',
+    serpiente: 'Buscar con el ojo ambliope',
+    ave: 'Guiar con los dos ojos',
+    sapo: 'Seguir al personaje con el ojo ambliope',
+    mosaicos: 'Detalle fino y lógica',
   } as Record<IdJuego, string>,
+
+  /**
+   * Cómo se juega. Se lee al empezar cada nivel de los juegos de los módulos;
+   * va en líneas cortas para que quepa en una tablet en vertical.
+   */
+  ayudas: {
+    cazador: ['Toca cada diana antes', 'de que se esconda.', 'Las bombas, no.'],
+    rebote: ['Mueve la paleta', 'y devuelve la bola.'],
+    gabor: ['Un parche tiene las rayas', 'giradas. ¡Encuéntralo!'],
+    corte: ['Desliza el dedo sobre', 'las frutas para cortarlas.'],
+    laberinto: ['Lleva el punto a la meta', 'sin tocar las paredes.'],
+    pozo: ['Mueve y gira las piezas.', 'Completa filas enteras.'],
+    serpiente: ['Guía a la serpiente', 'hasta cada manzana.'],
+    ave: ['Toca para volar y', 'pasa por los huecos.'],
+    sapo: ['Cruza hasta arriba.', 'Esquiva los coches y', 'súbete a los troncos.'],
+    mosaicos: ['¿Qué pieza completa', 'el mosaico? Elígela abajo.'],
+  } as Partial<Record<IdJuego, string[]>>,
+
+  pozo: {
+    hundido: '¡Más espacio!',
+  },
 
   base: {
     saludo: (nombre: string) => `¡Hola, ${nombre}! ¿Lista para la misión de hoy?`,
@@ -529,7 +580,7 @@ export const es = {
     balance: { nombre: 'Balance perfecto', criterio: 'Llegar al contraste máximo con los dos ojos' },
     perseverante: { nombre: 'Perseverante', criterio: 'Terminar un nivel después de tres fallos seguidos' },
     coleccionista: { nombre: 'Coleccionista', criterio: 'Tener 10 artículos' },
-    exploradora: { nombre: 'Exploradora', criterio: 'Jugar todos los minijuegos en un mismo día' },
+    exploradora: { nombre: 'Exploradora', criterio: 'Jugar cinco minijuegos distintos en un mismo día' },
   } as Record<string, { nombre: string; criterio: string }>,
 
   pantallaDeInsignias: {

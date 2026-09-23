@@ -61,6 +61,10 @@ export function crearLienzoFalso(ancho = 400, alto = 300): LienzoFalso {
       rectangulos.push([x, y, ancho, alto]);
     },
     strokeRect: anotar('strokeRect'),
+    // Una imagen no tiene un color de relleno: se anota solo la llamada.
+    drawImage: () => {
+      llamadas.push('drawImage');
+    },
     fillText: anotar('fillText'),
     beginPath: () => {},
     moveTo: () => {},

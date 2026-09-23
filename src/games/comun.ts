@@ -1,4 +1,4 @@
-/** Piezas compartidas por los cuatro minijuegos. */
+/** Piezas compartidas por los minijuegos. */
 import { config } from '../config';
 import type { DichopticRenderer } from '../engine/DichopticRenderer';
 import type { ResumenDeNivel } from './tipos';
@@ -123,4 +123,17 @@ export function dibujarMarcoYHud(
 export function factorDePulso(tiempoMs: number, hz = config.minero.pulsoHz): number {
   const fase = (tiempoMs / 1000) * hz * Math.PI * 2;
   return 0.925 + 0.075 * Math.sin(fase);
+}
+
+/** Vértices de un círculo, para dibujarlo con el polígono sin suavizado. */
+export function puntosDeCirculo(
+  cx: number,
+  cy: number,
+  radio: number,
+  lados = 16,
+): Array<[number, number]> {
+  return Array.from({ length: lados }, (_, i): [number, number] => {
+    const angulo = (i / lados) * Math.PI * 2;
+    return [cx + Math.cos(angulo) * radio, cy + Math.sin(angulo) * radio];
+  });
 }

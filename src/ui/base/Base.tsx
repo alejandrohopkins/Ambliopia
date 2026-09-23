@@ -11,6 +11,7 @@ import { rachaVigente } from '../../engine/racha';
 import { hoyDelJuego } from '../reloj';
 import { useEffect, useRef, useState } from 'react';
 import { Portal } from './Portal';
+import { juegosDelModo } from '../../games/registro';
 import { useMovimientoReducido } from '../movimiento';
 import { Contadores } from './Contadores';
 import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
@@ -18,7 +19,6 @@ import { fondoDeBase } from '../../avatar/fondos';
 import { MisionDelDia } from './MisionDelDia';
 import type { Pantalla } from '../navegacion';
 
-const PORTALES: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos', 'tunel'];
 
 /** El aterrizaje es una sola vez por apertura de la app, no cada visita. */
 let yaAterrizo = false;
@@ -186,7 +186,7 @@ export function Base({
           marginBottom: 18,
         }}
       >
-        {PORTALES.map((juego) => (
+        {juegosDelModo(modo).map((juego) => (
           <Portal key={juego} juego={juego} alEntrar={() => alEmpezar(juego)} />
         ))}
       </section>

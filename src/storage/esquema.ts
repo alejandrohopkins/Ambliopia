@@ -197,7 +197,23 @@ export interface Estado {
   asistenteCompletado: boolean;
 }
 
-export const JUEGOS: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos', 'tunel'];
+export const JUEGOS: IdJuego[] = [
+  'minero',
+  'saboteador',
+  'torre',
+  'meteoritos',
+  'tunel',
+  'cazador',
+  'rebote',
+  'gabor',
+  'corte',
+  'laberinto',
+  'pozo',
+  'serpiente',
+  'ave',
+  'sapo',
+  'mosaicos',
+];
 
 function progresoInicial(): Record<IdJuego, ProgresoDeJuego> {
   const base = {} as Record<IdJuego, ProgresoDeJuego>;

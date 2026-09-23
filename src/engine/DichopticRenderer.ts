@@ -221,8 +221,20 @@ export class DichopticRenderer {
    * los dos ojos: justo lo que la regla de los cuatro colores prohíbe.
    */
   poligono(capa: Capa, puntos: Array<[number, number]>, op?: OpcionesDeDibujo): void {
+    this.rellenar(puntos, this.cssDeCapa(capa, op));
+  }
+
+  /** Vacía un polígono con el color del fondo: el hueco de un anillo, por ejemplo. */
+  borrarPoligono(puntos: Array<[number, number]>): void {
+    this.rellenar(
+      puntos,
+      this.opciones.modo === 'lentes' ? config.color.fondoLentes : this.opciones.paleta.fondo,
+    );
+  }
+
+  private rellenar(puntos: Array<[number, number]>, css: string): void {
     if (puntos.length < 3) return;
-    this.ctx.fillStyle = this.cssDeCapa(capa, op);
+    this.ctx.fillStyle = css;
 
     let arriba = Infinity;
     let abajo = -Infinity;
@@ -288,6 +300,16 @@ export class DichopticRenderer {
         this.ctx.fillRect(x0 + columna * e, y0 + fila * e, e, e);
       }
     }
+  }
+
+  /**
+   * Imagen ya calculada, a su tamaño en píxeles CSS. Solo existe en modo
+   * parche (los parches de rayas del detector): en lentes cualquier imagen
+   * rompería la regla de los cuatro colores, así que ahí no se dibuja nada.
+   */
+  imagen(fuente: CanvasImageSource, x: number, y: number, ancho: number, alto: number): void {
+    if (this.opciones.modo === 'lentes') return;
+    this.ctx.drawImage(fuente, Math.round(x), Math.round(y), Math.round(ancho), Math.round(alto));
   }
 
   /** Texto del HUD. Siempre en la capa que se le indique. */

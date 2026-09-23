@@ -768,6 +768,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
 
 export const torre: Minijuego = {
   id: 'torre',
+  modulo: 'ambos',
   escaleras: escalerasDeTorre,
   crear: (canvas, contexto) => new InstanciaDeTorre(canvas, contexto),
 };

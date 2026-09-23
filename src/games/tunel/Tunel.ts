@@ -734,6 +734,7 @@ class InstanciaDeTunel implements InstanciaDeJuego {
 
 export const tunel: Minijuego = {
   id: 'tunel',
+  modulo: 'ambos',
   escaleras: escalerasDeTunel,
   crear: (canvas, contexto) => new InstanciaDeTunel(canvas, contexto),
 };
