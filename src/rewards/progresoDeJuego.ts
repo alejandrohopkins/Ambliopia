@@ -61,6 +61,12 @@ export function aportesDelNivel(
     mision.push({ tipo: 'estrellasDeEnergia', cantidad: estrellas });
   }
 
+  if (juego === 'tunel') {
+    const celdas = aciertosReales(ensayos);
+    contadores.celdasRecogidas = celdas;
+    mision.push({ tipo: 'celdas', cantidad: celdas });
+  }
+
   if (juego === 'torre') {
     mision.push({ tipo: 'figuras', cantidad: 1 });
   }

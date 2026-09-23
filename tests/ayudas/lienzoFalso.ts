@@ -9,11 +9,17 @@ export interface LienzoFalso {
   pintados: string[];
   /** Todos los colores asignados a fillStyle/strokeStyle. */
   asignados: string[];
+  /** Nombres de los métodos de dibujo usados, en orden. */
+  llamadas: string[];
+  /** Rectángulos pintados: [x, y, ancho, alto]. */
+  rectangulos: Array<[number, number, number, number]>;
 }
 
 export function crearLienzoFalso(ancho = 400, alto = 300): LienzoFalso {
   const pintados: string[] = [];
   const asignados: string[] = [];
+  const llamadas: string[] = [];
+  const rectangulos: Array<[number, number, number, number]> = [];
   let fill = '#000000';
   let stroke = '#000000';
 
@@ -23,8 +29,9 @@ export function crearLienzoFalso(ancho = 400, alto = 300): LienzoFalso {
     style: {} as CSSStyleDeclaration,
   };
 
-  const anotar = () => {
+  const anotar = (nombre: string) => () => {
     pintados.push(fill);
+    llamadas.push(nombre);
   };
 
   const ctx = {
@@ -48,18 +55,22 @@ export function crearLienzoFalso(ancho = 400, alto = 300): LienzoFalso {
       asignados.push(valor);
     },
     setTransform: () => {},
-    fillRect: anotar,
-    strokeRect: anotar,
-    fillText: anotar,
+    fillRect: (x: number, y: number, ancho: number, alto: number) => {
+      pintados.push(fill);
+      llamadas.push('fillRect');
+      rectangulos.push([x, y, ancho, alto]);
+    },
+    strokeRect: anotar('strokeRect'),
+    fillText: anotar('fillText'),
     beginPath: () => {},
     moveTo: () => {},
     lineTo: () => {},
     closePath: () => {},
-    fill: anotar,
-    stroke: anotar,
+    fill: anotar('fill'),
+    stroke: anotar('stroke'),
     save: () => {},
     restore: () => {},
   } as unknown as CanvasRenderingContext2D;
 
-  return { ctx, pintados, asignados };
+  return { ctx, pintados, asignados, llamadas, rectangulos };
 }

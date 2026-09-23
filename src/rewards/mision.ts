@@ -12,6 +12,7 @@ export const TIPOS: TipoDeMision[] = [
   'saboteadores',
   'figuras',
   'estrellasDeEnergia',
+  'celdas',
   'estrellasDeNivel',
   'juegosDistintos',
 ];

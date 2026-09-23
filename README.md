@@ -18,7 +18,7 @@ Desde la base se elige entre dos modos de entrenamiento:
 - **Lentes rojo/cian** — con los dos ojos abiertos. Cada ojo ve elementos
   distintos, así que el cerebro tiene que usar los dos juntos.
 
-Cuatro minijuegos, cada uno entrenando algo diferente:
+Cinco minijuegos, cada uno entrenando algo diferente:
 
 | Juego | Habilidad |
 |---|---|
@@ -26,6 +26,7 @@ Cuatro minijuegos, cada uno entrenando algo diferente:
 | ¿Quién es el saboteador? | Agudeza con amontonamiento y discriminación de detalle |
 | Torre de bloques | Visión binocular, planificación y coordinación |
 | Lluvia de meteoritos | Seguimiento visual y coordinación ojo-mano |
+| Túnel de escape | Resolver un hueco pequeño en movimiento y decidir rápido |
 
 La dificultad visual la lleva una **escalera adaptativa** invisible, que busca
 el punto donde acierta alrededor del 71 % de las veces. Los mundos y niveles

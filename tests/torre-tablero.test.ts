@@ -1,117 +1,256 @@
 import { describe, it, expect } from 'vitest';
 import { config } from '../src/config';
 import {
-  tableroVacio,
-  colocar,
-  desmoronar,
-  figuraCompleta,
-  columnasPendientes,
-  dentroDelPlano,
+  aterrizaje,
+  barrerEscombro,
+  bloquesDelPlano,
   bloquesRestantes,
-  tamanosDePieza,
+  cabe,
+  celdasEn,
+  colocacionesPerfectas,
+  colocar,
+  columnasPendientes,
+  escombro,
+  esDeFigura,
+  figuraCompleta,
+  ocupada,
+  piezasQueCaben,
+  tableroVacio,
+  type EstadoDeTablero,
 } from '../src/games/torre/tablero';
+import { BLOQUE_SUELTO, piezaPorId, rotaciones } from '../src/games/torre/piezas';
 import {
   bloquesPorPieza,
   escalerasDeTorre,
+  piezasDelMundo,
   tableroDelMundo,
   velocidadDeCaida,
 } from '../src/games/torre/Torre';
+import { FIGURAS } from '../src/games/torre/figuras';
 import { grisConContraste, contrasteWeber, desdeHex, formaDeColor } from '../src/engine/color';
 
-describe('tablero de la Torre', () => {
-  it('arranca vacío con el plano de la figura', () => {
-    const tablero = tableroVacio([1, 2, 3]);
-    expect(tablero.alturas).toEqual([0, 0, 0]);
+const BLOQUE = BLOQUE_SUELTO.celdas;
+const PAR = piezaPorId('par')!.celdas;
+
+/** Deja caer una pieza desde arriba y devuelve el tablero resultante. */
+function soltar(estado: EstadoDeTablero, celdas: typeof BLOQUE, col: number): EstadoDeTablero {
+  const fila = aterrizaje(estado, celdas, col, estado.filas);
+  return { ...estado, ocupado: colocar(estado, celdas, col, fila).ocupado };
+}
+
+describe('rejilla del tablero', () => {
+  it('arranca vacía, con el plano de la figura', () => {
+    const tablero = tableroVacio([1, 2, 3], 5);
+    expect(tablero.cols).toBe(3);
+    expect(tablero.ocupado.every((celda) => !celda)).toBe(true);
+    expect(bloquesDelPlano(tablero)).toBe(6);
     expect(bloquesRestantes(tablero)).toBe(6);
     expect(figuraCompleta(tablero)).toBe(false);
   });
 
-  it('una pieza cae hasta el primer hueco libre de su columna', () => {
-    let tablero = tableroVacio([3, 3, 3]);
-    const primera = colocar(tablero, 1, 1);
-    expect(primera.desde).toBe(0);
-    tablero = { ...tablero, alturas: primera.alturas };
-    const segunda = colocar(tablero, 1, 1);
-    expect(segunda.desde).toBe(1);
-    expect(segunda.alturas[1]).toBe(2);
+  it('los lados y el suelo son pared; el cielo está libre', () => {
+    const tablero = tableroVacio([1, 1], 4);
+    expect(ocupada(tablero, 0, -1)).toBe(true);
+    expect(ocupada(tablero, 0, 2)).toBe(true);
+    expect(ocupada(tablero, -1, 0)).toBe(true);
+    expect(ocupada(tablero, 0, 0)).toBe(false);
+    // Por encima del tablero hay sitio: ahí nacen las piezas.
+    expect(ocupada(tablero, 9, 0)).toBe(false);
   });
 
-  it('acierta si todos sus bloques caen dentro del plano', () => {
-    const tablero = tableroVacio([3, 1, 2]);
-    expect(colocar(tablero, 0, 3).acierto).toBe(true);
-    expect(colocar(tablero, 0, 2).acierto).toBe(true);
+  it('una celda es de figura si está por debajo de la altura del plano', () => {
+    const tablero = tableroVacio([2, 0], 4);
+    expect(esDeFigura(tablero, 0, 0)).toBe(true);
+    expect(esDeFigura(tablero, 1, 0)).toBe(true);
+    expect(esDeFigura(tablero, 2, 0)).toBe(false);
+    expect(esDeFigura(tablero, 0, 1)).toBe(false);
+  });
+});
+
+describe('caída y colisión', () => {
+  it('una pieza cae hasta el suelo y la siguiente se le pone encima', () => {
+    let tablero = tableroVacio([3, 3], 6);
+    expect(aterrizaje(tablero, BLOQUE, 0, tablero.filas)).toBe(0);
+    tablero = soltar(tablero, BLOQUE, 0);
+    expect(aterrizaje(tablero, BLOQUE, 0, tablero.filas)).toBe(1);
+    expect(aterrizaje(tablero, BLOQUE, 1, tablero.filas)).toBe(0);
   });
 
-  it('falla si algún bloque queda fuera, y solo sobran esos', () => {
-    const tablero = tableroVacio([2, 2]);
-    const resultado = colocar(tablero, 0, 3);
+  it('una pieza ancha se apoya en la columna más alta de las que cubre', () => {
+    let tablero = tableroVacio([4, 4], 6);
+    tablero = soltar(tablero, BLOQUE, 0);
+    tablero = soltar(tablero, BLOQUE, 0);
+    // La columna 0 tiene dos bloques: el par horizontal se queda arriba.
+    expect(aterrizaje(tablero, PAR, 0, tablero.filas)).toBe(2);
+  });
+
+  it('una pieza puede dejar un hueco debajo: la colisión es de verdad', () => {
+    let tablero = tableroVacio([0, 0], 6);
+    tablero = soltar(tablero, BLOQUE, 0);
+    tablero = soltar(tablero, PAR, 0);
+    // El par quedó en la fila 1 y dejó vacío el (0, 1).
+    expect(ocupada(tablero, 1, 0)).toBe(true);
+    expect(ocupada(tablero, 1, 1)).toBe(true);
+    expect(ocupada(tablero, 0, 1)).toBe(false);
+  });
+
+  it('no cabe donde ya hay algo ni fuera de los lados', () => {
+    const tablero = soltar(tableroVacio([2, 2], 5), BLOQUE, 0);
+    expect(cabe(tablero, BLOQUE, 0, 0)).toBe(false);
+    expect(cabe(tablero, BLOQUE, 0, 1)).toBe(true);
+    expect(cabe(tablero, PAR, 1, 0)).toBe(false);
+  });
+
+  it('las celdas se llevan a su sitio del tablero', () => {
+    expect(celdasEn(PAR, 2, 3)).toEqual([
+      [3, 2],
+      [3, 3],
+    ]);
+  });
+});
+
+describe('colocar una pieza', () => {
+  it('acierta si todas sus celdas caen dentro del plano', () => {
+    const tablero = tableroVacio([2, 2], 5);
+    const resultado = colocar(tablero, PAR, 0, 0);
+    expect(resultado.acierto).toBe(true);
+    expect(resultado.sobran).toBe(0);
+    expect(resultado.nuevasDeFigura).toBe(2);
+  });
+
+  it('falla si alguna celda queda fuera, y cuenta solo esas', () => {
+    const tablero = tableroVacio([2, 0], 5);
+    const resultado = colocar(tablero, PAR, 0, 0);
     expect(resultado.acierto).toBe(false);
     expect(resultado.sobran).toBe(1);
-    expect(resultado.alturas[0]).toBe(3);
+    expect(resultado.nuevasDeFigura).toBe(1);
   });
 
-  it('los bloques de fuera se deshacen y los de dentro se quedan', () => {
-    let tablero = tableroVacio([2, 2]);
-    tablero = { ...tablero, alturas: colocar(tablero, 0, 3).alturas };
-    expect(tablero.alturas[0]).toBe(3);
-    expect(desmoronar(tablero)).toEqual([2, 0]);
+  it('avisa de las filas que quedan llenas de lado a lado', () => {
+    const tablero = soltar(tableroVacio([1, 1, 1], 5), PAR, 0);
+    const resultado = colocar(tablero, BLOQUE, 2, 0);
+    expect(resultado.filasLlenas).toEqual([0]);
   });
 
-  it('la figura se completa cuando cada columna llega a su altura', () => {
-    let tablero = tableroVacio([1, 2]);
-    tablero = { ...tablero, alturas: colocar(tablero, 0, 1).alturas };
-    expect(figuraCompleta(tablero)).toBe(false);
-    tablero = { ...tablero, alturas: colocar(tablero, 1, 2).alturas };
+  it('una fila a medias no cuenta', () => {
+    const tablero = tableroVacio([1, 1, 1], 5);
+    expect(colocar(tablero, PAR, 0, 0).filasLlenas).toEqual([]);
+  });
+});
+
+describe('escombro', () => {
+  it('es lo ocupado que no es de figura', () => {
+    const tablero = soltar(tableroVacio([1, 1], 5), PAR, 0);
+    expect(escombro(tablero)).toEqual([]);
+    const conEscombro = soltar(tablero, PAR, 0);
+    expect(escombro(conEscombro)).toEqual([
+      [1, 0],
+      [1, 1],
+    ]);
+  });
+
+  it('barrerlo deja la figura intacta: nunca se pierde lo construido', () => {
+    let tablero = soltar(tableroVacio([1, 1], 5), PAR, 0);
+    tablero = soltar(tablero, PAR, 0);
+    tablero = { ...tablero, ocupado: barrerEscombro(tablero) };
+    expect(ocupada(tablero, 0, 0)).toBe(true);
+    expect(ocupada(tablero, 0, 1)).toBe(true);
+    expect(ocupada(tablero, 1, 0)).toBe(false);
     expect(figuraCompleta(tablero)).toBe(true);
+  });
+});
+
+describe('progreso de la figura', () => {
+  it('se completa cuando cada columna llega a su altura', () => {
+    let tablero = tableroVacio([1, 2], 5);
+    tablero = soltar(tablero, BLOQUE, 0);
+    expect(figuraCompleta(tablero)).toBe(false);
+    expect(columnasPendientes(tablero)).toEqual([1]);
+    tablero = soltar(tablero, BLOQUE, 1);
+    tablero = soltar(tablero, BLOQUE, 1);
+    expect(figuraCompleta(tablero)).toBe(true);
+    expect(bloquesRestantes(tablero)).toBe(0);
     expect(columnasPendientes(tablero)).toEqual([]);
   });
+});
 
-  it('sabe qué columnas faltan', () => {
-    let tablero = tableroVacio([1, 2, 1]);
-    tablero = { ...tablero, alturas: colocar(tablero, 1, 2).alturas };
-    expect(columnasPendientes(tablero)).toEqual([0, 2]);
-  });
-
-  it('un bloque está dentro del plano según su altura', () => {
-    const tablero = tableroVacio([2, 0]);
-    expect(dentroDelPlano(tablero, 0, 0)).toBe(true);
-    expect(dentroDelPlano(tablero, 0, 1)).toBe(true);
-    expect(dentroDelPlano(tablero, 0, 2)).toBe(false);
-    expect(dentroDelPlano(tablero, 1, 0)).toBe(false);
-  });
-
-  it('la pieza nunca es más grande que el hueco más alto que queda', () => {
-    let tablero = tableroVacio([3, 1]);
-    expect(tamanosDePieza([1, 2, 3], tablero)).toEqual([1, 2, 3]);
-    tablero = { ...tablero, alturas: [2, 1] };
-    // Solo falta un bloque en la primera columna.
-    expect(tamanosDePieza([1, 2, 3], tablero)).toEqual([1]);
-  });
-
-  it('con el plano completo se sigue ofreciendo la pieza más pequeña', () => {
-    const tablero = { plano: [1], alturas: [1] };
-    expect(tamanosDePieza([1, 2], tablero)).toEqual([1]);
-  });
-
-  /** Jugar una figura entera con una estrategia sensata la termina. */
-  it('una partida completa termina la figura sin bloques de más', () => {
-    const plano = [3, 2, 4, 1, 5];
-    let tablero = tableroVacio(plano);
-    let piezas = 0;
-
-    while (!figuraCompleta(tablero) && piezas < 200) {
-      const pendientes = columnasPendientes(tablero);
-      const columna = pendientes[0];
-      const hueco = tablero.plano[columna] - tablero.alturas[columna];
-      const bloques = Math.min(hueco, Math.max(...tamanosDePieza([1, 2, 3], tablero)));
-      const resultado = colocar(tablero, columna, bloques);
-      expect(resultado.acierto).toBe(true);
-      tablero = { ...tablero, alturas: resultado.alturas };
-      piezas += 1;
+describe('piezas que todavía caben', () => {
+  it('una colocación perfecta deja la pieza entera dentro del plano', () => {
+    const tablero = tableroVacio([2, 2, 0], 6);
+    const buenas = colocacionesPerfectas(piezaPorId('par')!, tablero);
+    expect(buenas.length).toBeGreaterThan(0);
+    for (const { celdas, col, fila } of buenas) {
+      for (const [f, c] of celdasEn(celdas, col, fila)) {
+        expect(esDeFigura(tablero, f, c)).toBe(true);
+      }
     }
+  });
 
-    expect(figuraCompleta(tablero)).toBe(true);
-    expect(tablero.alturas).toEqual(plano);
+  it('descarta las piezas que ya no caben en lo que falta', () => {
+    // Solo falta una celda: ni el par ni nada mayor entra entero.
+    let tablero = tableroVacio([2, 1], 6);
+    tablero = soltar(tablero, BLOQUE, 0);
+    tablero = soltar(tablero, BLOQUE, 1);
+    const caben = piezasQueCaben(
+      [BLOQUE_SUELTO, piezaPorId('par')!, piezaPorId('cuadro')!],
+      tablero,
+    );
+    expect(caben.map((p) => p.id)).toEqual(['bloque']);
+  });
+
+  it('con la figura terminada ya no cabe ninguna', () => {
+    const tablero = soltar(tableroVacio([1], 4), BLOQUE, 0);
+    expect(piezasQueCaben([BLOQUE_SUELTO], tablero)).toEqual([]);
+  });
+
+  it('tiene en cuenta los giros: el par de pie cabe en una torre estrecha', () => {
+    const tablero = tableroVacio([2], 6);
+    const buenas = colocacionesPerfectas(piezaPorId('par')!, tablero);
+    expect(buenas.length).toBeGreaterThan(0);
+    // En un tablero de una sola columna, la única forma es de pie.
+    expect(rotaciones(piezaPorId('par')!)[buenas[0].rotacion]).toEqual([
+      [0, 0],
+      [1, 0],
+    ]);
+  });
+});
+
+/**
+ * Criterio de la fase 6, ahora con piezas de verdad: toda figura tiene que
+ * poder construirse entera con las piezas que ofrece su mundo. El solucionador
+ * juega como el juego: pide las piezas que caben y las coloca perfectas.
+ */
+describe('todas las figuras se pueden terminar con las piezas de su mundo', () => {
+  it('un jugador que siempre coloca bien termina cada figura', () => {
+    for (const figura of FIGURAS) {
+      const { filas } = tableroDelMundo(figura.mundo);
+      const catalogo = piezasDelMundo(figura.mundo);
+      let tablero = tableroVacio(figura.alturas, filas);
+      let piezas = 0;
+
+      while (!figuraCompleta(tablero) && piezas < 500) {
+        const caben = piezasQueCaben(catalogo, tablero);
+        const lista = caben.length > 0 ? caben : [BLOQUE_SUELTO];
+        const opciones = colocacionesPerfectas(lista[0], tablero);
+        expect(opciones.length, `${figura.id} se quedó sin jugada`).toBeGreaterThan(0);
+        const { celdas, col, fila } = opciones[0];
+        const resultado = colocar(tablero, celdas, col, fila);
+        expect(resultado.acierto, figura.id).toBe(true);
+        tablero = { ...tablero, ocupado: resultado.ocupado };
+        piezas += 1;
+      }
+
+      expect(figuraCompleta(tablero), `${figura.id} no se terminó`).toBe(true);
+      expect(escombro(tablero), figura.id).toEqual([]);
+    }
+  });
+
+  it('las piezas grandes se usan de verdad: no todo se resuelve a bloques sueltos', () => {
+    const figura = FIGURAS.find((f) => f.mundo === 4)!;
+    const { filas } = tableroDelMundo(4);
+    const tablero = tableroVacio(figura.alturas, filas);
+    const caben = piezasQueCaben(piezasDelMundo(4), tablero);
+    expect(caben.some((pieza) => pieza.tamano >= 3)).toBe(true);
   });
 });
 
@@ -126,16 +265,27 @@ describe('dificultad de la Torre', () => {
     }
   });
 
-  it('las piezas se hacen más largas con los mundos', () => {
-    expect(bloquesPorPieza(1)).toEqual([1]);
-    expect(bloquesPorPieza(2)).toEqual([1, 2]);
-    expect(bloquesPorPieza(4)).toEqual([1, 2, 3]);
+  it('desde el primer mundo hay formas que girar', () => {
+    expect(Math.max(...bloquesPorPieza(1))).toBeGreaterThan(1);
+    expect(piezasDelMundo(1).some((pieza) => rotaciones(pieza).length > 1)).toBe(true);
+  });
+
+  it('las piezas se hacen más grandes con los mundos', () => {
+    const mayor = (mundo: number) => Math.max(...bloquesPorPieza(mundo));
+    expect(mayor(1)).toBeLessThan(mayor(2));
+    // Los mundos altos dejan de regalar el bloque suelto.
+    expect(bloquesPorPieza(5)).not.toContain(1);
   });
 
   it('la caída va de una a tres celdas por segundo', () => {
     expect(velocidadDeCaida(1, 1)).toBe(config.torre.velocidadCaidaInicialCeldasSeg);
     expect(velocidadDeCaida(5, 5)).toBe(config.torre.velocidadCaidaFinalCeldasSeg);
     expect(velocidadDeCaida(3, 1)).toBeGreaterThan(velocidadDeCaida(1, 1));
+  });
+
+  it('la caída suave es más rápida que la normal, pero no instantánea', () => {
+    expect(config.torre.factorCaidaSuave).toBeGreaterThan(1);
+    expect(config.torre.factorCaidaSuave).toBeLessThan(20);
   });
 
   it('en parche hay escalera de contraste del plano; en lentes no', () => {
@@ -165,9 +315,7 @@ describe('plano gris sobre el color del mundo', () => {
 
   it('más contraste, plano más claro', () => {
     const fondo = desdeHex('#14203A');
-    expect(grisConContraste(fondo, 1.0).rgb.r).toBeGreaterThan(
-      grisConContraste(fondo, 0.2).rgb.r,
-    );
+    expect(grisConContraste(fondo, 1.0).rgb.r).toBeGreaterThan(grisConContraste(fondo, 0.2).rgb.r);
   });
 
   it('un contraste imposible de representar usa el paso mínimo', () => {

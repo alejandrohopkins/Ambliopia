@@ -203,3 +203,80 @@ describe('lienzo', () => {
     expect(lienzo.ctx.imageSmoothingEnabled).toBe(false);
   });
 });
+
+/**
+ * Un borde suavizado sobre algo ya dibujado deja píxeles a medio camino entre
+ * los dos colores. En modo lentes eso sería un píxel con rojo y cian a la vez,
+ * que verían los dos ojos, y rompería la separación dicóptica. Por eso los
+ * polígonos se rellenan con rectángulos enteros, nunca trazando un camino.
+ */
+describe('polígonos sin suavizado', () => {
+  const dibujante = (modo: 'parche' | 'lentes') => {
+    const lienzo = crearLienzoFalso();
+    const renderer = new DichopticRenderer(lienzo.ctx, {
+      modo,
+      ojoAmbliope: 'derecho',
+      lentes: LENTES,
+      contrasteOjoDominante: 0.2,
+      paleta: paletaDe('tunel', 1),
+    });
+    renderer.redimensionar(400, 300, 1);
+    lienzo.llamadas.length = 0;
+    lienzo.rectangulos.length = 0;
+    return { lienzo, renderer };
+  };
+
+  it('nunca rellena trazando un camino', () => {
+    for (const modo of ['parche', 'lentes'] as const) {
+      const { lienzo, renderer } = dibujante(modo);
+      renderer.poligono('ojoAmbliope', [
+        [10, 10],
+        [60, 20],
+        [40, 70],
+      ]);
+      expect(lienzo.llamadas, modo).not.toContain('fill');
+      expect(lienzo.llamadas.every((nombre) => nombre === 'fillRect'), modo).toBe(true);
+    }
+  });
+
+  it('pinta con coordenadas enteras', () => {
+    const { lienzo, renderer } = dibujante('lentes');
+    renderer.poligono('ojoDominante', [
+      [10.4, 10.6],
+      [60.2, 20.9],
+      [40.7, 70.3],
+    ]);
+    expect(lienzo.rectangulos.length).toBeGreaterThan(0);
+    for (const [x, y, ancho, alto] of lienzo.rectangulos) {
+      expect(Number.isInteger(x)).toBe(true);
+      expect(Number.isInteger(y)).toBe(true);
+      expect(Number.isInteger(ancho)).toBe(true);
+      expect(alto).toBe(1);
+    }
+  });
+
+  it('un polígono muy fino se sigue viendo', () => {
+    const { lienzo, renderer } = dibujante('lentes');
+    // Una línea de carril lejana: casi sin alto y casi sin ancho.
+    renderer.poligono('ambos', [
+      [100, 50],
+      [100.4, 50],
+      [100.3, 50.4],
+      [100.1, 50.4],
+    ]);
+    expect(lienzo.rectangulos.length).toBeGreaterThan(0);
+    for (const [, , ancho] of lienzo.rectangulos) expect(ancho).toBeGreaterThanOrEqual(1);
+  });
+
+  it('cubre el alto del polígono, fila a fila', () => {
+    const { lienzo, renderer } = dibujante('parche');
+    renderer.poligono('ambos', [
+      [0, 20],
+      [40, 20],
+      [40, 26],
+      [0, 26],
+    ]);
+    const filas = lienzo.rectangulos.map(([, y]) => y).sort((a, b) => a - b);
+    expect(filas).toEqual([20, 21, 22, 23, 24, 25]);
+  });
+});

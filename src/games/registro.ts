@@ -4,6 +4,7 @@ import { minero } from './minero/Minero';
 import { saboteador } from './saboteador/Saboteador';
 import { meteoritos } from './meteoritos/Meteoritos';
 import { torre } from './torre/Torre';
+import { tunel } from './tunel/Tunel';
 import type { Minijuego } from './tipos';
 
 export const MINIJUEGOS: Partial<Record<IdJuego, Minijuego>> = {
@@ -11,6 +12,7 @@ export const MINIJUEGOS: Partial<Record<IdJuego, Minijuego>> = {
   saboteador,
   meteoritos,
   torre,
+  tunel,
 };
 
 export function minijuego(id: IdJuego): Minijuego | undefined {

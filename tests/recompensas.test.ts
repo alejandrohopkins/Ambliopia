@@ -8,6 +8,7 @@ import { INSIGNIAS, nivelAlcanzado, insigniasNuevas } from '../src/rewards/insig
 import { cobrarDia, asegurarMision } from '../src/rewards/premiosDelDia';
 import { premioDeNivel, monedasPorMinutos, bonoDeRacha } from '../src/rewards/economia';
 import {
+  JUEGOS,
   estadoInicial,
   type Economia,
   type Estado,
@@ -173,13 +174,22 @@ describe('misión del día', () => {
     }
   });
 
-  it('usa los siete tipos de la especificación', () => {
-    expect(TIPOS).toHaveLength(7);
+  it('usa todos sus tipos, uno por cada cosa que se puede pedir', () => {
+    // Un tipo por minijuego (cristales, saboteadores, figuras, estrellas de
+    // energía, celdas) más minutos, estrellas de nivel y juegos distintos.
+    expect(TIPOS).toHaveLength(JUEGOS.length + 3);
     const vistos = new Set<string>();
     for (let i = 0; i < 400; i += 1) {
       vistos.add(misionDelDia(`2026-01-${String((i % 28) + 1).padStart(2, '0')}-${i}`).tipo);
     }
-    expect(vistos.size).toBe(7);
+    expect(vistos.size).toBe(TIPOS.length);
+  });
+
+  it('cada tipo tiene su rango y su texto', () => {
+    for (const tipo of TIPOS) {
+      expect(config.misiones.rangos[tipo], tipo).toBeTruthy();
+      expect(es.misiones[tipo], tipo).toBeTruthy();
+    }
   });
 
   it('el progreso avanza y no se pasa del objetivo', () => {
@@ -266,8 +276,8 @@ describe('cofre semanal', () => {
 });
 
 describe('insignias', () => {
-  it('están las once de la especificación, con nombre y criterio', () => {
-    expect(INSIGNIAS).toHaveLength(11);
+  it('cada insignia tiene nombre y criterio, y no se repiten', () => {
+    expect(new Set(INSIGNIAS.map((i) => i.id)).size).toBe(INSIGNIAS.length);
     for (const insignia of INSIGNIAS) {
       expect(es.insignias[insignia.id]?.nombre, insignia.id).toBeTruthy();
       expect(es.insignias[insignia.id]?.criterio, insignia.id).toBeTruthy();
@@ -323,16 +333,20 @@ describe('insignias', () => {
     expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(1);
   });
 
-  it('exploradora pide los cuatro minijuegos el mismo día', () => {
+  it('exploradora pide todos los minijuegos el mismo día', () => {
     const definicion = INSIGNIAS.find((i) => i.id === 'exploradora')!;
     const estado = estadoInicial();
     const resumen = { ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 0 };
-    estado.sesiones = [
-      { ...sesion('2026-09-19', 5), porJuego: { minero: resumen, torre: resumen } },
-      { ...sesion('2026-09-19', 5), porJuego: { saboteador: resumen } },
-    ];
+    // Todos menos el último: todavía no cuenta.
+    estado.sesiones = JUEGOS.slice(0, -1).map((juego) => ({
+      ...sesion('2026-09-19', 5),
+      porJuego: { [juego]: resumen },
+    }));
     expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(0);
-    estado.sesiones.push({ ...sesion('2026-09-19', 5), porJuego: { meteoritos: resumen } });
+    estado.sesiones.push({
+      ...sesion('2026-09-19', 5),
+      porJuego: { [JUEGOS[JUEGOS.length - 1]]: resumen },
+    });
     expect(nivelAlcanzado(definicion, estado, '2026-09-19')).toBe(1);
   });
 

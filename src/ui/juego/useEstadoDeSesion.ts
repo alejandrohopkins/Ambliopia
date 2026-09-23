@@ -16,7 +16,7 @@ import { pxAMm } from '../../engine/color';
 import { hoyDelJuego } from '../reloj';
 
 /** Parámetros cuyo valor es un tamaño en píxeles: de ahí salen los récords. */
-const PARAMETROS_DE_TAMANO = new Set(['tamano', 'diametro']);
+const PARAMETROS_DE_TAMANO = new Set(['tamano', 'diametro', 'abertura']);
 
 export interface NivelTerminado {
   resumen: ResumenDeNivel;

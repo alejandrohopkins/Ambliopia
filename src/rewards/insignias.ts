@@ -50,6 +50,11 @@ export const INSIGNIAS: DefinicionDeInsignia[] = [
     medir: (estado) => estado.contadores.estrellasAtrapadas,
   },
   {
+    id: 'corredora',
+    niveles: [config.insignias.celdasParaCorredora],
+    medir: (estado) => estado.contadores.celdasRecogidas,
+  },
+  {
     id: 'constancia',
     niveles: config.insignias.rachasParaConstancia,
     medir: (estado) => estado.racha.mejor,
@@ -118,6 +123,7 @@ export const JUEGO_DE_INSIGNIA: Record<string, IdJuego | null> = {
   detective: 'saboteador',
   arquitecta: 'torre',
   piloto: 'meteoritos',
+  corredora: 'tunel',
   constancia: null,
   dos_ojos: null,
   balance: null,

@@ -6,7 +6,7 @@
 export type Ojo = 'derecho' | 'izquierdo';
 export type Modo = 'parche' | 'lentes';
 export type ColorLente = 'rojo' | 'cian';
-export type IdJuego = 'minero' | 'saboteador' | 'torre' | 'meteoritos';
+export type IdJuego = 'minero' | 'saboteador' | 'torre' | 'meteoritos' | 'tunel';
 
 export const config = {
   /** Ojo ambliope por defecto. Toda la lógica y los textos se derivan de aquí. */
@@ -156,11 +156,28 @@ export const config = {
     ],
     /** Altura máxima de una figura = filas − este margen. */
     margenAlturaMaxima: 2,
-    /** Bloques por pieza según el mundo (1-indexado por mundo). */
-    bloquesPorPiezaPorMundo: [[1], [1, 2], [1, 2], [1, 2, 3], [1, 2, 3]],
+    /**
+     * Tamaños de pieza (celdas) que puede sacar cada mundo, 1-indexado.
+     * Desde el mundo 1 ya hay formas que girar; los mundos altos dejan de
+     * regalar el bloque suelto. Aun así, si ninguna pieza del mundo cabe ya en
+     * lo que falta del plano, siempre se ofrece el bloque suelto.
+     */
+    bloquesPorPiezaPorMundo: [[1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4], [2, 3, 4], [2, 3, 4]],
     velocidadCaidaInicialCeldasSeg: 1,
     velocidadCaidaFinalCeldasSeg: 3,
-    desvanecerBloqueFueraMs: 1000,
+    /** Mantener la flecha abajo multiplica la velocidad de caída por esto. */
+    factorCaidaSuave: 6,
+    /** Desplazamientos que se prueban si la pieza no cabe al girar. */
+    desviosAlGirar: [0, -1, 1, -2, 2],
+    /** Luminancia de la sombra de aterrizaje, en fracción del color de la pieza. */
+    factorDeSombra: 0.55,
+    /** Columnas de ancho reservadas a la derecha para la pieza siguiente. */
+    columnasParaSiguiente: 5,
+    /** Alto reservado abajo para la fila de botones. */
+    altoDeBotonesPx: 70,
+    /** Cuánto se resalta una fila recién completada. */
+    avisoFilaMs: 450,
+    desvanecerBloqueFueraMs: 2500,
     contrastePlanoInicial: 0.5,
     contrastePlanoMaximo: 1.0,
   },
@@ -213,6 +230,57 @@ export const config = {
     chispasLadoPx: 4,
   },
 
+  tunel: {
+    duracionNivelSeg: 75,
+    carriles: 3,
+    /** Distancia a la que nace un muro, en unidades de pista. */
+    zDeNacimiento: 14,
+    /** Distancia de la cámara al plano de la corredora: manda en la perspectiva. */
+    zDeCamara: 6,
+    velocidadInicialUnidadesSeg: 3,
+    velocidadFinalUnidadesSeg: 6,
+    /** Separación entre muros, en unidades de pista. */
+    separacionDeMuros: 7,
+    /** Celdas de energía que aparecen entre muro y muro. */
+    celdasPorTramo: 2,
+
+    /**
+     * Abertura del muro en píxeles, medida al llegar a la corredora. Es el
+     * hueco que hay que resolver de lejos, y lo mueve la escalera.
+     */
+    aberturaInicialPx: 44,
+    aberturaMinimaPx: 4,
+    aberturaMaximaPx: 110,
+    /** La abertura nunca pasa de esta fracción del alto del túnel. */
+    fraccionMaximaDeAbertura: 0.45,
+
+    /** Geometría del túnel, en fracción del área de juego. */
+    altoDelTunelEnAlto: 0.6,
+    anchoDeCarrilEnAncho: 0.2,
+    alturaDelHorizonteEnAlto: 0.16,
+    alturaDelSueloEnAlto: 0.84,
+    /** Franjas del suelo que marcan el ritmo de la carrera. */
+    franjasDelSuelo: 10,
+
+    /** Alto de la corredora, en fracción del alto del túnel. */
+    altoDePieEnTunel: 0.44,
+    altoRodandoEnTunel: 0.2,
+    /** Alto del salto, en fracción del alto del túnel. */
+    alturaDeSalto: 0.45,
+    saltoMs: 620,
+    deslizamientoMs: 560,
+    /** Lo que tarda en llegar al carril de al lado: solo es para el dibujo. */
+    cambioDeCarrilMs: 140,
+    /** Recorrido mínimo de un deslizamiento del dedo para que cuente. */
+    deslizarMinimoPx: 26,
+
+    energiaMaxima: 100,
+    energiaPorTropiezo: 12,
+    energiaRecargaPorSeg: 5,
+    energiaPorCelda: 5,
+    avisoTropiezoMs: 420,
+  },
+
   economia: {
     monedasPorMinutoActivo: 2,
     monedasPorAcierto: 1,
@@ -251,6 +319,7 @@ export const config = {
       saboteadores: [12, 25],
       figuras: [1, 2],
       estrellasDeEnergia: [10, 22],
+      celdas: [12, 26],
       estrellasDeNivel: [3, 7],
       juegosDistintos: [2, 3],
     } as Record<string, [number, number]>,
@@ -262,6 +331,7 @@ export const config = {
     saboteadoresParaDetective: 50,
     figurasParaArquitecta: 10,
     estrellasParaPiloto: 500,
+    celdasParaCorredora: 300,
     rachasParaConstancia: [3, 7, 14, 30],
     subidasParaDosOjos: 3,
     fallosSeguidosParaPerseverante: 3,

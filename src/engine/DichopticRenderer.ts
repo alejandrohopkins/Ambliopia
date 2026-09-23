@@ -210,17 +210,49 @@ export class DichopticRenderer {
     }
   }
 
-  /** Polígono relleno (roca, estrella, nave). Coordenadas en píxeles CSS. */
+  /**
+   * Polígono relleno (roca, estrella, nave, carriles del túnel).
+   * Coordenadas en píxeles CSS.
+   *
+   * Se rellena línea a línea con rectángulos enteros en vez de trazar un
+   * camino: el relleno de un camino va suavizado, y un borde suavizado sobre
+   * algo ya dibujado produce píxeles a medio camino entre los dos colores. En
+   * modo lentes eso significaría un píxel con rojo y cian a la vez, que verían
+   * los dos ojos: justo lo que la regla de los cuatro colores prohíbe.
+   */
   poligono(capa: Capa, puntos: Array<[number, number]>, op?: OpcionesDeDibujo): void {
     if (puntos.length < 3) return;
     this.ctx.fillStyle = this.cssDeCapa(capa, op);
-    this.ctx.beginPath();
-    this.ctx.moveTo(Math.round(puntos[0][0]), Math.round(puntos[0][1]));
-    for (let i = 1; i < puntos.length; i += 1) {
-      this.ctx.lineTo(Math.round(puntos[i][0]), Math.round(puntos[i][1]));
+
+    let arriba = Infinity;
+    let abajo = -Infinity;
+    for (const [, y] of puntos) {
+      arriba = Math.min(arriba, y);
+      abajo = Math.max(abajo, y);
     }
-    this.ctx.closePath();
-    this.ctx.fill();
+    const desde = Math.round(arriba);
+    // Un polígono más fino que un píxel se dibuja igual, con una línea.
+    const hasta = Math.max(desde + 1, Math.round(abajo));
+
+    for (let y = desde; y < hasta; y += 1) {
+      // El corte se toma dentro del polígono: así una forma más fina que un
+      // píxel —una línea de carril lejana— tampoco se pierde.
+      const centro = Math.min(Math.max(y + 0.5, arriba + 1e-6), abajo - 1e-6);
+      const cortes: number[] = [];
+      for (let i = 0; i < puntos.length; i += 1) {
+        const [x1, y1] = puntos[i];
+        const [x2, y2] = puntos[(i + 1) % puntos.length];
+        if ((y1 <= centro && y2 > centro) || (y2 <= centro && y1 > centro)) {
+          cortes.push(x1 + ((centro - y1) / (y2 - y1)) * (x2 - x1));
+        }
+      }
+      cortes.sort((a, b) => a - b);
+      for (let i = 0; i + 1 < cortes.length; i += 2) {
+        const x0 = Math.round(cortes[i]);
+        const x1 = Math.round(cortes[i + 1]);
+        if (cortes[i + 1] > cortes[i]) this.ctx.fillRect(x0, y, Math.max(1, x1 - x0), 1);
+      }
+    }
   }
 
   /**

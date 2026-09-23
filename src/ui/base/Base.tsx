@@ -1,6 +1,6 @@
 /**
  * Base de la jugadora: avatar, palanca de modo, misión del día, meta de hoy,
- * los cuatro portales y los accesos. Es la pantalla de inicio.
+ * los portales de los minijuegos y los accesos. Es la pantalla de inicio.
  */
 import type { IdJuego, Modo } from '../../config';
 import { es } from '../../i18n/es';
@@ -17,7 +17,7 @@ import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
 import { MisionDelDia } from './MisionDelDia';
 import type { Pantalla } from '../navegacion';
 
-const PORTALES: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos'];
+const PORTALES: IdJuego[] = ['minero', 'saboteador', 'torre', 'meteoritos', 'tunel'];
 
 /** El aterrizaje es una sola vez por apertura de la app, no cada visita. */
 let yaAterrizo = false;
