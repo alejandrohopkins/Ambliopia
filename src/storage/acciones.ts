@@ -11,6 +11,7 @@ import {
   type Perfil,
   type Contadores,
   type ResumenDeJuegoEnSesion,
+  type Sesion,
   type TipoDeMision,
 } from './esquema';
 import { diaISO, horaISO } from '../engine/fechas';
@@ -19,6 +20,7 @@ import {
   fijarProgreso as fijarProgresoDeMision,
 } from '../rewards/mision';
 import { nivelSiguiente, ordenDeNivel, type Nivel } from '../rewards/niveles';
+import { redondearASegundos } from './selectores';
 
 export type Accion =
   | { tipo: 'reemplazar'; estado: Estado }
@@ -35,9 +37,11 @@ export type Accion =
   | { tipo: 'nota/borrar'; indice: number }
   | { tipo: 'extra/conceder'; dia: string; minutos: number }
   | { tipo: 'sesion/iniciar'; id: string; dia: string; modo: Modo }
-  | { tipo: 'sesion/sumarMinutos'; minutos: number }
+  /** Con `id`, a esa sesión aunque ya se haya cerrado: el último trozo llega al salir. */
+  | { tipo: 'sesion/sumarMinutos'; minutos: number; id?: string }
   | { tipo: 'sesion/registrarJuego'; juego: IdJuego; resumen: ResumenDeJuegoEnSesion }
   | { tipo: 'sesion/terminar' }
+  | { tipo: 'premio/visto'; dia: string }
   | { tipo: 'escaleras/guardar'; escaleras: Record<string, EstadoEscalera> }
   | { tipo: 'progreso/estrellas'; juego: IdJuego; mundo: number; nivel: number; estrellas: number }
   | { tipo: 'progreso/superar'; juego: IdJuego; mundo: number; nivel: number }
@@ -148,11 +152,21 @@ export function reducir(estado: Estado, accion: Accion): Estado {
         ],
       };
 
-    case 'sesion/sumarMinutos':
-      return conSesionAbierta(estado, (sesion) => ({
+    case 'sesion/sumarMinutos': {
+      const sumar = (sesion: Sesion): Sesion => ({
         ...sesion,
-        minutosActivos: sesion.minutosActivos + accion.minutos,
-      }));
+        minutosActivos: redondearASegundos(sesion.minutosActivos + accion.minutos),
+      });
+      if (accion.id === undefined) return conSesionAbierta(estado, sumar);
+      return {
+        ...estado,
+        sesiones: estado.sesiones.map((s) => (s.id === accion.id ? sumar(s) : s)),
+      };
+    }
+
+    case 'premio/visto':
+      if (estado.premiosDePantalla.includes(accion.dia)) return estado;
+      return { ...estado, premiosDePantalla: [...estado.premiosDePantalla, accion.dia] };
 
     case 'sesion/registrarJuego':
       return conSesionAbierta(estado, (sesion) => {

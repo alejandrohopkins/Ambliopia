@@ -26,6 +26,8 @@ import { ResumenDeSesion } from './ui/juego/ResumenDeSesion';
 import { CalibracionDePantalla } from './calibration/CalibracionDePantalla';
 import { CalibracionDeLentes } from './calibration/CalibracionDeLentes';
 import { OverlayDeDesarrollo } from './ui/componentes/OverlayDeDesarrollo';
+import { BarraDeTiempo } from './ui/componentes/RelojDelDia';
+import { AvisoDePremio } from './ui/componentes/PremioDePantalla';
 import { modoDesarrollo, type Pantalla } from './ui/navegacion';
 import { avanzarUnDiaDeDesarrollo, hoyDelJuego } from './ui/reloj';
 import { useCierreDelDia } from './ui/useCierreDelDia';
@@ -72,9 +74,18 @@ function Rutas() {
     />
   ) : null;
 
+  // El reloj del día va arriba en las pantallas de la jugadora. El juego pone
+  // el suyo; el asistente, las calibraciones y el panel de adultos, ninguno.
+  const conReloj =
+    estado.asistenteCompletado &&
+    calibrando === null &&
+    pantalla !== 'juego' &&
+    pantalla !== 'adultos';
+
   return (
     <div className={sinMovimiento ? 'sin-movimiento' : undefined}>
       {overlay}
+      {conReloj && <BarraDeTiempo />}
       <Contenido
         dia={dia}
         pantalla={pantalla}
@@ -86,6 +97,7 @@ function Rutas() {
         calibrando={calibrando}
         setCalibrando={setCalibrando}
       />
+      {conReloj && <AvisoDePremio />}
     </div>
   );
 }

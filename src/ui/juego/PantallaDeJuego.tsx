@@ -11,7 +11,7 @@ import { useEstadoDeSesion } from './useEstadoDeSesion';
 import { DichopticRenderer } from '../../engine/DichopticRenderer';
 import { paletaDe } from '../../engine/mundos';
 import { Staircase } from '../../engine/Staircase';
-import { SessionTimer, type MotivoDeParada } from '../../engine/SessionTimer';
+import type { MotivoDeParada, SessionTimer } from '../../engine/SessionTimer';
 import { pxAMm } from '../../engine/color';
 import { minijuego } from '../../games/registro';
 import { figuraDeNivel } from '../../games/torre/figuras';
@@ -26,6 +26,9 @@ import { audio } from '../../engine/audio';
 import { MenuDePausa } from './MenuDePausa';
 import { FinDeNivel } from './FinDeNivel';
 import { ControlesDelJuego } from './ControlesDelJuego';
+import { relojDeJuego } from './relojDeJuego';
+import { BarraDeTiempo, ESTILO_EN_JUEGO, RelojEnJuego } from '../componentes/RelojDelDia';
+import { AvisoDePremio } from '../componentes/PremioDePantalla';
 
 export interface FinDeNivelDatos {
   resumen: ResumenDeNivel;
@@ -71,9 +74,21 @@ export function PantallaDeJuego({
   const [listo, setListo] = useState(false);
   const [enPausa, setEnPausa] = useState(false);
   const [fin, setFin] = useState<FinDeNivelDatos | null>(null);
+  // Segundos activos que el reloj aún no guardó, para el reloj del día.
+  const [sinGuardar, setSinGuardar] = useState(0);
   const [desarrollo, setDesarrollo] = useState({ fps: 0, minutos: 0, parada: null as MotivoDeParada | null });
 
   const alTerminarNivel = useRef<(resumen: ResumenDeNivel) => void>(() => {});
+
+  /** Para el reloj y guarda todo el tiempo activo, también el trozo de minuto. */
+  const guardarTiempo = useCallback(() => {
+    const temporizador = reloj.current;
+    if (!temporizador) return;
+    temporizador.detener();
+    const minutos = temporizador.consumirMinutos();
+    if (minutos > 0) sumarMinutos(minutos);
+    setSinGuardar(0);
+  }, [sumarMinutos]);
 
   const escaleras = useMemo(() => {
     const definicion = minijuego(juego)?.escaleras(modo, progreso.mundo) ?? [];
@@ -91,6 +106,9 @@ export function PantallaDeJuego({
     (resumen: ResumenDeNivel) => {
       const premio = premioDeNivel(resumen);
       audio().reproducir('nivel');
+      // La pantalla de resultados no es juego activo: el reloj se para y se
+      // guarda hasta el último segundo.
+      guardarTiempo();
 
       // En la Torre cada nivel es una figura: solo entra en la galería si se
       // terminó. Una figura a medias no se guarda, pero tampoco quita nada.
@@ -122,7 +140,7 @@ export function PantallaDeJuego({
           siguiente && siguiente.mundo !== progreso.mundo ? es.mundos[juego][siguiente.mundo - 1] : null,
       });
     },
-    [despachar, escaleras, juego, progreso, registrarNivel],
+    [despachar, escaleras, guardarTiempo, juego, progreso, registrarNivel],
   );
 
   alTerminarNivel.current = terminarNivel;
@@ -155,7 +173,7 @@ export function PantallaDeJuego({
     const observador = new ResizeObserver(ajustar);
     observador.observe(caja);
 
-    const temporizador = new SessionTimer({ descansoCadaMin: estado.ajustes.descansoCadaMin });
+    const temporizador = relojDeJuego(estado.ajustes.descansoCadaMin);
     reloj.current = temporizador;
     ensayos.current = [];
 
@@ -185,9 +203,9 @@ export function PantallaDeJuego({
     return () => {
       observador.disconnect();
       creado.destruir();
-      temporizador.detener();
-      // Salir a medias (descanso, pausa, molestia) no debe perder el avance
-      // de la escalera: se guarda siempre al desmontar.
+      // Salir a medias (descanso, pausa, molestia, botón atrás) no pierde ni
+      // el tiempo jugado ni el avance de la escalera: se guardan al desmontar.
+      guardarTiempo();
       guardarEscaleras(escaleras);
       instancia.current = null;
       renderer.current = null;
@@ -213,6 +231,7 @@ export function PantallaDeJuego({
 
       const minutos = temporizador.consumirMinutosEnteros();
       if (minutos > 0) sumarMinutos(minutos);
+      setSinGuardar(Math.floor(temporizador.msActivos / 1000));
 
       if (temporizador.descansoPendiente) {
         temporizador.marcarDescansoTomado();
@@ -257,38 +276,43 @@ export function PantallaDeJuego({
     }
   }, [enPausa]);
 
-  function salir() {
-    reloj.current?.detener();
-    const minutos = reloj.current?.consumirMinutosEnteros() ?? 0;
-    if (minutos > 0) sumarMinutos(minutos);
-    alVolver();
-  }
+  // El tiempo y las escaleras se guardan al desmontar, salga por donde salga.
+  const salir = alVolver;
 
   if (!listo) {
     return (
-      <ControlesDelJuego
-        juego={juego}
-        mundo={progreso.mundo}
-        nivel={progreso.nivel}
-        superado={progreso.superado}
-        alEmpezar={() => setListo(true)}
-        alVolver={alCancelar}
-      />
+      <>
+        <BarraDeTiempo />
+        <ControlesDelJuego
+          juego={juego}
+          mundo={progreso.mundo}
+          nivel={progreso.nivel}
+          superado={progreso.superado}
+          alEmpezar={() => setListo(true)}
+          alVolver={alCancelar}
+        />
+        <AvisoDePremio />
+      </>
     );
   }
 
   if (fin) {
     return (
-      <FinDeNivel
-        juego={juego}
-        datos={fin}
-        alSeguir={() => {
-          // El nivel alcanzado ya quedó guardado: se juega el que toque ahora.
-          setFin(null);
-          setIntento((n) => n + 1);
-        }}
-        alVolver={salir}
-      />
+      <>
+        <BarraDeTiempo />
+        <FinDeNivel
+          juego={juego}
+          datos={fin}
+          alSeguir={() => {
+            // El nivel alcanzado ya quedó guardado: se juega el que toque ahora.
+            setFin(null);
+            setIntento((n) => n + 1);
+          }}
+          alVolver={salir}
+        />
+        {/* La felicitación del día sale aquí, entre niveles, nunca jugando. */}
+        <AvisoDePremio />
+      </>
     );
   }
 
@@ -312,10 +336,13 @@ export function PantallaDeJuego({
         <canvas ref={lienzo} aria-label={es.juegos[juego]} />
       </div>
 
+      <RelojEnJuego segundosSinGuardar={sinGuardar} />
+
+      {/* Sobre el lienzo solo negro y gris: en lentes no cabe otro color. */}
       <button
-        className="pixelado secundario"
+        className="pixelado"
         onClick={() => setEnPausa(true)}
-        style={{ position: 'absolute', left: 8, bottom: 8, minHeight: 44 }}
+        style={{ ...ESTILO_EN_JUEGO, position: 'absolute', left: 8, bottom: 8, minHeight: 44 }}
       >
         {es.pausa.titulo}
       </button>

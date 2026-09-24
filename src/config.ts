@@ -40,6 +40,16 @@ export const config = {
     edadPorDefecto: 12,
   },
 
+  /**
+   * Premio de tiempo de pantalla: al cumplir la meta de minutos del día con
+   * esta precisión, se felicita a la jugadora y se le pide una captura para
+   * reclamar los minutos extra con su familia.
+   */
+  premioDePantalla: {
+    precisionMinima: 0.85,
+    minutosExtra: 15,
+  },
+
   sesion: {
     metaDiariaMin: 20,
     maxDiarioMin: 60,

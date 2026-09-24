@@ -1,13 +1,47 @@
 /** Lecturas derivadas del estado guardado. Sin efectos, fáciles de probar. */
-import type { IdJuego, Modo } from '../config';
+import { config, type IdJuego, type Modo } from '../config';
 import type { Estado } from './esquema';
 import { JUEGOS } from './esquema';
 
+/**
+ * Los minutos se guardan con precisión de segundos: al sumar trozos de minuto
+ * no debe quedar un 19,999… que no llegue a la meta de 20.
+ */
+export function redondearASegundos(minutos: number): number {
+  return Math.round(minutos * 60) / 60;
+}
+
 /** Minutos activos de un día, opcionalmente filtrados por modo. */
 export function minutosDelDia(estado: Estado, dia: string, modo?: Modo): number {
-  return estado.sesiones
-    .filter((s) => s.fecha === dia && (modo === undefined || s.modo === modo))
-    .reduce((total, s) => total + s.minutosActivos, 0);
+  return redondearASegundos(
+    estado.sesiones
+      .filter((s) => s.fecha === dia && (modo === undefined || s.modo === modo))
+      .reduce((total, s) => total + s.minutosActivos, 0),
+  );
+}
+
+/** Aciertos entre ensayos de todos los juegos del día, o null si aún no hubo ensayos. */
+export function precisionDelDia(estado: Estado, dia: string): number | null {
+  let ensayos = 0;
+  let aciertos = 0;
+  for (const sesion of estado.sesiones) {
+    if (sesion.fecha !== dia) continue;
+    for (const resumen of Object.values(sesion.porJuego)) {
+      ensayos += resumen?.ensayos ?? 0;
+      aciertos += resumen?.aciertos ?? 0;
+    }
+  }
+  return ensayos > 0 ? aciertos / ensayos : null;
+}
+
+/** Premio de pantalla: la meta de minutos del día, con la precisión pedida. */
+export function premioDePantallaGanado(estado: Estado, dia: string): boolean {
+  const precision = precisionDelDia(estado, dia);
+  return (
+    metaCumplida(estado, dia) &&
+    precision !== null &&
+    precision >= config.premioDePantalla.precisionMinima
+  );
 }
 
 /** Máximo de minutos permitido hoy, incluyendo la extensión del adulto. */
@@ -31,7 +65,7 @@ export function diasConMetaCumplida(estado: Estado): string[] {
     porDia.set(s.fecha, (porDia.get(s.fecha) ?? 0) + s.minutosActivos);
   }
   return [...porDia.entries()]
-    .filter(([, minutos]) => minutos >= estado.ajustes.metaDiariaMin)
+    .filter(([, minutos]) => redondearASegundos(minutos) >= estado.ajustes.metaDiariaMin)
     .map(([dia]) => dia)
     .sort();
 }

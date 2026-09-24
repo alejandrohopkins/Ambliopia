@@ -196,6 +196,8 @@ export interface Estado {
   ultimoCierre: string | null;
   /** Minutos extra concedidos por el adulto, válidos solo para esa fecha. */
   extraDelDia: { fecha: string; minutos: number } | null;
+  /** Días en que se ganó —y ya se mostró— el premio de tiempo de pantalla. */
+  premiosDePantalla: string[];
   /** El asistente inicial se completó. */
   asistenteCompletado: boolean;
 }
@@ -288,6 +290,7 @@ export function estadoInicial(): Estado {
     },
     ultimoCierre: null,
     extraDelDia: null,
+    premiosDePantalla: [],
     asistenteCompletado: false,
   };
 }

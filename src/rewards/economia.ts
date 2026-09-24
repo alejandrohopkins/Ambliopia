@@ -23,6 +23,14 @@ export function monedasPorMinutos(minutos: number): number {
   return Math.max(0, Math.floor(minutos)) * config.economia.monedasPorMinutoActivo;
 }
 
+/**
+ * Monedas por el tiempo que se suma al día: pagan los minutos enteros que se
+ * completan, así los trozos de minuto de cada salida se juntan y nada se pierde.
+ */
+export function monedasPorTiempo(minutosAntes: number, minutosDespues: number): number {
+  return monedasPorMinutos(Math.floor(minutosDespues) - Math.floor(minutosAntes));
+}
+
 export function monedasPorMetaDiaria(): number {
   return config.economia.monedasMetaDiaria;
 }

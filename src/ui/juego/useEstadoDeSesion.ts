@@ -9,10 +9,11 @@ import { useEstado } from '../../storage/contexto';
 import type { EstadoEscalera, ResumenDeJuegoEnSesion } from '../../storage/esquema';
 import type { Staircase } from '../../engine/Staircase';
 import type { ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
-import { monedasPorMinutos } from '../../rewards/economia';
+import { monedasPorTiempo } from '../../rewards/economia';
 import { aportesDelNivel } from '../../rewards/progresoDeJuego';
 import { nivelSuperado } from '../../rewards/niveles';
-import { juegosDelDia, minutosDelDia } from '../../storage/selectores';
+import { juegosDelDia, minutosDelDia, redondearASegundos } from '../../storage/selectores';
+import { reducir } from '../../storage/acciones';
 import { esParametroDeTamano } from '../../storage/analisis';
 import { pxAMm } from '../../engine/color';
 import { hoyDelJuego } from '../reloj';
@@ -35,26 +36,34 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
   ultimoEstado.current = estado;
 
   // Una sesión por entrada al juego; se cierra al salir de la pantalla.
+  const idDeSesion = useRef<string | undefined>(undefined);
   useEffect(() => {
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    idDeSesion.current = id;
     despachar({ tipo: 'sesion/iniciar', id, dia: hoyDelJuego(), modo });
     return () => despachar({ tipo: 'sesion/terminar' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modo]);
 
+  /**
+   * Suma tiempo activo, también trozos de minuto (al salir de un juego). Las
+   * monedas y la misión cuentan los minutos enteros del día: los trozos se
+   * juntan y, al completar un minuto, pagan como cualquier otro.
+   */
   const sumarMinutos = useCallback(
     (minutos: number) => {
       if (minutos <= 0) return;
       const dia = hoyDelJuego();
-      despachar({ tipo: 'sesion/sumarMinutos', minutos });
-      despachar({ tipo: 'economia/sumar', monedas: monedasPorMinutos(minutos) });
+      const antes = minutosDelDia(ultimoEstado.current, dia);
+      const despues = redondearASegundos(antes + minutos);
+      // Dos sumas seguidas, antes de volver a pintar, no deben leer el mismo "antes".
+      const accion = { tipo: 'sesion/sumarMinutos', minutos, id: idDeSesion.current } as const;
+      ultimoEstado.current = reducir(ultimoEstado.current, accion);
+      despachar(accion);
+      const monedas = monedasPorTiempo(antes, despues);
+      if (monedas > 0) despachar({ tipo: 'economia/sumar', monedas });
       // Los minutos de la misión se fijan como total del día, no se acumulan.
-      despachar({
-        tipo: 'mision/fijar',
-        dia,
-        tipoDeMision: 'minutos',
-        total: minutosDelDia(ultimoEstado.current, dia) + minutos,
-      });
+      despachar({ tipo: 'mision/fijar', dia, tipoDeMision: 'minutos', total: Math.floor(despues) });
     },
     [despachar],
   );

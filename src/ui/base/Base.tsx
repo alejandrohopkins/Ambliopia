@@ -17,6 +17,7 @@ import { Contadores } from './Contadores';
 import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
 import { fondoDeBase } from '../../avatar/fondos';
 import { MisionDelDia } from './MisionDelDia';
+import { BotonDePremio } from '../componentes/PremioDePantalla';
 import type { Pantalla } from '../navegacion';
 
 
@@ -94,7 +95,7 @@ export function Base({
   const sinMovimiento = useMovimientoReducido();
   const primeraVez = usarSoloLaPrimeraVez();
   const dia = hoyDelJuego();
-  const minutos = minutosDelDia(estado, dia);
+  const minutos = Math.floor(minutosDelDia(estado, dia));
   const meta = estado.ajustes.metaDiariaMin;
   const disponibles = modosDisponibles(estado);
   const hayLentes = lentesCalibrados(estado.calibracion);
@@ -191,10 +192,11 @@ export function Base({
         ))}
       </section>
 
-      <p>
+      <p style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <button className="pixelado" onClick={() => alEmpezar()}>
           {es.base.empezarMision}
         </button>
+        <BotonDePremio />
       </p>
 
       <nav style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>

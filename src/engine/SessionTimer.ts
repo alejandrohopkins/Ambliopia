@@ -157,4 +157,12 @@ export class SessionTimer {
     if (enteros > 0) this.msActivosTotales -= enteros * 60_000;
     return enteros;
   }
+
+  /** Todo lo que falta guardar, también el trozo de minuto. Se usa al salir. */
+  consumirMinutos(): number {
+    this.actualizar();
+    const minutos = this.minutosActivos;
+    this.msActivosTotales = 0;
+    return minutos;
+  }
 }

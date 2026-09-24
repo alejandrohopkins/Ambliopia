@@ -26,6 +26,12 @@ export function nombreDeOjo(ojo: Ojo): string {
   return NOMBRE_DE_OJO[ojo];
 }
 
+/** 'AAAA-MM-DD' → 'DD/MM/AAAA'. */
+export function diaLegible(dia: string): string {
+  const [anio, mes, diaDelMes] = dia.split('-');
+  return `${diaDelMes}/${mes}/${anio}`;
+}
+
 /** Una fila de la tabla de controles: las teclas y lo que hacen. */
 export interface FilaDeTeclas {
   teclas: string[];
@@ -248,6 +254,24 @@ export const es = {
 
   pozo: {
     hundido: '¡Más espacio!',
+  },
+
+  /** Reloj del día: siempre a la vista, cuenta solo el juego activo. */
+  reloj: {
+    hoy: 'Hoy',
+    etiqueta: (hechos: string, meta: string) => `Tiempo de juego de hoy: ${hechos} de ${meta}`,
+    metaCumplida: '¡Meta cumplida!',
+  },
+
+  /** Premio de tiempo de pantalla por cumplir la meta con buena precisión. */
+  premioDePantalla: {
+    titulo: (nombre: string) => `¡Felicidades, ${nombre}!`,
+    logro: (minutos: number, precision: number) =>
+      `Hoy jugaste ${minutos} minutos con ${precision} % de aciertos.`,
+    captura: `Toma una captura de pantalla y muéstrala para reclamar ${config.premioDePantalla.minutosExtra} minutos extra de tiempo de pantalla.`,
+    fecha: (dia: string) => `Fecha: ${diaLegible(dia)}`,
+    listo: '¡Listo, ya la tomé!',
+    verPremio: 'Ver mi premio de hoy',
   },
 
   base: {

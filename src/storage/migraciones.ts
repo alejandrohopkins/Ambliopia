@@ -82,6 +82,7 @@ function completar(datos: Datos): Estado {
   if (!Array.isArray(salida.galeria)) salida.galeria = [];
   if (!Array.isArray(salida.eventos)) salida.eventos = [];
   if (!Array.isArray(salida.notas)) salida.notas = [];
+  if (!Array.isArray(salida.premiosDePantalla)) salida.premiosDePantalla = [];
   if (!Array.isArray(salida.balance.historial)) salida.balance.historial = [];
   if (!esObjeto(salida.insignias)) salida.insignias = {};
   if (!esObjeto(salida.misiones)) salida.misiones = {};

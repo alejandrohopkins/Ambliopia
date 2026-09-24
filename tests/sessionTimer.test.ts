@@ -179,4 +179,15 @@ describe('minutos guardados', () => {
     expect(timer.minutosActivos).toBeCloseTo(0.5, 4);
     expect(timer.consumirMinutosEnteros()).toBe(0);
   });
+
+  it('al salir se guarda también el trozo de minuto, y solo una vez', () => {
+    const { timer, reloj } = crear();
+    timer.iniciar();
+    reloj.avanzar(20_000);
+    timer.marcarInteraccion();
+    reloj.avanzar(25_000);
+    timer.detener();
+    expect(timer.consumirMinutos()).toBeCloseTo(0.75, 6);
+    expect(timer.consumirMinutos()).toBe(0);
+  });
 });
