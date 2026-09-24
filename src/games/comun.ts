@@ -1,32 +1,36 @@
 /** Piezas compartidas por los minijuegos. */
 import { config } from '../config';
 import type { DichopticRenderer } from '../engine/DichopticRenderer';
+import { nivelSuperado } from '../rewards/niveles';
 import type { ResumenDeNivel } from './tipos';
 
 /**
- * Estrellas del nivel.
- * Como la escalera mantiene la precisión cerca del mismo nivel —vea bien o
- * no tanto—, las estrellas siempre son alcanzables: premian el esfuerzo y la
- * constancia, no ver bien.
+ * Estrellas del nivel: una por terminarlo, dos con buena precisión y tres al
+ * superarlo, que es lo que abre el nivel siguiente. Como la escalera ajusta
+ * la dificultad a cómo ve la jugadora, las tres son siempre alcanzables:
+ * premian el esfuerzo y la constancia, no ver bien.
  */
-export function estrellasDeNivel(precision: number, mejorRacha: number): number {
-  let estrellas = 1;
-  if (precision >= config.progresion.precisionDosEstrellas) estrellas = 2;
-  if (
-    precision >= config.progresion.precisionTresEstrellas ||
-    mejorRacha >= config.progresion.rachaTresEstrellas
-  ) {
-    estrellas = 3;
-  }
-  return estrellas;
+export function estrellasDeNivel(resumen: Pick<ResumenDeNivel, 'precision' | 'objetivo'>): number {
+  if (nivelSuperado(resumen)) return 3;
+  return resumen.precision >= config.progresion.precisionDosEstrellas ? 2 : 1;
+}
+
+/**
+ * Z hace lo mismo que Enter y X lo mismo que la barra espaciadora, para jugar
+ * con una mano en esas teclas y la otra en las flechas.
+ */
+const TECLAS_GEMELAS: Record<string, string> = { z: 'Enter', x: ' ' };
+
+/** La tecla de un evento de teclado, con Z y X ya traducidas. */
+export function teclaDe(evento: Event): string {
+  const tecla = (evento as KeyboardEvent).key;
+  return TECLAS_GEMELAS[tecla.toLowerCase()] ?? tecla;
 }
 
 /** Acumula los ensayos de un nivel y produce su resumen. */
 export class ContadorDeNivel {
   private ensayos = 0;
   private aciertos = 0;
-  private racha = 0;
-  private mejorRacha = 0;
   private tiemposDeReaccion: number[] = [];
   private readonly inicio = Date.now();
 
@@ -34,14 +38,9 @@ export class ContadorDeNivel {
     // Los ensayos de confianza no miden nada: no entran en la precisión.
     if (esEnsayoDeConfianza) return;
     this.ensayos += 1;
-    if (acierto) {
-      this.aciertos += 1;
-      this.racha += 1;
-      this.mejorRacha = Math.max(this.mejorRacha, this.racha);
-    } else {
-      this.racha = 0;
-    }
-    if (acierto) this.tiemposDeReaccion.push(tiempoReaccionMs);
+    if (!acierto) return;
+    this.aciertos += 1;
+    this.tiemposDeReaccion.push(tiempoReaccionMs);
   }
 
   get total(): number {
@@ -63,10 +62,9 @@ export class ContadorDeNivel {
       ensayos: this.ensayos,
       aciertos: this.aciertos,
       precision,
-      estrellas: estrellasDeNivel(precision, this.mejorRacha),
+      estrellas: estrellasDeNivel({ precision, objetivo }),
       umbrales,
       duracionMs: Date.now() - this.inicio,
-      mejorRacha: this.mejorRacha,
     };
   }
 }

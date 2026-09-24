@@ -18,7 +18,6 @@ function resumen(parcial: Partial<ResumenDeNivel> = {}): ResumenDeNivel {
     estrellas: 2,
     umbrales: { tamano: 9.4 },
     duracionMs: 150_000,
-    mejorRacha: 4,
     ...parcial,
   };
 }
@@ -105,14 +104,15 @@ describe('registro de la sesión', () => {
     estado = reducir(estado, {
       tipo: 'sesion/registrarJuego',
       juego: 'minero',
-      resumen: { ensayos: 15, aciertos: 10, umbrales: { tamano: 12 }, tiempoReaccionMedioMs: 1000 },
+      resumen: { niveles: 1, ensayos: 15, aciertos: 10, umbrales: { tamano: 12 }, tiempoReaccionMedioMs: 1000 },
     });
     estado = reducir(estado, {
       tipo: 'sesion/registrarJuego',
       juego: 'minero',
-      resumen: { ensayos: 15, aciertos: 12, umbrales: { tamano: 9 }, tiempoReaccionMedioMs: 800 },
+      resumen: { niveles: 1, ensayos: 15, aciertos: 12, umbrales: { tamano: 9 }, tiempoReaccionMedioMs: 800 },
     });
     const minero = estado.sesiones[0].porJuego.minero!;
+    expect(minero.niveles).toBe(2);
     expect(minero.ensayos).toBe(30);
     expect(minero.aciertos).toBe(22);
     // El último umbral es el más informado.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { config, nivelDeAciertosBuscado } from '../src/config';
+import { config } from '../src/config';
 import { escalerasDeMinero, paredDelMundo, segundosPorEnsayo } from '../src/games/minero/Minero';
 import { estrellasDeNivel, ContadorDeNivel, factorDePulso, areaDeJuego } from '../src/games/comun';
 import { claveDeEscalera } from '../src/games/tipos';
@@ -59,28 +59,23 @@ describe('escaleras del minero', () => {
 });
 
 describe('estrellas del nivel', () => {
+  const { precisionDosEstrellas, precisionParaSubir } = config.progresion;
+
   it('completar el nivel siempre da una estrella', () => {
-    expect(estrellasDeNivel(0, 0)).toBe(1);
-    expect(estrellasDeNivel(0.5, 0)).toBe(1);
+    expect(estrellasDeNivel({ precision: 0 })).toBe(1);
+    expect(estrellasDeNivel({ precision: 0.5 })).toBe(1);
   });
 
-  it('la segunda estrella llega con el 65 % de aciertos', () => {
-    expect(estrellasDeNivel(config.progresion.precisionDosEstrellas, 0)).toBe(2);
-    expect(estrellasDeNivel(config.progresion.precisionDosEstrellas - 0.01, 0)).toBe(1);
+  it('la segunda estrella llega con buena precisión', () => {
+    expect(estrellasDeNivel({ precision: precisionDosEstrellas })).toBe(2);
+    expect(estrellasDeNivel({ precision: precisionDosEstrellas - 0.01 })).toBe(1);
   });
 
-  it('la tercera llega con la precisión alta o con una buena racha', () => {
-    expect(estrellasDeNivel(config.progresion.precisionTresEstrellas, 0)).toBe(3);
-    expect(estrellasDeNivel(0.5, config.progresion.rachaTresEstrellas)).toBe(3);
-    expect(estrellasDeNivel(0.5, config.progresion.rachaTresEstrellas - 1)).toBe(1);
-  });
-
-  it('con la precisión que persigue la escalera las tres estrellas son alcanzables', () => {
-    // A la precisión que busca la escalera salen dos estrellas seguras, y la
-    // tercera con una buena racha, que a ese nivel de aciertos es frecuente.
-    const buscado = nivelDeAciertosBuscado();
-    expect(estrellasDeNivel(buscado, 0)).toBe(2);
-    expect(estrellasDeNivel(buscado, config.progresion.rachaTresEstrellas)).toBe(3);
+  it('la tercera es superar el nivel, y sin superarlo no hay tercera', () => {
+    expect(estrellasDeNivel({ precision: precisionParaSubir })).toBe(3);
+    expect(estrellasDeNivel({ precision: precisionParaSubir - 0.01 })).toBe(2);
+    const aMedias = { hecho: 9, total: 12, cumplido: false };
+    expect(estrellasDeNivel({ precision: 1, objetivo: aMedias })).toBe(2);
   });
 });
 
@@ -94,12 +89,6 @@ describe('contador de nivel', () => {
     expect(resumen.ensayos).toBe(2);
     expect(resumen.aciertos).toBe(1);
     expect(resumen.precision).toBe(0.5);
-  });
-
-  it('guarda la mejor racha, no la última', () => {
-    const contador = new ContadorDeNivel();
-    for (const acierto of [true, true, true, false, true]) contador.registrar(acierto, 500, false);
-    expect(contador.resumen({}).mejorRacha).toBe(3);
   });
 
   it('el tiempo de reacción medio solo cuenta los aciertos', () => {

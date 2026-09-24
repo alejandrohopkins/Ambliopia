@@ -531,7 +531,6 @@ describe('calibración de la economía', () => {
     estrellas: 2,
     umbrales: {},
     duracionMs: 180_000,
-    mejorRacha: 4,
   };
 
   function monedasDeUnDia(diasDeRacha: number): number {
@@ -592,7 +591,6 @@ describe('aportes de un nivel a insignias y misión', () => {
     estrellas: 2,
     umbrales: {},
     duracionMs: 1000,
-    mejorRacha: 3,
   };
 
   it('Minero cuenta cristales encontrados', () => {

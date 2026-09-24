@@ -72,6 +72,8 @@ export interface EstadoEscalera {
 }
 
 export interface ResumenDeJuegoEnSesion {
+  /** Niveles terminados: cuentan como intentos para la rotación semanal. */
+  niveles: number;
   ensayos: number;
   aciertos: number;
   /** Umbral estimado al cerrar la sesión, por parámetro. */
@@ -90,8 +92,11 @@ export interface Sesion {
 }
 
 export interface ProgresoDeJuego {
+  /** Nivel en el que empieza la próxima partida. */
   mundo: number;
   nivel: number;
+  /** Último nivel superado con la precisión pedida, o null si aún ninguno. */
+  superado: { mundo: number; nivel: number } | null;
   /** Clave 'mundo:nivel' → estrellas (0–3). */
   estrellasPorNivel: Record<string, number>;
 }
@@ -214,7 +219,9 @@ export const JUEGOS: IdJuego[] = [
 
 function progresoInicial(): Record<IdJuego, ProgresoDeJuego> {
   const base = {} as Record<IdJuego, ProgresoDeJuego>;
-  for (const juego of JUEGOS) base[juego] = { mundo: 1, nivel: 1, estrellasPorNivel: {} };
+  for (const juego of JUEGOS) {
+    base[juego] = { mundo: 1, nivel: 1, superado: null, estrellasPorNivel: {} };
+  }
   return base;
 }
 

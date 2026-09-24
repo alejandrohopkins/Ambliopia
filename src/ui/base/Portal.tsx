@@ -10,7 +10,7 @@ import { estrellasTotales } from '../../storage/selectores';
 
 export function Portal({ juego, alEntrar }: { juego: IdJuego; alEntrar: () => void }) {
   const { estado } = useEstado();
-  const { mundo } = estado.progreso[juego];
+  const { mundo, nivel } = estado.progreso[juego];
   const estrellas = estrellasTotales(estado, juego);
 
   return (
@@ -37,7 +37,7 @@ export function Portal({ juego, alEntrar }: { juego: IdJuego; alEntrar: () => vo
           {es.habilidades[juego]}
         </span>
         <span style={{ display: 'block', marginTop: 6 }}>
-          {es.base.mundo(mundo)} · {es.mundos[juego][mundo - 1]} ·{' '}
+          {es.base.mundo(mundo)} · {es.mundos[juego][mundo - 1]} · {es.controles.nivel(nivel)} ·{' '}
           <span className="numero">{estrellas}★</span>
         </span>
       </span>

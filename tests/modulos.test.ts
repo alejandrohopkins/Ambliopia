@@ -60,6 +60,20 @@ describe('textos de cada juego', () => {
     }
   });
 
+  it('cada juego dice sus teclas y sus gestos antes de empezar', () => {
+    for (const id of JUEGOS) {
+      const { teclas, dedo } = es.controles.porJuego[id];
+      expect(teclas.length, id).toBeGreaterThan(0);
+      expect(dedo, id).toBeTruthy();
+      for (const fila of teclas) {
+        expect(fila.accion, id).toBeTruthy();
+        // Enter y Z van juntas, igual que la barra espaciadora y X.
+        expect(fila.teclas.includes('Enter'), id).toBe(fila.teclas.includes('Z'));
+        expect(fila.teclas.includes('Espacio'), id).toBe(fila.teclas.includes('X'));
+      }
+    }
+  });
+
   it('los juegos de los módulos explican cómo se juega, en líneas que caben en una tablet', () => {
     for (const juego of Object.values(MINIJUEGOS)) {
       if (juego.modulo === 'ambos') continue;

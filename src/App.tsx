@@ -175,6 +175,7 @@ function Contenido(props: PropsDeContenido) {
         juego={juego}
         modo={modo}
         alVolver={() => setPantalla('resumenSesion')}
+        alCancelar={() => setPantalla('base')}
         alDescanso={() => setPantalla('descanso')}
         alMolestia={() => setPantalla('base')}
       />

@@ -18,6 +18,7 @@ import {
   avanzar as avanzarMision,
   fijarProgreso as fijarProgresoDeMision,
 } from '../rewards/mision';
+import { nivelSiguiente, ordenDeNivel, type Nivel } from '../rewards/niveles';
 
 export type Accion =
   | { tipo: 'reemplazar'; estado: Estado }
@@ -39,7 +40,7 @@ export type Accion =
   | { tipo: 'sesion/terminar' }
   | { tipo: 'escaleras/guardar'; escaleras: Record<string, EstadoEscalera> }
   | { tipo: 'progreso/estrellas'; juego: IdJuego; mundo: number; nivel: number; estrellas: number }
-  | { tipo: 'progreso/avanzar'; juego: IdJuego; mundo: number; nivel: number }
+  | { tipo: 'progreso/superar'; juego: IdJuego; mundo: number; nivel: number }
   | { tipo: 'economia/sumar'; monedas?: number; cristales?: number }
   | { tipo: 'records/registrar'; clave: string; px: number; mm: number | null; dia: string }
   | { tipo: 'galeria/agregar'; figura: string }
@@ -188,18 +189,28 @@ export function reducir(estado: Estado, accion: Accion): Estado {
       };
     }
 
-    case 'progreso/avanzar':
+    case 'progreso/superar': {
+      // Superar un nivel deja el juego en el siguiente; el último nivel del
+      // último mundo se sigue jugando. El progreso nunca retrocede.
+      const progreso = estado.progreso[accion.juego];
+      const superado = { mundo: accion.mundo, nivel: accion.nivel };
+      const siguiente = nivelSiguiente(superado) ?? superado;
+      const masAlto = (a: Nivel, b: Nivel | null) =>
+        b && ordenDeNivel(b) > ordenDeNivel(a) ? b : a;
+      const destino = masAlto(siguiente, progreso);
       return {
         ...estado,
         progreso: {
           ...estado.progreso,
           [accion.juego]: {
-            ...estado.progreso[accion.juego],
-            mundo: accion.mundo,
-            nivel: accion.nivel,
+            ...progreso,
+            mundo: destino.mundo,
+            nivel: destino.nivel,
+            superado: masAlto(superado, progreso.superado),
           },
         },
       };
+    }
 
     case 'economia/sumar':
       return {
@@ -285,6 +296,7 @@ function combinarResumen(
         ensayos
       : 0;
   return {
+    niveles: previo.niveles + nuevo.niveles,
     ensayos,
     aciertos: previo.aciertos + nuevo.aciertos,
     // El último umbral es el más informado: la escalera ya convergió más.

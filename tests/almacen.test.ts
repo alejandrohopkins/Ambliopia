@@ -60,7 +60,7 @@ describe('guardado', () => {
       inicio: '2026-09-19T10:00:00.000Z',
       fin: null,
       minutosActivos: 21,
-      porJuego: { minero: { ensayos: 30, aciertos: 21, umbrales: { tamano: 9.5 }, tiempoReaccionMedioMs: 880 } },
+      porJuego: { minero: { niveles: 1, ensayos: 30, aciertos: 21, umbrales: { tamano: 9.5 }, tiempoReaccionMedioMs: 880 } },
     });
 
     expect(guardar(estado).ok).toBe(true);

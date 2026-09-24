@@ -7,8 +7,6 @@ import {
   metaCumplida,
   limiteAlcanzado,
   diasConMetaCumplida,
-  estrellasDeMundo,
-  mundoDesbloqueado,
   juegosDelDia,
   modosDisponibles,
 } from '../src/storage/selectores';
@@ -72,7 +70,7 @@ describe('selectores de tiempo', () => {
   });
 
   it('cuenta los juegos distintos del día', () => {
-    const resumen = { ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 500 };
+    const resumen = { niveles: 1, ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 500 };
     const estado = conSesiones(
       sesion({ porJuego: { minero: resumen } }),
       sesion({ porJuego: { torre: resumen, minero: resumen } }),
@@ -81,25 +79,6 @@ describe('selectores de tiempo', () => {
   });
 });
 
-describe('selectores de progreso', () => {
-  it('suma las estrellas de un mundo', () => {
-    const estado = estadoInicial();
-    estado.progreso.minero.estrellasPorNivel = { '1:1': 3, '1:2': 2, '2:1': 3 };
-    expect(estrellasDeMundo(estado, 'minero', 1)).toBe(5);
-    expect(estrellasDeMundo(estado, 'minero', 2)).toBe(3);
-  });
-
-  it('el mundo siguiente se abre con las estrellas necesarias', () => {
-    const estado = estadoInicial();
-    expect(mundoDesbloqueado(estado, 'minero', 1)).toBe(true);
-    expect(mundoDesbloqueado(estado, 'minero', 2)).toBe(false);
-    estado.progreso.minero.estrellasPorNivel = { '1:1': 3, '1:2': 3, '1:3': 2 };
-    expect(estrellasDeMundo(estado, 'minero', 1)).toBe(
-      config.progresion.estrellasParaDesbloquearMundo,
-    );
-    expect(mundoDesbloqueado(estado, 'minero', 2)).toBe(true);
-  });
-});
 
 describe('modos disponibles', () => {
   it('sin lentes solo hay modo parche', () => {

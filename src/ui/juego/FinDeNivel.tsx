@@ -1,38 +1,44 @@
-/** Fin de nivel: estrellas, monedas, récord si lo hubo y qué hacer ahora. */
+/**
+ * Fin de nivel: estrellas, precisión, monedas, récord si lo hubo y qué toca
+ * ahora. Con la precisión pedida se sube de nivel; si no, se vuelve a
+ * intentar el mismo, sin perder nada de lo ganado.
+ */
 import type { IdJuego } from '../../config';
 import { es } from '../../i18n/es';
-import type { ResumenDeNivel } from '../../games/tipos';
 import { Pixelnauta } from '../../avatar/Pixelnauta';
 import { PIXELNAUTA } from '../../avatar/sprites';
 import { useEffect } from 'react';
 import { audio } from '../../engine/audio';
+import { useTeclasGemelas } from '../useTeclasGemelas';
+import type { FinDeNivelDatos } from './PantallaDeJuego';
 
 export function FinDeNivel({
   juego,
-  resumen,
-  monedas,
-  huboRecord,
-  mundoDesbloqueado,
-  hayNivelSiguiente,
-  alSiguiente,
-  alRepetir,
+  datos,
+  alSeguir,
   alVolver,
 }: {
   juego: IdJuego;
-  resumen: ResumenDeNivel;
-  monedas: number;
-  huboRecord: boolean;
-  mundoDesbloqueado: string | null;
-  hayNivelSiguiente: boolean;
-  alSiguiente: () => void;
-  alRepetir: () => void;
+  datos: FinDeNivelDatos;
+  /** Jugar el nivel que toca: el siguiente si se superó, el mismo si no. */
+  alSeguir: () => void;
   alVolver: () => void;
 }) {
+  useTeclasGemelas();
+  const { resumen, monedas, huboRecord, superado, siguiente, mundoNuevo } = datos;
+  // En la Torre, una figura a medias no deja subir: cada nivel es una figura
+  // de la galería y saltársela la dejaría fuera para siempre.
   const aMedias = resumen.objetivo !== undefined && !resumen.objetivo.cumplido;
-  // Con la figura a medias no se pasa de nivel: cada nivel de la Torre es una
-  // figura de la galería y el progreso solo avanza, así que saltársela la
-  // dejaría fuera para siempre. Repetir queda como la puerta natural.
-  const puedeSeguir = hayNivelSiguiente && !aMedias;
+
+  let titulo: string = es.finDeNivel.titulo;
+  let boton: string = es.finDeNivel.intentarOtraVez;
+  if (superado) {
+    titulo = es.finDeNivel.superado;
+    boton = siguiente ? es.finDeNivel.siguienteNivel : es.finDeNivel.seguir;
+  } else if (aMedias) {
+    titulo = es.finDeNivel.tituloAMedias;
+    boton = es.finDeNivel.intentarla;
+  }
 
   // El tintineo de monedas llega justo después de la fanfarria del nivel.
   useEffect(() => {
@@ -43,7 +49,7 @@ export function FinDeNivel({
   return (
     <main style={{ padding: 24, maxWidth: 620, margin: '0 auto', textAlign: 'center' }}>
       <Pixelnauta mapa={PIXELNAUTA} escala={8} etiqueta={es.juegos[juego]} />
-      <h1>{aMedias ? es.finDeNivel.tituloAMedias : es.finDeNivel.titulo}</h1>
+      <h1>{titulo}</h1>
 
       <p
         className="numero"
@@ -57,24 +63,28 @@ export function FinDeNivel({
         <p>{es.finDeNivel.objetivo(resumen.objetivo.hecho, resumen.objetivo.total)}</p>
       )}
       <p>{es.finDeNivel.precision(resumen.precision * 100)}</p>
-      {aMedias && <p style={{ color: 'var(--texto-tenue)' }}>{es.finDeNivel.figuraAMedias}</p>}
+
+      {superado && siguiente && (
+        <p role="status">{es.finDeNivel.proximo(siguiente.mundo, siguiente.nivel)}</p>
+      )}
+      {superado && !siguiente && <p role="status">{es.finDeNivel.ultimoNivel}</p>}
+      {!superado && aMedias && (
+        <p style={{ color: 'var(--texto-tenue)' }}>{es.finDeNivel.figuraAMedias}</p>
+      )}
+      {!superado && !aMedias && (
+        <p style={{ color: 'var(--texto-tenue)' }}>{es.finDeNivel.paraSubir}</p>
+      )}
+
       <p className="numero" style={{ fontSize: 22 }}>
         {es.finDeNivel.monedasGanadas(monedas)}
       </p>
 
       {huboRecord && <p role="status">{es.finDeNivel.nuevoRecord}</p>}
-      {mundoDesbloqueado && (
-        <p role="status">{es.finDeNivel.mundoDesbloqueado(mundoDesbloqueado)}</p>
-      )}
+      {mundoNuevo && <p role="status">{es.finDeNivel.mundoDesbloqueado(mundoNuevo)}</p>}
 
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        {puedeSeguir && (
-          <button className="pixelado" onClick={alSiguiente}>
-            {es.finDeNivel.siguienteNivel}
-          </button>
-        )}
-        <button className={aMedias ? 'pixelado' : 'pixelado secundario'} onClick={alRepetir}>
-          {aMedias ? es.finDeNivel.intentarla : es.finDeNivel.repetir}
+        <button className="pixelado" onClick={alSeguir} autoFocus>
+          {boton}
         </button>
         <button className="pixelado secundario" onClick={alVolver}>
           {es.comun.volverALaBase}

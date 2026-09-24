@@ -11,7 +11,24 @@ type Datos = Record<string, unknown>;
 const PASOS: Record<number, (datos: Datos) => Datos> = {
   // Antes de que existiera el campo `version` (datos sueltos de pruebas tempranas).
   0: (datos) => ({ ...datos, version: 1 }),
+  // v2: cada sesión cuenta sus niveles por juego. De las anteriores no se
+  // sabe, así que empiezan en cero. El último nivel superado de cada juego
+  // lo rellena `completar` (null: aún no se sabe).
+  1: (datos) => ({
+    ...datos,
+    version: 2,
+    sesiones: Array.isArray(datos.sesiones) ? datos.sesiones.map(conNivelesContados) : datos.sesiones,
+  }),
 };
+
+function conNivelesContados(sesion: unknown): unknown {
+  if (!esObjeto(sesion) || !esObjeto(sesion.porJuego)) return sesion;
+  const porJuego: Datos = {};
+  for (const [juego, resumen] of Object.entries(sesion.porJuego)) {
+    porJuego[juego] = esObjeto(resumen) ? { niveles: 0, ...resumen } : resumen;
+  }
+  return { ...sesion, porJuego };
+}
 
 function esObjeto(valor: unknown): valor is Datos {
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor);

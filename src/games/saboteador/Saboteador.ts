@@ -17,7 +17,7 @@ import { porMundo } from '../../engine/mundos';
 import { crearAleatorio, type Aleatorio } from '../../engine/rng';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
-import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud, factorDePulso } from '../comun';
+import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud, factorDePulso, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
 
 const PARAMETRO = 'diametro';
@@ -232,7 +232,7 @@ class InstanciaDeSaboteador implements InstanciaDeJuego {
 
   private alTeclado = (evento: KeyboardEvent): void => {
     if (this.fase !== 'jugando') return;
-    switch (evento.key) {
+    switch (teclaDe(evento)) {
       case 'ArrowLeft':
         this.cursor = (this.cursor - 1 + this.cuantos) % this.cuantos;
         break;

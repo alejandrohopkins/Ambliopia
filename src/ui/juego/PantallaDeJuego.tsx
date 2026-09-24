@@ -17,19 +17,25 @@ import { minijuego } from '../../games/registro';
 import { figuraDeNivel } from '../../games/torre/figuras';
 import type { InstanciaDeJuego, ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { premioDeNivel } from '../../rewards/economia';
+import { nivelSiguiente, nivelSuperado, type Nivel } from '../../rewards/niveles';
 import { ojoDominante } from '../../storage/esquema';
-import { estrellasDeMundo, mundoDesbloqueado } from '../../storage/selectores';
 import { OverlayDeDesarrollo } from '../componentes/OverlayDeDesarrollo';
 import { modoDesarrollo } from '../navegacion';
 import { avanzarUnDiaDeDesarrollo } from '../reloj';
 import { audio } from '../../engine/audio';
 import { MenuDePausa } from './MenuDePausa';
 import { FinDeNivel } from './FinDeNivel';
+import { ControlesDelJuego } from './ControlesDelJuego';
 
 export interface FinDeNivelDatos {
   resumen: ResumenDeNivel;
   monedas: number;
   huboRecord: boolean;
+  /** Se logró la precisión pedida: la próxima partida sube de nivel. */
+  superado: boolean;
+  /** Nivel al que se sube, o null si no se superó o ya era el último. */
+  siguiente: Nivel | null;
+  /** Nombre del mundo que se acaba de abrir, si lo hubo. */
   mundoNuevo: string | null;
 }
 
@@ -37,12 +43,15 @@ export function PantallaDeJuego({
   juego,
   modo,
   alVolver,
+  alCancelar,
   alDescanso,
   alMolestia,
 }: {
   juego: IdJuego;
   modo: Modo;
   alVolver: () => void;
+  /** Salir desde los controles, antes de jugar. */
+  alCancelar: () => void;
   alDescanso: () => void;
   alMolestia: () => void;
 }) {
@@ -58,6 +67,8 @@ export function PantallaDeJuego({
 
   const progreso = estado.progreso[juego];
   const [intento, setIntento] = useState(0);
+  // Antes de jugar se muestran los controles; el juego se monta al aceptarlos.
+  const [listo, setListo] = useState(false);
   const [enPausa, setEnPausa] = useState(false);
   const [fin, setFin] = useState<FinDeNivelDatos | null>(null);
   const [desarrollo, setDesarrollo] = useState({ fps: 0, minutos: 0, parada: null as MotivoDeParada | null });
@@ -75,7 +86,7 @@ export function PantallaDeJuego({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [juego, modo, progreso.mundo, intento]);
 
-  /** Guarda el nivel terminado: escaleras, estrellas, monedas y récords. */
+  /** Guarda el nivel terminado: escaleras, estrellas, nivel alcanzado, monedas y récords. */
   const terminarNivel = useCallback(
     (resumen: ResumenDeNivel) => {
       const premio = premioDeNivel(resumen);
@@ -99,20 +110,26 @@ export function PantallaDeJuego({
         monedas: premio.monedas,
       });
 
+      const superado = nivelSuperado(resumen);
+      const siguiente = superado ? nivelSiguiente(progreso) : null;
       setFin({
         resumen,
         monedas: premio.monedas,
         huboRecord,
-        mundoNuevo: mundoReciennDesbloqueado(estado, juego, progreso, resumen.estrellas),
+        superado,
+        siguiente,
+        mundoNuevo:
+          siguiente && siguiente.mundo !== progreso.mundo ? es.mundos[juego][siguiente.mundo - 1] : null,
       });
     },
-    [despachar, escaleras, estado, juego, progreso.mundo, progreso.nivel, registrarNivel],
+    [despachar, escaleras, juego, progreso, registrarNivel],
   );
 
   alTerminarNivel.current = terminarNivel;
 
   // Montaje del minijuego.
   useEffect(() => {
+    if (!listo) return;
     const definicion = minijuego(juego);
     const canvas = lienzo.current;
     const caja = contenedor.current;
@@ -177,7 +194,7 @@ export function PantallaDeJuego({
       reloj.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [juego, modo, progreso.mundo, progreso.nivel, intento, escaleras]);
+  }, [juego, modo, progreso.mundo, progreso.nivel, intento, escaleras, listo]);
 
   // Reloj de sesión: minutos activos, visibilidad, interacción y descansos.
   useEffect(() => {
@@ -222,12 +239,12 @@ export function PantallaDeJuego({
   // Esc abre y cierra la pausa.
   useEffect(() => {
     const alTeclado = (evento: KeyboardEvent) => {
-      if (evento.key !== 'Escape' || fin) return;
+      if (evento.key !== 'Escape' || fin || !listo) return;
       setEnPausa((activa) => !activa);
     };
     window.addEventListener('keydown', alTeclado);
     return () => window.removeEventListener('keydown', alTeclado);
-  }, [fin]);
+  }, [fin, listo]);
 
   useEffect(() => {
     if (!instancia.current) return;
@@ -247,25 +264,26 @@ export function PantallaDeJuego({
     alVolver();
   }
 
-  if (fin) {
-    const hayNivelSiguiente =
-      progreso.nivel < config.progresion.nivelesPorMundo ||
-      mundoDesbloqueado(estado, juego, progreso.mundo + 1);
+  if (!listo) {
+    return (
+      <ControlesDelJuego
+        juego={juego}
+        mundo={progreso.mundo}
+        nivel={progreso.nivel}
+        superado={progreso.superado}
+        alEmpezar={() => setListo(true)}
+        alVolver={alCancelar}
+      />
+    );
+  }
 
+  if (fin) {
     return (
       <FinDeNivel
         juego={juego}
-        resumen={fin.resumen}
-        monedas={fin.monedas}
-        huboRecord={fin.huboRecord}
-        mundoDesbloqueado={fin.mundoNuevo}
-        hayNivelSiguiente={hayNivelSiguiente}
-        alSiguiente={() => {
-          avanzarNivel(juego, progreso.mundo, progreso.nivel, despachar);
-          setFin(null);
-          setIntento((n) => n + 1);
-        }}
-        alRepetir={() => {
+        datos={fin}
+        alSeguir={() => {
+          // El nivel alcanzado ya quedó guardado: se juega el que toque ahora.
           setFin(null);
           setIntento((n) => n + 1);
         }}
@@ -315,47 +333,6 @@ export function PantallaDeJuego({
       )}
     </div>
   );
-}
-
-/** Avanza al nivel siguiente, o al mundo siguiente si ya se abrió. */
-function avanzarNivel(
-  juego: IdJuego,
-  mundo: number,
-  nivel: number,
-  despachar: ReturnType<typeof useEstado>['despachar'],
-): void {
-  if (nivel < config.progresion.nivelesPorMundo) {
-    despachar({ tipo: 'progreso/avanzar', juego, mundo, nivel: nivel + 1 });
-    return;
-  }
-  despachar({
-    tipo: 'progreso/avanzar',
-    juego,
-    mundo: Math.min(config.progresion.mundos, mundo + 1),
-    nivel: 1,
-  });
-}
-
-/**
- * ¿Este nivel acaba de abrir el mundo siguiente? Se calcula con las estrellas
- * que el nivel acaba de dar, porque el estado guardado aún no las refleja.
- */
-function mundoReciennDesbloqueado(
-  estado: ReturnType<typeof useEstado>['estado'],
-  juego: IdJuego,
-  progreso: { mundo: number; nivel: number },
-  estrellasDelNivel: number,
-): string | null {
-  if (progreso.mundo >= config.progresion.mundos) return null;
-  if (mundoDesbloqueado(estado, juego, progreso.mundo + 1)) return null;
-
-  const clave = `${progreso.mundo}:${progreso.nivel}`;
-  const previas = estado.progreso[juego].estrellasPorNivel[clave] ?? 0;
-  const ganadas = Math.max(0, estrellasDelNivel - previas);
-  const total = estrellasDeMundo(estado, juego, progreso.mundo) + ganadas;
-
-  if (total < config.progresion.estrellasParaDesbloquearMundo) return null;
-  return es.mundos[juego][progreso.mundo];
 }
 
 /** Tamaño de un récord en milímetros, si la pantalla está calibrada. */

@@ -13,7 +13,7 @@
 import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud, puntosDeCirculo } from '../comun';
+import { dibujarMarcoYHud, puntosDeCirculo, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import { desplazamientoDeVaiven, dificultadDeCazador, siguienteEspera, toqueAcierta } from './ritmo';
 
@@ -75,7 +75,7 @@ class InstanciaDeCazador extends JuegoBase {
     });
     this.escuchar(window, 'keydown', (evento) => {
       const { cols, filas } = this.dificultad.rejilla;
-      const tecla = (evento as KeyboardEvent).key;
+      const tecla = teclaDe(evento);
       if (tecla === 'ArrowLeft') this.cursor.col = Math.max(0, this.cursor.col - 1);
       else if (tecla === 'ArrowRight') this.cursor.col = Math.min(cols - 1, this.cursor.col + 1);
       else if (tecla === 'ArrowUp') this.cursor.fila = Math.max(0, this.cursor.fila - 1);

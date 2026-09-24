@@ -4,10 +4,13 @@
  * Los textos para la jugadora van en femenino.
  * Nada de "derecho"/"izquierdo" en duro: se derivan del ojo ambliope.
  */
-import { nivelDeAciertosBuscado, type Ojo, type Modo, type IdJuego } from '../config';
+import { config, nivelDeAciertosBuscado, type Ojo, type Modo, type IdJuego } from '../config';
 
 /** Porcentaje de aciertos que persigue la escalera, redondeado para leerlo. */
 const META_DE_ACIERTOS = Math.round(nivelDeAciertosBuscado() * 100);
+
+/** Porcentaje de aciertos que hace falta para superar un nivel. */
+const PARA_SUBIR = Math.round(config.progresion.precisionParaSubir * 100);
 
 /** El ojo que se tapa en modo parche es siempre el contrario al ambliope. */
 export function ojoContrario(ojo: Ojo): Ojo {
@@ -21,6 +24,12 @@ const NOMBRE_DE_OJO: Record<Ojo, string> = {
 
 export function nombreDeOjo(ojo: Ojo): string {
   return NOMBRE_DE_OJO[ojo];
+}
+
+/** Una fila de la tabla de controles: las teclas y lo que hacen. */
+export interface FilaDeTeclas {
+  teclas: string[];
+  accion: string;
 }
 
 export const es = {
@@ -137,6 +146,105 @@ export const es = {
     sapo: ['Cruza hasta arriba.', 'Esquiva los coches y', 'súbete a los troncos.'],
     mosaicos: ['¿Qué pieza completa', 'el mosaico? Elígela abajo.'],
   } as Partial<Record<IdJuego, string[]>>,
+
+  /** Teclas y gestos de cada juego. Se muestran antes de empezar a jugar. */
+  controles: {
+    titulo: 'Así se juega',
+    nivel: (n: number) => `Nivel ${n}`,
+    superado: (mundo: number, nivel: number) =>
+      `Último nivel superado: mundo ${mundo}, nivel ${nivel}.`,
+    paraSubir: `Supera el nivel con ${PARA_SUBIR} % de aciertos y la próxima vez subirás de nivel.`,
+    conTeclado: 'Con el teclado',
+    conElDedo: 'Con el dedo o el ratón',
+    gemelas: 'Z hace lo mismo que Enter y X lo mismo que la barra espaciadora.',
+    pausa: { teclas: ['Esc'], accion: 'Pausa' } as FilaDeTeclas,
+    empezar: '¡A jugar!',
+    atajo: 'También puedes empezar con Enter, Espacio, Z o X.',
+    porJuego: {
+      minero: {
+        teclas: [
+          { teclas: ['←', '→', '↑', '↓'], accion: 'Elegir un bloque' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Picar el bloque elegido' },
+        ],
+        dedo: 'Toca el bloque donde brilla el cristal.',
+      },
+      saboteador: {
+        teclas: [
+          { teclas: ['←', '→', '↑', '↓'], accion: 'Elegir a un tripulante' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Señalar al saboteador' },
+        ],
+        dedo: 'Toca al tripulante que tiene el visor distinto.',
+      },
+      torre: {
+        teclas: [
+          { teclas: ['←', '→'], accion: 'Mover la pieza' },
+          { teclas: ['↑'], accion: 'Girar la pieza' },
+          { teclas: ['↓'], accion: 'Bajar más rápido (mantenla pulsada)' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Soltar la pieza de golpe' },
+        ],
+        dedo: 'Arrastra para mover, toca para girar y desliza hacia abajo para soltar. También hay botones.',
+      },
+      meteoritos: {
+        teclas: [{ teclas: ['←', '→'], accion: 'Mover la nave' }],
+        dedo: 'Arrastra la nave: atrapa las estrellas y esquiva las rocas.',
+      },
+      cazador: {
+        teclas: [
+          { teclas: ['←', '→', '↑', '↓'], accion: 'Mover la mira' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Tocar la diana' },
+        ],
+        dedo: 'Toca cada diana antes de que se esconda. Las bombas, no.',
+      },
+      rebote: {
+        teclas: [{ teclas: ['←', '→'], accion: 'Mover la paleta' }],
+        dedo: 'Arrastra el dedo o mueve el ratón para llevar la paleta.',
+      },
+      gabor: {
+        teclas: [
+          { teclas: ['←', '→', '↑', '↓'], accion: 'Elegir un parche' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Marcar el parche con las rayas giradas' },
+        ],
+        dedo: 'Toca el parche que tiene las rayas giradas.',
+      },
+      corte: {
+        teclas: [{ teclas: ['←', '→', '↑', '↓'], accion: 'Mover la hoja' }],
+        dedo: 'Desliza el dedo sobre las frutas para cortarlas.',
+      },
+      laberinto: {
+        teclas: [{ teclas: ['←', '→', '↑', '↓'], accion: 'Mover el punto' }],
+        dedo: 'Arrastra el punto hasta la meta sin tocar las paredes.',
+      },
+      pozo: {
+        teclas: [
+          { teclas: ['←', '→'], accion: 'Mover la pieza' },
+          { teclas: ['↑'], accion: 'Girar la pieza' },
+          { teclas: ['↓'], accion: 'Bajar más rápido (mantenla pulsada)' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Soltar la pieza hasta el fondo' },
+        ],
+        dedo: 'Usa los botones de abajo: mover, girar y soltar.',
+      },
+      serpiente: {
+        teclas: [{ teclas: ['←', '→', '↑', '↓'], accion: 'Cambiar de dirección' }],
+        dedo: 'Desliza el dedo hacia donde quieras ir o usa la cruceta.',
+      },
+      ave: {
+        teclas: [{ teclas: ['↑', 'Enter', 'Z', 'Espacio', 'X'], accion: 'Aletear' }],
+        dedo: 'Toca la pantalla para aletear.',
+      },
+      sapo: {
+        teclas: [{ teclas: ['←', '→', '↑', '↓'], accion: 'Saltar hacia ese lado' }],
+        dedo: 'Toca para saltar hacia adelante o desliza hacia un lado.',
+      },
+      mosaicos: {
+        teclas: [
+          { teclas: ['1', '2', '3', '4'], accion: 'Elegir esa pieza' },
+          { teclas: ['←', '→'], accion: 'Pasar de una pieza a otra' },
+          { teclas: ['Enter', 'Z', 'Espacio', 'X'], accion: 'Elegir la pieza marcada' },
+        ],
+        dedo: 'Toca la pieza que completa el mosaico.',
+      },
+    } as Record<IdJuego, { teclas: FilaDeTeclas[]; dedo: string }>,
+  },
 
   pozo: {
     hundido: '¡Más espacio!',
@@ -341,6 +449,7 @@ export const es = {
 
   finDeNivel: {
     titulo: '¡Nivel completado!',
+    superado: '¡Nivel superado!',
     tituloAMedias: '¡Hasta aquí llegó la torre!',
     objetivo: (hecho: number, total: number) => `Colocaste ${hecho} de ${total} bloques`,
     figuraAMedias:
@@ -351,9 +460,12 @@ export const es = {
     monedasGanadas: (n: number) => `+${n} monedas`,
     nuevoRecord: '¡Nuevo récord!',
     siguienteNivel: 'Siguiente nivel',
-    repetir: 'Repetir',
+    intentarOtraVez: 'Intentar otra vez',
+    seguir: 'Seguir jugando',
+    proximo: (mundo: number, nivel: number) => `Subes al mundo ${mundo}, nivel ${nivel}.`,
+    paraSubir: `Para subir de nivel hace falta ${PARA_SUBIR} % de aciertos. ¡Tú puedes!`,
+    ultimoNivel: '¡Superaste los cinco mundos! Puedes seguir jugando el último nivel.',
     mundoDesbloqueado: (nombre: string) => `¡Se abrió ${nombre}!`,
-    modoInfinito: '¡Terminaste los cinco mundos! Ahora puedes seguir en modo infinito.',
   },
 
   elegirJuego: {

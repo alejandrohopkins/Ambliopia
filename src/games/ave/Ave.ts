@@ -19,7 +19,7 @@ import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import type { Sprite } from '../../engine/DichopticRenderer';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud } from '../comun';
+import { dibujarMarcoYHud, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import { aletear, caer, chocaConBarrera, dificultadDeAve, siguienteHueco, type Ave } from './vuelo';
 
@@ -103,7 +103,7 @@ class InstanciaDeAve extends JuegoBase {
     };
     this.escuchar(this.canvas, 'pointerdown', aleteo);
     this.escuchar(window, 'keydown', (evento) => {
-      const tecla = (evento as KeyboardEvent).key;
+      const tecla = teclaDe(evento);
       if (tecla !== ' ' && tecla !== 'ArrowUp' && tecla !== 'Enter') return;
       evento.preventDefault();
       aleteo();

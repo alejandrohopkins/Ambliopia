@@ -13,7 +13,7 @@ import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { gris, aCss } from '../../engine/color';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud } from '../comun';
+import { dibujarMarcoYHud, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import { crearParche, dificultadDeGabor, grisDeFondo, orientaciones, type Parche } from './parche';
 
@@ -86,7 +86,7 @@ class InstanciaDeGabor extends JuegoBase {
     });
     this.escuchar(window, 'keydown', (evento) => {
       const { cols } = this.dificultad.rejilla;
-      const tecla = (evento as KeyboardEvent).key;
+      const tecla = teclaDe(evento);
       const col = this.cursor % cols;
       if (tecla === 'ArrowLeft' && col > 0) this.cursor -= 1;
       else if (tecla === 'ArrowRight' && col < cols - 1) this.cursor += 1;

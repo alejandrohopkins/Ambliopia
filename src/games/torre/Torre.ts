@@ -23,7 +23,7 @@ import { aCss, desdeHex, grisConContraste } from '../../engine/color';
 import { crearAleatorio, type Aleatorio } from '../../engine/rng';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
-import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud } from '../comun';
+import { ContadorDeNivel, areaDeJuego, dibujarMarcoYHud, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
 import { figuraDeNivel, bloquesDeFigura, type Figura } from './figuras';
 import {
@@ -383,7 +383,7 @@ class InstanciaDeTorre implements InstanciaDeJuego {
 
   private alBajarTecla = (evento: KeyboardEvent): void => {
     if (!this.pieza) return;
-    switch (evento.key) {
+    switch (teclaDe(evento)) {
       case 'ArrowLeft':
         this.mover(-1);
         break;

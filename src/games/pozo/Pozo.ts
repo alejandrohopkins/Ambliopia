@@ -22,7 +22,7 @@ import { es } from '../../i18n/es';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { JuegoBase } from '../base';
 import { altoDeBotonera, botonEn, botonera, dibujarBotonera, type Boton } from '../botonera';
-import { dibujarMarcoYHud } from '../comun';
+import { dibujarMarcoYHud, teclaDe } from '../comun';
 import { anchoDe, altoDe, type Celda } from '../torre/piezas';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import {
@@ -98,7 +98,7 @@ class InstanciaDePozo extends JuegoBase {
       if (accion) this.hacer(accion);
     });
     this.escuchar(window, 'keydown', (evento) => {
-      const tecla = (evento as KeyboardEvent).key;
+      const tecla = teclaDe(evento);
       if (tecla === 'ArrowLeft') this.hacer('izquierda');
       else if (tecla === 'ArrowRight') this.hacer('derecha');
       else if (tecla === 'ArrowUp') this.hacer('girar');

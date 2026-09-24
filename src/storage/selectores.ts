@@ -1,6 +1,5 @@
 /** Lecturas derivadas del estado guardado. Sin efectos, fáciles de probar. */
 import type { IdJuego, Modo } from '../config';
-import { config } from '../config';
 import type { Estado } from './esquema';
 import { JUEGOS } from './esquema';
 
@@ -35,22 +34,6 @@ export function diasConMetaCumplida(estado: Estado): string[] {
     .filter(([, minutos]) => minutos >= estado.ajustes.metaDiariaMin)
     .map(([dia]) => dia)
     .sort();
-}
-
-export function estrellasDeMundo(estado: Estado, juego: IdJuego, mundo: number): number {
-  const { estrellasPorNivel } = estado.progreso[juego];
-  let total = 0;
-  for (let nivel = 1; nivel <= config.progresion.nivelesPorMundo; nivel += 1) {
-    total += estrellasPorNivel[`${mundo}:${nivel}`] ?? 0;
-  }
-  return total;
-}
-
-export function mundoDesbloqueado(estado: Estado, juego: IdJuego, mundo: number): boolean {
-  if (mundo <= 1) return true;
-  return (
-    estrellasDeMundo(estado, juego, mundo - 1) >= config.progresion.estrellasParaDesbloquearMundo
-  );
 }
 
 export function estrellasTotales(estado: Estado, juego: IdJuego): number {

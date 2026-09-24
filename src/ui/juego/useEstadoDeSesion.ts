@@ -1,7 +1,7 @@
 /**
  * Puente entre un minijuego y el estado guardado: abre la sesión del día,
  * acumula minutos y, al terminar un nivel, guarda escaleras, estrellas,
- * monedas y récords.
+ * nivel alcanzado, monedas y récords.
  */
 import { useCallback, useEffect, useRef } from 'react';
 import type { IdJuego, Modo } from '../../config';
@@ -11,6 +11,7 @@ import type { Staircase } from '../../engine/Staircase';
 import type { ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { monedasPorMinutos } from '../../rewards/economia';
 import { aportesDelNivel } from '../../rewards/progresoDeJuego';
+import { nivelSuperado } from '../../rewards/niveles';
 import { juegosDelDia, minutosDelDia } from '../../storage/selectores';
 import { esParametroDeTamano } from '../../storage/analisis';
 import { pxAMm } from '../../engine/color';
@@ -110,6 +111,7 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
       guardarEscaleras(escaleras);
 
       const porJuego: ResumenDeJuegoEnSesion = {
+        niveles: 1,
         ensayos: resumen.ensayos,
         aciertos: resumen.aciertos,
         umbrales: resumen.umbrales,
@@ -117,6 +119,8 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
       };
       despachar({ tipo: 'sesion/registrarJuego', juego, resumen: porJuego });
       despachar({ tipo: 'progreso/estrellas', juego, mundo, nivel, estrellas: resumen.estrellas });
+      // Con la precisión pedida, la próxima partida empieza en el nivel siguiente.
+      if (nivelSuperado(resumen)) despachar({ tipo: 'progreso/superar', juego, mundo, nivel });
       despachar({ tipo: 'economia/sumar', monedas });
 
       // Contadores de insignias y avance de la misión del día.

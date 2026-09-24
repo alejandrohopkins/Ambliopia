@@ -22,6 +22,7 @@ import {
   areaDeJuego,
   dibujarMarcoYHud,
   factorDePulso,
+  teclaDe,
   type AreaDeJuego,
 } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type InstanciaDeJuego, type Minijuego } from '../tipos';
@@ -252,7 +253,7 @@ class InstanciaDeMinero implements InstanciaDeJuego {
     const fila = Math.floor(this.cursor / this.cols);
     const columna = this.cursor % this.cols;
 
-    switch (evento.key) {
+    switch (teclaDe(evento)) {
       case 'ArrowLeft':
         this.cursor = fila * this.cols + Math.max(0, columna - 1);
         break;

@@ -122,15 +122,14 @@ export const config = {
   progresion: {
     mundos: 5,
     nivelesPorMundo: 5,
-    estrellasParaDesbloquearMundo: 8,
     /**
-     * Estrellas pensadas para una escalera que busca el 79 %: una sola
-     * estrella es rara, dos son lo habitual y la tercera pide un nivel por
-     * encima de lo que busca la escalera o una buena racha.
+     * Aciertos que hacen falta para superar un nivel: entonces el juego pasa
+     * al siguiente y la próxima partida empieza ahí. Con menos se repite el
+     * mismo nivel; nunca se baja.
      */
+    precisionParaSubir: 0.85,
+    /** La segunda estrella. La tercera es superar el nivel. */
     precisionDosEstrellas: 0.72,
-    precisionTresEstrellas: 0.84,
-    rachaTresEstrellas: 7,
   },
 
   minero: {
@@ -702,7 +701,7 @@ export const config = {
 
   almacenamiento: {
     clave: 'misionPixel:v1',
-    version: 1,
+    version: 2,
     guardadoPeriodicoMs: 30_000,
   },
 

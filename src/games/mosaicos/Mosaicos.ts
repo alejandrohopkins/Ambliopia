@@ -18,7 +18,7 @@ import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import type { Capa } from '../../engine/DichopticRenderer';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud } from '../comun';
+import { dibujarMarcoYHud, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import {
   crearMosaico,
@@ -79,7 +79,7 @@ class InstanciaDeMosaicos extends JuegoBase {
       if (indice >= 0) this.elegir(indice);
     });
     this.escuchar(window, 'keydown', (evento) => {
-      const tecla = (evento as KeyboardEvent).key;
+      const tecla = teclaDe(evento);
       const numero = Number(tecla);
       if (numero >= 1 && numero <= OPCIONES.length) this.elegir(numero - 1);
       else if (tecla === 'ArrowLeft') this.cursor = Math.max(0, this.cursor - 1);

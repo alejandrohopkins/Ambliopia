@@ -31,8 +31,6 @@ export interface ResumenDeNivel {
   /** Umbral estimado por parámetro al terminar el nivel. */
   umbrales: Record<string, number>;
   duracionMs: number;
-  /** Mejor racha de aciertos seguidos: da la tercera estrella. */
-  mejorRacha: number;
   /**
    * Progreso del objetivo propio del juego, si lo tiene. La Torre lo usa para
    * saber si la figura se terminó —y entra en la galería— o se quedó a medias.
