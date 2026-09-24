@@ -61,6 +61,23 @@ describe('física del rebote', () => {
     expect(rebotarEnCaja(lejos, caja)).toBe(false);
   });
 
+  it('cada nivel superado encoge la paleta en la misma proporción', () => {
+    const niveles: number[] = [];
+    for (let mundo = 1; mundo <= config.progresion.mundos; mundo += 1) {
+      for (let nivel = 1; nivel <= config.progresion.nivelesPorMundo; nivel += 1) {
+        niveles.push(dificultadDeRebote(mundo, nivel).paleta);
+      }
+    }
+    expect(niveles[0]).toBeCloseTo(config.rebote.paletaInicial, 9);
+    expect(niveles[niveles.length - 1]).toBeCloseTo(config.rebote.paletaFinal, 9);
+    for (let i = 1; i < niveles.length; i += 1) {
+      const recorte = 1 - niveles[i] / niveles[i - 1];
+      // Un poco más del 5 % por nivel: se nota, y es igual al principio y al final.
+      expect(recorte).toBeGreaterThan(0.05);
+      expect(recorte).toBeLessThan(0.06);
+    }
+  });
+
   it('el nivel encoge la paleta y acelera la bola', () => {
     const primero = dificultadDeRebote(1, 1);
     const ultimo = dificultadDeRebote(5, 5);

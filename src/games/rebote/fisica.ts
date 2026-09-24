@@ -3,7 +3,7 @@
  * Todas las distancias en píxeles CSS y las velocidades en píxeles por segundo.
  */
 import { config } from '../../config';
-import { delMundo, segunNivel } from '../base';
+import { avanceDeNivel, delMundo, segunNivel } from '../base';
 
 export interface Caja {
   x: number;
@@ -21,8 +21,10 @@ export interface Movil {
 
 /** Lo que manda el nivel: tamaño de la paleta, velocidad, bloques y bolas. */
 export function dificultadDeRebote(mundo: number, nivel: number) {
+  const { paletaInicial, paletaFinal } = config.rebote;
   return {
-    paleta: segunNivel(mundo, nivel, config.rebote.paletaInicial, config.rebote.paletaFinal),
+    // Mismo recorte en proporción en cada nivel: siempre se nota al subir.
+    paleta: paletaInicial * (paletaFinal / paletaInicial) ** avanceDeNivel(mundo, nivel),
     velocidad: segunNivel(mundo, nivel, config.rebote.velocidadInicial, config.rebote.velocidadFinal),
     bloques: delMundo(config.rebote.bloquesPorMundo, mundo),
     bolas: delMundo(config.rebote.bolasPorMundo, mundo),

@@ -359,9 +359,13 @@ export const config = {
 
   rebote: {
     duracionNivelSeg: 75,
-    /** Ancho de la paleta, en fracción del ancho del área. */
-    paletaInicial: 0.26,
-    paletaFinal: 0.12,
+    /**
+     * Ancho de la paleta, en fracción del ancho del área. Encoge en la misma
+     * proporción con cada nivel superado —un 5 % largo—, del primer nivel al
+     * último, para que se note al subir.
+     */
+    paletaInicial: 0.3,
+    paletaFinal: 0.08,
     /** Velocidad de la bola, en fracción del alto del área por segundo. */
     velocidadInicial: 0.4,
     velocidadFinal: 0.9,
