@@ -4,7 +4,6 @@ import { minero } from './minero/Minero';
 import { saboteador } from './saboteador/Saboteador';
 import { meteoritos } from './meteoritos/Meteoritos';
 import { torre } from './torre/Torre';
-import { tunel } from './tunel/Tunel';
 import { rebote } from './rebote/Rebote';
 import { cazador } from './cazador/Cazador';
 import { gabor } from './gabor/Gabor';
@@ -22,7 +21,6 @@ export const MINIJUEGOS: Partial<Record<IdJuego, Minijuego>> = {
   saboteador,
   meteoritos,
   torre,
-  tunel,
   rebote,
   cazador,
   gabor,
@@ -41,7 +39,6 @@ export const ORDEN_DE_JUEGOS: IdJuego[] = [
   'saboteador',
   'torre',
   'meteoritos',
-  'tunel',
   'cazador',
   'rebote',
   'gabor',

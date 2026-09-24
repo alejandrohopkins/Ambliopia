@@ -1,7 +1,7 @@
 /**
  * Portal de un minijuego. Cada uno lleva el arte de su mundo, dibujado por código:
- * cueva, estación, plano cuadriculado, campo de estrellas, túnel en fuga y una
- * escena propia para cada juego de los módulos.
+ * cueva, estación, plano cuadriculado, campo de estrellas y una escena propia
+ * para cada juego de los módulos.
  */
 import type { IdJuego } from '../../config';
 import { es } from '../../i18n/es';
@@ -117,26 +117,6 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="15" y="10" width="2" height="2" fill="var(--cristal)" />
     </>
   ),
-
-  tunel: () => {
-    const fuga = { x: 16, y: 5 };
-    return (
-      <>
-        <rect width="32" height="18" fill="#131a24" />
-        {/* Carriles que se juntan en el punto de fuga. */}
-        {[-4, 8, 24, 36].map((x) => (
-          <path key={x} d={`M${x} 18 L${x + 1.4} 18 L${fuga.x} ${fuga.y}z`} fill="#31465c" />
-        ))}
-        {/* Muro con una sola abertura, abajo en el carril del centro. */}
-        <rect x="7" y="8" width="6" height="6" fill="var(--ambar-estelar)" />
-        <rect x="19" y="8" width="6" height="6" fill="var(--ambar-estelar)" />
-        <rect x="13" y="8" width="6" height="3" fill="var(--ambar-estelar)" />
-        {/* La corredora, rodando por debajo. */}
-        <rect x="14" y="15" width="4" height="2" fill="#5a7d99" />
-        <rect x="17" y="14" width="2" height="3" fill="#5a7d99" />
-      </>
-    );
-  },
 
   // Módulo de parche.
 

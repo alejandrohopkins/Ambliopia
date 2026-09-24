@@ -18,7 +18,7 @@ Desde la base se elige entre dos modos de entrenamiento:
 - **Lentes rojo/cian** — con los dos ojos abiertos. Cada ojo ve elementos
   distintos, así que el cerebro tiene que usar los dos juntos.
 
-Quince minijuegos. Los cinco primeros se juegan en los dos modos; los otros
+Catorce minijuegos. Los cuatro primeros se juegan en los dos modos; los otros
 diez forman dos módulos, uno para cada modo, y la base solo muestra los del
 modo elegido.
 
@@ -28,7 +28,6 @@ modo elegido.
 | ¿Quién es el saboteador? | Los dos | Agudeza con amontonamiento y discriminación de detalle |
 | Torre de bloques | Los dos | Visión binocular, planificación y coordinación |
 | Lluvia de meteoritos | Los dos | Seguimiento visual y coordinación ojo-mano |
-| Túnel de escape | Los dos | Resolver un hueco pequeño en movimiento y decidir rápido |
 | Cazador de objetivos | Parche | Reacción y búsqueda con la mirada |
 | Rebote ágil | Parche | Anticipar trayectorias |
 | Detector de patrones | Parche | Sensibilidad al contraste (parches de Gabor) |

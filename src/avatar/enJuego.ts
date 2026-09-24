@@ -16,8 +16,6 @@ import { conParche, type MapaDePixeles } from './sprites';
 export type EquipoDeJuego = Record<string, string>;
 
 export interface OpcionesDeAvatar {
-  /** De espaldas: es lo que se ve en un juego de correr. */
-  deEspaldas?: boolean;
   /** Si se está jugando con parche, el ojo que lo lleva. */
   ojoTapado?: Ojo;
 }
@@ -30,8 +28,8 @@ export function avatarDeJuego(
   equipo: EquipoDeJuego,
   opciones: OpcionesDeAvatar = {},
 ): MapaDePixeles {
-  const mapa = componerAvatar(equipo, { deEspaldas: opciones.deEspaldas });
-  if (!opciones.ojoTapado || opciones.deEspaldas) return mapa;
+  const mapa = componerAvatar(equipo);
+  if (!opciones.ojoTapado) return mapa;
   return conParche(opciones.ojoTapado, mapa);
 }
 
@@ -86,23 +84,6 @@ export function spriteDeEquipo(
       M: { color: renderer.paleta.secundario, factorLentes: 0.8 },
     },
   };
-}
-
-/**
- * Gira el mapa un cuarto de vuelta: es la postura de rodar por el suelo.
- * Girar el dibujo entero sale mejor que tener una pose aparte, porque así
- * rueda con su casco, su traje y su mochila puestos.
- */
-export function tumbar(mapa: MapaDePixeles): MapaDePixeles {
-  const alto = mapa.length;
-  const ancho = Math.max(...mapa.map((fila) => fila.length));
-  const salida: string[] = [];
-  for (let x = 0; x < ancho; x += 1) {
-    let fila = '';
-    for (let y = alto - 1; y >= 0; y -= 1) fila += mapa[y][x] ?? '.';
-    salida.push(fila);
-  }
-  return salida;
 }
 
 /** Ancho y alto en píxeles de pantalla de un mapa a cierta escala. */

@@ -123,7 +123,6 @@ export type TipoDeMision =
   | 'saboteadores'
   | 'figuras'
   | 'estrellasDeEnergia'
-  | 'celdas'
   | 'estrellasDeNivel'
   | 'juegosDistintos';
 
@@ -164,7 +163,6 @@ export interface Contadores {
   cristalesEncontrados: number;
   saboteadoresAtrapados: number;
   estrellasAtrapadas: number;
-  celdasRecogidas: number;
   nivelesCompletados: number;
   /** Niveles terminados tras tres fallos seguidos (insignia Perseverante). */
   nivelesTrasTresFallos: number;
@@ -202,7 +200,6 @@ export const JUEGOS: IdJuego[] = [
   'saboteador',
   'torre',
   'meteoritos',
-  'tunel',
   'cazador',
   'rebote',
   'gabor',
@@ -279,7 +276,6 @@ export function estadoInicial(): Estado {
       cristalesEncontrados: 0,
       saboteadoresAtrapados: 0,
       estrellasAtrapadas: 0,
-      celdasRecogidas: 0,
       nivelesCompletados: 0,
       nivelesTrasTresFallos: 0,
     },

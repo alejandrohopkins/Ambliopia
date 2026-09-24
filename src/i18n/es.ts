@@ -75,7 +75,6 @@ export const es = {
     saboteador: '¿Quién es el saboteador?',
     torre: 'Torre de bloques',
     meteoritos: 'Lluvia de meteoritos',
-    tunel: 'Túnel de escape',
     cazador: 'Cazador de objetivos',
     rebote: 'Rebote ágil',
     gabor: 'Detector de patrones',
@@ -93,7 +92,6 @@ export const es = {
     saboteador: ['Nave Alfa', 'Estación lunar', 'Base en Marte', 'Anillos de Saturno', 'Nebulosa misteriosa'],
     torre: ['Pradera de bloques', 'Ciudad flotante', 'Luna', 'Planeta rojo', 'Estación orbital'],
     meteoritos: ['Órbita baja', 'Cinturón de asteroides', 'Lluvia de cometas', 'Viento solar', 'Galaxia lejana'],
-    tunel: ['Corredor de carga', 'Ducto de ventilación', 'Anillo exterior', 'Túnel de hielo', 'Núcleo de la estación'],
     cazador: ['Campo de prácticas', 'Bosque de antenas', 'Ciudad de cráteres', 'Base secreta', 'Tormenta de señales'],
     rebote: ['Cancha lunar', 'Pista de hielo', 'Anillo de Saturno', 'Estadio de lava', 'Arena galáctica'],
     gabor: ['Franjas gruesas', 'Franjas medias', 'Franjas finas', 'Susurros de gris', 'Casi invisibles'],
@@ -111,7 +109,6 @@ export const es = {
     saboteador: 'Agudeza con amontonamiento',
     torre: 'Visión binocular y planificación',
     meteoritos: 'Seguimiento y coordinación',
-    tunel: 'Agudeza en movimiento y reflejos',
     cazador: 'Reacción y búsqueda con la mirada',
     rebote: 'Anticipar trayectorias',
     gabor: 'Sensibilidad al contraste',
@@ -342,13 +339,6 @@ export const es = {
     bajar: 'Bajar rápido',
   },
 
-  tunel: {
-    izquierda: 'Carril de la izquierda',
-    saltar: 'Saltar',
-    rodar: 'Rodar por el suelo',
-    derecha: 'Carril de la derecha',
-  },
-
   finDeNivel: {
     titulo: '¡Nivel completado!',
     tituloAMedias: '¡Hasta aquí llegó la torre!',
@@ -577,7 +567,6 @@ export const es = {
     detective: { nombre: 'Detective espacial', criterio: 'Atrapar 50 saboteadores' },
     arquitecta: { nombre: 'Arquitecta', criterio: 'Completar 10 figuras' },
     piloto: { nombre: 'Piloto estelar', criterio: 'Atrapar 500 estrellas de energía' },
-    corredora: { nombre: 'Corredora veloz', criterio: 'Recoger 300 celdas de energía' },
     constancia: { nombre: 'Constancia', criterio: 'Rachas de 3, 7, 14 y 30 días' },
     dos_ojos: { nombre: 'Equipo de dos ojos', criterio: 'Subir tres veces el contraste del otro ojo' },
     balance: { nombre: 'Balance perfecto', criterio: 'Llegar al contraste máximo con los dos ojos' },
@@ -609,7 +598,6 @@ export const es = {
     saboteadores: (n: number) => `Atrapa ${n} saboteadores`,
     figuras: (n: number) => `Construye ${n} ${n === 1 ? 'figura' : 'figuras'}`,
     estrellasDeEnergia: (n: number) => `Atrapa ${n} estrellas de energía`,
-    celdas: (n: number) => `Recoge ${n} celdas de energía`,
     estrellasDeNivel: (n: number) => `Gana ${n} estrellas de nivel`,
     juegosDistintos: (n: number) => `Juega ${n} minijuegos distintos`,
   } as Record<string, (n: number) => string>,
@@ -626,8 +614,6 @@ export const es = {
     tamano: 'Tamaño del objetivo',
     contraste: 'Contraste del objetivo',
     diametro: 'Diámetro del visor',
-    abertura: 'Abertura del muro (al llegar)',
-    aberturaVista: 'Abertura del muro (vista al decidir)',
   } as Record<string, string>,
 
   /** 'diametro:1.2' → 'Diámetro del visor (separación 1.2×)'. */

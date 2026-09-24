@@ -26,7 +26,7 @@ describe('registro de juegos', () => {
       expect(deLentes).toContain(id);
       expect(deParche).not.toContain(id);
     }
-    for (const id of ['minero', 'saboteador', 'torre', 'meteoritos', 'tunel'] as const) {
+    for (const id of ['minero', 'saboteador', 'torre', 'meteoritos'] as const) {
       expect(deParche).toContain(id);
       expect(deLentes).toContain(id);
     }

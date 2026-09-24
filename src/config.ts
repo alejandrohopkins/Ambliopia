@@ -11,7 +11,6 @@ export type IdJuego =
   | 'saboteador'
   | 'torre'
   | 'meteoritos'
-  | 'tunel'
   // Módulo de parche: el ojo ambliope trabaja solo.
   | 'cazador'
   | 'rebote'
@@ -26,7 +25,7 @@ export type IdJuego =
   | 'mosaicos';
 
 /**
- * En qué modo se juega cada minijuego. Los cinco primeros sirven para los
+ * En qué modo se juega cada minijuego. Los cuatro primeros sirven para los
  * dos; los de cada módulo están pensados solo para el suyo: con parche se
  * mide el ojo ambliope a solas, con lentes se obliga a juntar los dos.
  */
@@ -281,82 +280,6 @@ export const config = {
     chispasRadioFactor: 1.6,
     /** Lado de cada chispa al nacer, en píxeles. */
     chispasLadoPx: 4,
-  },
-
-  tunel: {
-    duracionNivelSeg: 75,
-    carriles: 3,
-    /** Distancia a la que nace un muro, en unidades de pista. */
-    zDeNacimiento: 14,
-    /** Distancia de la cámara al plano de la corredora: manda en la perspectiva. */
-    zDeCamara: 6,
-    velocidadInicialUnidadesSeg: 3,
-    velocidadFinalUnidadesSeg: 6,
-    /** Separación entre muros, en unidades de pista. */
-    separacionDeMuros: 7,
-    /** Celdas de energía que aparecen entre muro y muro. */
-    celdasPorTramo: 2,
-
-    /**
-     * La escalera mide la abertura tal como se ve cuando todavía se está a
-     * tiempo de decidir: a la distancia que el muro recorre en estos segundos
-     * antes de la ventana de juicio. Medida al llegar a la corredora salía
-     * cerca de un 40 % más grande de lo que de verdad hubo que resolver.
-     */
-    segundosParaDecidir: 0.6,
-    /** Abertura vista al decidir, en píxeles: es la que mueve la escalera. */
-    aberturaVistaInicialPx: 30,
-    aberturaVistaMinimaPx: 3,
-    aberturaVistaMaximaPx: 75,
-    /** Abertura dibujada al llegar: nunca menos que esto, para que exista. */
-    aberturaMinimaPx: 4,
-    /** La abertura nunca pasa de esta fracción del alto del túnel. */
-    fraccionMaximaDeAbertura: 0.45,
-
-    /** Geometría del túnel, en fracción del área de juego. */
-    altoDelTunelEnAlto: 0.6,
-    anchoDeCarrilEnAncho: 0.2,
-    alturaDelHorizonteEnAlto: 0.16,
-    alturaDelSueloEnAlto: 0.84,
-    /** Franjas del suelo que marcan el ritmo de la carrera. */
-    franjasDelSuelo: 10,
-
-    /** Alto de la corredora, en fracción del alto del túnel. */
-    altoDePieEnTunel: 0.44,
-    altoRodandoEnTunel: 0.2,
-    /** Alto del salto, en fracción del alto del túnel. */
-    alturaDeSalto: 0.45,
-    saltoMs: 620,
-    deslizamientoMs: 560,
-    /** Lo que tarda en llegar al carril de al lado: solo es para el dibujo. */
-    cambioDeCarrilMs: 140,
-    /** Recorrido mínimo de un deslizamiento del dedo para que cuente. */
-    deslizarMinimoPx: 26,
-    /**
-     * Ventana en la que se juzga un muro, en unidades de pista a cada lado.
-     * Basta con acertar carril y postura en cualquier instante de ella: saltar
-     * un pelo antes o después sigue valiendo.
-     */
-    zDeJuicio: 0.8,
-    /** Un gesto pulsado antes de tiempo se guarda y se aplica al aterrizar. */
-    bufferDeGestoMs: 300,
-    /** Distancia a la que ya se recoge una celda de energía. */
-    zDeRecogida: 0.6,
-
-    /** Grosor del muro en unidades de pista: hace que la abertura sea un túnel. */
-    grosorDeMuro: 0.8,
-    /** Luminancia de la cara de atrás del muro, que se ve por la abertura. */
-    factorCaraDeAtras: 0.45,
-    /** Altura de las celdas de energía sobre el suelo, en fracción del túnel. */
-    alturaDeCelda: 0.22,
-    /** Luminancia de las marcas en el suelo (la sombra de la corredora). */
-    factorDeSombra: 0.5,
-
-    energiaMaxima: 100,
-    energiaPorTropiezo: 12,
-    energiaRecargaPorSeg: 5,
-    energiaPorCelda: 5,
-    avisoTropiezoMs: 420,
   },
 
   /** Lo que comparten los diez juegos de los módulos. */
@@ -738,7 +661,6 @@ export const config = {
       saboteadores: [12, 25],
       figuras: [1, 2],
       estrellasDeEnergia: [10, 22],
-      celdas: [12, 26],
       estrellasDeNivel: [3, 7],
       juegosDistintos: [2, 3],
     } as Record<string, [number, number]>,
@@ -750,7 +672,6 @@ export const config = {
     saboteadoresParaDetective: 50,
     figurasParaArquitecta: 10,
     estrellasParaPiloto: 500,
-    celdasParaCorredora: 300,
     rachasParaConstancia: [3, 7, 14, 30],
     subidasParaDosOjos: 3,
     fallosSeguidosParaPerseverante: 3,

@@ -7,7 +7,7 @@ import { diasConMetaCumplida, minutosDelDia } from '../storage/selectores';
 import { rachaVigente } from '../engine/racha';
 import type { Estado } from '../storage/esquema';
 import { bonoDeRacha } from './economia';
-import { cobrar, misionDelDia } from './mision';
+import { TIPOS, cobrar, misionDelDia } from './mision';
 import { abrirCofre, claveDeCofre, cofreGanado, type PremioDeCofre } from './cofre';
 import { insigniasNuevas } from './insignias';
 
@@ -74,9 +74,13 @@ export function cobrarDia(estado: Estado, dia: string): { estado: Estado; premio
   return { estado: actual, premios };
 }
 
-/** Deja creada la misión de un día si todavía no existe. */
+/**
+ * Deja creada la misión de un día si todavía no existe. Si la que había es de
+ * un tipo que ya no se puede cumplir —de un juego que se quitó—, se cambia.
+ */
 export function asegurarMision(estado: Estado, dia: string): Estado {
-  if (estado.misiones[dia]) return estado;
+  const guardada = estado.misiones[dia];
+  if (guardada && TIPOS.includes(guardada.tipo)) return estado;
   return { ...estado, misiones: { ...estado.misiones, [dia]: misionDelDia(dia) } };
 }
 

@@ -14,15 +14,6 @@ export interface Equipo {
   accesorios?: string;
 }
 
-export interface OpcionesDeComposicion {
-  /**
-   * De espaldas: el visor no se ve —es la nuca del casco— y el accesorio pasa
-   * al frente, porque la mochila, la capa y las alas se llevan a la espalda.
-   * Es lo que hace falta en un juego de correr.
-   */
-  deEspaldas?: boolean;
-}
-
 /** Superpone un mapa sobre otro; '.' deja ver lo de abajo. */
 function superponer(base: MapaDePixeles, encima: MapaDePixeles): MapaDePixeles {
   return base.map((fila, y) => {
@@ -38,15 +29,12 @@ function vacio(): MapaDePixeles {
   return Array.from({ length: ALTO }, () => '.'.repeat(ANCHO));
 }
 
-export function componerAvatar(
-  equipo: Equipo,
-  opciones: OpcionesDeComposicion = {},
-): MapaDePixeles {
+export function componerAvatar(equipo: Equipo): MapaDePixeles {
   let mapa = vacio();
   const accesorio = equipo.accesorios ? ACCESORIOS[equipo.accesorios] : undefined;
 
-  // De frente el accesorio va detrás del cuerpo y solo asoma por los lados.
-  if (accesorio && !opciones.deEspaldas) mapa = superponer(mapa, accesorio);
+  // El accesorio va detrás del cuerpo y solo asoma por los lados.
+  if (accesorio) mapa = superponer(mapa, accesorio);
 
   mapa = superponer(mapa, CUERPO);
 
@@ -57,12 +45,6 @@ export function componerAvatar(
   // vea distinto de uno de color liso y no solo "otro color".
   if (equipo.trajes && articulo(equipo.trajes)?.color2) {
     mapa = mapa.map((fila, y) => (y % 2 === 0 ? fila.replace(/B/g, 'C') : fila));
-  }
-
-  if (opciones.deEspaldas) {
-    // La nuca del casco: donde iba el visor va el casco.
-    mapa = mapa.map((fila) => fila.replace(/V/g, 'H'));
-    if (accesorio) mapa = superponer(mapa, accesorio);
   }
 
   return mapa;

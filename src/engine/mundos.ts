@@ -76,13 +76,6 @@ export const PALETAS: Record<IdJuego, PaletaDeMundo[]> = {
     paleta('#2A1410', '#C05A3C', '#8A3E29', '#FFD9C0', ['#C05A3C', '#A64B32', '#8A3E29']),
     paleta('#0F1630', '#3FD6C6', '#2A8F85', '#EDE9FF', ['#3FD6C6', '#34B3A6', '#2A8F85']),
   ],
-  tunel: [
-    paleta('#131A24', '#5A7D99', '#31465C', '#FFC23D', ['#5A7D99', '#47647A']),
-    paleta('#1B1A26', '#7A7490', '#4A4660', '#9FE8FF', ['#7A7490', '#635E76']),
-    paleta('#0E1730', '#4C7FD6', '#2C4A85', '#FFD9C0', ['#4C7FD6', '#3E68B0']),
-    paleta('#0F2028', '#4FB8C6', '#2C6A75', '#EDE9FF', ['#4FB8C6', '#3F97A3']),
-    paleta('#26101F', '#B04F86', '#73325A', '#FFC23D', ['#B04F86', '#93416F']),
-  ],
   meteoritos: [
     paleta('#0D0A28', '#4A6AB5', '#2E4176', '#FFC23D', ['#4A6AB5', '#3B558F']),
     paleta('#141221', '#6B6478', '#474152', '#FFC23D', ['#6B6478', '#575064']),

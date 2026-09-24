@@ -218,7 +218,7 @@ describe('polígonos sin suavizado', () => {
       ojoAmbliope: 'derecho',
       lentes: LENTES,
       contrasteOjoDominante: 0.2,
-      paleta: paletaDe('tunel', 1),
+      paleta: paletaDe('sapo', 1),
     });
     renderer.redimensionar(400, 300, 1);
     lienzo.llamadas.length = 0;

@@ -26,7 +26,6 @@ import {
   mascotaDeJuego,
   naveDeJuego,
   picoDeJuego,
-  tumbar,
 } from '../src/avatar/enJuego';
 
 function economia(parcial: Partial<Economia> = {}): Economia {
@@ -140,22 +139,6 @@ describe('todo lo que se compra tiene su dibujo', () => {
     const mapa = avatarDeJuego(equipo);
     expect(mapa.some((fila) => fila.includes('A'))).toBe(true);
     expect(mapa.some((fila) => fila.includes('V'))).toBe(true);
-  });
-
-  it('de espaldas no se le ve el visor, pero sí la mochila', () => {
-    const equipo = { accesorios: 'accesorio-mochila' };
-    const mapa = avatarDeJuego(equipo, { deEspaldas: true });
-    expect(mapa.some((fila) => fila.includes('V'))).toBe(false);
-    expect(mapa.some((fila) => fila.includes('A'))).toBe(true);
-  });
-
-  it('tumbarla gira el dibujo sin perder ningún píxel', () => {
-    const mapa = avatarDeJuego({});
-    const tumbada = tumbar(mapa);
-    const cuenta = (m: string[]) => m.join('').replace(/\./g, '').length;
-    expect(cuenta(tumbada)).toBe(cuenta(mapa));
-    expect(tumbada).toHaveLength(mapa[0].length);
-    expect(tumbada[0]).toHaveLength(mapa.length);
   });
 
   it('sin nada equipado se cae a lo gratis, nunca a un hueco', () => {
@@ -491,6 +474,23 @@ describe('premios del día', () => {
     expect(primera.premios.monedasPorMision).toBe(config.economia.monedasMisionDelDia);
     const segunda = cobrarDia(primera.estado, '2026-09-19');
     expect(segunda.premios.monedasPorMision).toBe(0);
+  });
+
+  it('una misión de un juego que ya no existe se cambia por una que se puede cumplir', () => {
+    const estado = conMeta('2026-09-19');
+    estado.misiones = {
+      '2026-09-19': {
+        tipo: 'celdas' as never,
+        objetivo: 20,
+        progreso: 0,
+        completada: false,
+        cobrada: false,
+      },
+    };
+    const nuevo = asegurarMision(estado, '2026-09-19');
+    expect(TIPOS).toContain(nuevo.misiones['2026-09-19'].tipo);
+    // Una misión válida no se toca.
+    expect(asegurarMision(nuevo, '2026-09-19')).toBe(nuevo);
   });
 
   it('el cofre se abre una vez por semana', () => {
