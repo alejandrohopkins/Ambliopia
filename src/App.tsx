@@ -28,7 +28,7 @@ import { CalibracionDeLentes } from './calibration/CalibracionDeLentes';
 import { OverlayDeDesarrollo } from './ui/componentes/OverlayDeDesarrollo';
 import { BarraDeTiempo } from './ui/componentes/RelojDelDia';
 import { AvisoDePremio } from './ui/componentes/PremioDePantalla';
-import { modoDesarrollo, type Pantalla } from './ui/navegacion';
+import { modoDesarrollo, useBotonAtras, type Pantalla } from './ui/navegacion';
 import { avanzarUnDiaDeDesarrollo, hoyDelJuego } from './ui/reloj';
 import { useCierreDelDia } from './ui/useCierreDelDia';
 import { useAudio } from './ui/useAudio';
@@ -55,6 +55,14 @@ function Rutas() {
 
   useCierreDelDia(dia);
   useAudio();
+
+  // Atrás cierra lo que esté encima de la base: una calibración, el juego
+  // (que pasa por su resumen) o cualquier otra pantalla.
+  useBotonAtras(calibrando ?? pantalla, calibrando === null && pantalla === 'base', () => {
+    if (calibrando !== null) setCalibrando(null);
+    else if (pantalla === 'juego') setPantalla('resumenSesion');
+    else setPantalla('base');
+  });
 
   const sinMovimiento = useMovimientoReducido();
   const desarrollo = modoDesarrollo();
@@ -188,6 +196,7 @@ function Contenido(props: PropsDeContenido) {
         modo={modo}
         alVolver={() => setPantalla('resumenSesion')}
         alCancelar={() => setPantalla('base')}
+        alElegirOtro={() => setPantalla('elegirJuego')}
         alDescanso={() => setPantalla('descanso')}
         alMolestia={() => setPantalla('base')}
       />

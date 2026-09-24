@@ -12,7 +12,9 @@ export function ControlesDelJuego({
   mundo,
   nivel,
   superado,
+  descansa,
   alEmpezar,
+  alElegirOtro,
   alVolver,
 }: {
   juego: IdJuego;
@@ -20,7 +22,10 @@ export function ControlesDelJuego({
   nivel: number;
   /** Último nivel superado, que se guarda por juego. */
   superado: Nivel | null;
+  /** Ya tiene sus intentos de la semana y a otros les faltan. */
+  descansa: boolean;
   alEmpezar: () => void;
+  alElegirOtro: () => void;
   alVolver: () => void;
 }) {
   useTeclasGemelas();
@@ -59,10 +64,17 @@ export function ControlesDelJuego({
         <p style={{ marginBottom: 0 }}>{dedo}</p>
       </section>
 
+      {descansa && <p role="status">{es.rotacion.descansa}</p>}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <button className="pixelado" onClick={alEmpezar} autoFocus>
-          {es.controles.empezar}
-        </button>
+        {descansa ? (
+          <button className="pixelado" onClick={alElegirOtro} autoFocus>
+            {es.rotacion.elegirOtro}
+          </button>
+        ) : (
+          <button className="pixelado" onClick={alEmpezar} autoFocus>
+            {es.controles.empezar}
+          </button>
+        )}
         <button className="pixelado secundario" onClick={alVolver}>
           {es.comun.volverALaBase}
         </button>
@@ -79,11 +91,13 @@ function Fila({ fila }: { fila: FilaDeTeclas }) {
         {fila.teclas.map((tecla) => (
           <kbd
             key={tecla}
-            className="numero"
             style={{
               display: 'inline-block',
               minWidth: 36,
               margin: 0,
+              // La letra pixelada dibuja la Z casi como un 2: aquí va la de texto.
+              fontFamily: 'var(--fuente-texto)',
+              fontWeight: 600,
               padding: '2px 10px',
               textAlign: 'center',
               background: 'var(--superficie-alta)',

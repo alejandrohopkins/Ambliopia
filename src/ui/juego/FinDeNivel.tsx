@@ -15,11 +15,16 @@ import type { FinDeNivelDatos } from './PantallaDeJuego';
 export function FinDeNivel({
   juego,
   datos,
+  descansa,
   alSeguir,
+  alElegirOtro,
   alVolver,
 }: {
   juego: IdJuego;
   datos: FinDeNivelDatos;
+  /** Con este nivel completó sus intentos de la semana: toca otro juego. */
+  descansa: boolean;
+  alElegirOtro: () => void;
   /** Jugar el nivel que toca: el siguiente si se superó, el mismo si no. */
   alSeguir: () => void;
   alVolver: () => void;
@@ -82,10 +87,18 @@ export function FinDeNivel({
       {huboRecord && <p role="status">{es.finDeNivel.nuevoRecord}</p>}
       {mundoNuevo && <p role="status">{es.finDeNivel.mundoDesbloqueado(mundoNuevo)}</p>}
 
+      {descansa && <p role="status">{es.rotacion.completado}</p>}
+
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button className="pixelado" onClick={alSeguir} autoFocus>
-          {boton}
-        </button>
+        {descansa ? (
+          <button className="pixelado" onClick={alElegirOtro} autoFocus>
+            {es.rotacion.elegirOtro}
+          </button>
+        ) : (
+          <button className="pixelado" onClick={alSeguir} autoFocus>
+            {boton}
+          </button>
+        )}
         <button className="pixelado secundario" onClick={alVolver}>
           {es.comun.volverALaBase}
         </button>

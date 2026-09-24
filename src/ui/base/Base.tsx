@@ -2,7 +2,8 @@
  * Base de la jugadora: avatar, palanca de modo, misión del día, meta de hoy,
  * los portales de los minijuegos y los accesos. Es la pantalla de inicio.
  */
-import type { IdJuego, Modo } from '../../config';
+import { config, type IdJuego, type Modo } from '../../config';
+import { intentosDeLaSemana, juegosBloqueados } from '../../rewards/rotacion';
 import { es } from '../../i18n/es';
 import { useEstado } from '../../storage/contexto';
 import { lentesCalibrados } from '../../storage/esquema';
@@ -100,6 +101,12 @@ export function Base({
   const disponibles = modosDisponibles(estado);
   const hayLentes = lentesCalibrados(estado.calibracion);
   const palancaBloqueada = estado.ajustes.modoFijo !== null;
+  const juegos = juegosDelModo(modo);
+  const intentos = intentosDeLaSemana(estado, dia);
+  const bloqueados = juegosBloqueados(estado, dia, juegos);
+  const semanaCompleta = juegos.every(
+    (juego) => (intentos[juego] ?? 0) >= config.rotacion.intentosPorSemana,
+  );
 
   function razonDeBloqueo(m: Modo): string | null {
     if (m === 'lentes' && !hayLentes) return es.modos.bloqueado;
@@ -179,6 +186,9 @@ export function Base({
         </p>
       </section>
 
+      <p style={{ color: 'var(--texto-tenue)' }}>
+        {semanaCompleta ? es.rotacion.semanaCompleta : es.rotacion.explicacion}
+      </p>
       <section
         style={{
           display: 'grid',
@@ -187,8 +197,14 @@ export function Base({
           marginBottom: 18,
         }}
       >
-        {juegosDelModo(modo).map((juego) => (
-          <Portal key={juego} juego={juego} alEntrar={() => alEmpezar(juego)} />
+        {juegos.map((juego) => (
+          <Portal
+            key={juego}
+            juego={juego}
+            intentos={intentos[juego] ?? 0}
+            bloqueado={bloqueados.includes(juego)}
+            alEntrar={() => alEmpezar(juego)}
+          />
         ))}
       </section>
 

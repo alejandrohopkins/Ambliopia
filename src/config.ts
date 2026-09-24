@@ -41,6 +41,15 @@ export const config = {
   },
 
   /**
+   * Rotación semanal: cada juego del modo pide estos intentos (niveles
+   * terminados) de lunes a domingo. Los que ya los tienen se bloquean hasta
+   * que los demás también los tengan.
+   */
+  rotacion: {
+    intentosPorSemana: 3,
+  },
+
+  /**
    * Premio de tiempo de pantalla: al cumplir la meta de minutos del día con
    * esta precisión, se felicita a la jugadora y se le pide una captura para
    * reclamar los minutos extra con su familia.

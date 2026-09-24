@@ -256,6 +256,17 @@ export const es = {
     hundido: '¡Más espacio!',
   },
 
+  /** Rotación semanal: todos los juegos, al menos unos intentos por semana. */
+  rotacion: {
+    explicacion: `Esta semana cada juego pide ${config.rotacion.intentosPorSemana} intentos. Los que ya los tienen descansan hasta que completes los demás.`,
+    semanaCompleta: '¡Semana completa! Todos los juegos tienen sus intentos: juega el que quieras.',
+    intentos: (hechos: number) =>
+      `Esta semana: ${Math.min(hechos, config.rotacion.intentosPorSemana)}/${config.rotacion.intentosPorSemana}`,
+    descansa: 'Descansa hasta que completes los demás juegos.',
+    completado: `¡Ya hiciste tus ${config.rotacion.intentosPorSemana} intentos de esta semana en este juego! Ahora toca otro.`,
+    elegirOtro: 'Elegir otro juego',
+  },
+
   /** Reloj del día: siempre a la vista, cuenta solo el juego activo. */
   reloj: {
     hoy: 'Hoy',
@@ -393,7 +404,7 @@ export const es = {
     extender: (min: number) => `Añadir ${min} min`,
     resumen: {
       titulo: 'Resumen de la misión',
-      minutos: 'Minutos',
+      tiempo: 'Tiempo de juego',
       monedas: 'Monedas',
       estrellas: 'Estrellas',
       records: 'Récords',

@@ -8,7 +8,19 @@ import { es } from '../../i18n/es';
 import { useEstado } from '../../storage/contexto';
 import { estrellasTotales } from '../../storage/selectores';
 
-export function Portal({ juego, alEntrar }: { juego: IdJuego; alEntrar: () => void }) {
+export function Portal({
+  juego,
+  intentos,
+  bloqueado,
+  alEntrar,
+}: {
+  juego: IdJuego;
+  /** Niveles terminados esta semana, para la rotación semanal. */
+  intentos: number;
+  /** Ya tiene sus intentos de la semana y le faltan a otros: descansa. */
+  bloqueado: boolean;
+  alEntrar: () => void;
+}) {
   const { estado } = useEstado();
   const { mundo, nivel } = estado.progreso[juego];
   const estrellas = estrellasTotales(estado, juego);
@@ -17,6 +29,7 @@ export function Portal({ juego, alEntrar }: { juego: IdJuego; alEntrar: () => vo
     <button
       className="pixelado"
       onClick={alEntrar}
+      disabled={bloqueado}
       style={{
         display: 'block',
         width: '100%',
@@ -40,6 +53,14 @@ export function Portal({ juego, alEntrar }: { juego: IdJuego; alEntrar: () => vo
           {es.base.mundo(mundo)} · {es.mundos[juego][mundo - 1]} · {es.controles.nivel(nivel)} ·{' '}
           <span className="numero">{estrellas}★</span>
         </span>
+        <span className="numero" style={{ display: 'block', margin: '6px 0 0', fontSize: 16 }}>
+          {es.rotacion.intentos(intentos)}
+        </span>
+        {bloqueado && (
+          <span style={{ display: 'block', color: 'var(--texto-tenue)', fontSize: 15 }}>
+            {es.rotacion.descansa}
+          </span>
+        )}
       </span>
     </button>
   );

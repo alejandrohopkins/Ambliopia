@@ -13,7 +13,8 @@ import { paletaDe } from '../../engine/mundos';
 import { Staircase } from '../../engine/Staircase';
 import type { MotivoDeParada, SessionTimer } from '../../engine/SessionTimer';
 import { pxAMm } from '../../engine/color';
-import { minijuego } from '../../games/registro';
+import { juegosDelModo, minijuego } from '../../games/registro';
+import { juegosBloqueados } from '../../rewards/rotacion';
 import { figuraDeNivel } from '../../games/torre/figuras';
 import type { InstanciaDeJuego, ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { premioDeNivel } from '../../rewards/economia';
@@ -21,7 +22,7 @@ import { nivelSiguiente, nivelSuperado, type Nivel } from '../../rewards/niveles
 import { ojoDominante } from '../../storage/esquema';
 import { OverlayDeDesarrollo } from '../componentes/OverlayDeDesarrollo';
 import { modoDesarrollo } from '../navegacion';
-import { avanzarUnDiaDeDesarrollo } from '../reloj';
+import { avanzarUnDiaDeDesarrollo, hoyDelJuego } from '../reloj';
 import { audio } from '../../engine/audio';
 import { MenuDePausa } from './MenuDePausa';
 import { FinDeNivel } from './FinDeNivel';
@@ -47,6 +48,7 @@ export function PantallaDeJuego({
   modo,
   alVolver,
   alCancelar,
+  alElegirOtro,
   alDescanso,
   alMolestia,
 }: {
@@ -55,6 +57,8 @@ export function PantallaDeJuego({
   alVolver: () => void;
   /** Salir desde los controles, antes de jugar. */
   alCancelar: () => void;
+  /** Cuando el juego descansa por la rotación semanal. */
+  alElegirOtro: () => void;
   alDescanso: () => void;
   alMolestia: () => void;
 }) {
@@ -69,6 +73,8 @@ export function PantallaDeJuego({
   const ensayos = useRef<ResultadoDeEnsayo[]>([]);
 
   const progreso = estado.progreso[juego];
+  // Rotación semanal: si ya tiene sus intentos y a otros les faltan, descansa.
+  const descansa = juegosBloqueados(estado, hoyDelJuego(), juegosDelModo(modo)).includes(juego);
   const [intento, setIntento] = useState(0);
   // Antes de jugar se muestran los controles; el juego se monta al aceptarlos.
   const [listo, setListo] = useState(false);
@@ -288,7 +294,9 @@ export function PantallaDeJuego({
           mundo={progreso.mundo}
           nivel={progreso.nivel}
           superado={progreso.superado}
+          descansa={descansa}
           alEmpezar={() => setListo(true)}
+          alElegirOtro={alElegirOtro}
           alVolver={alCancelar}
         />
         <AvisoDePremio />
@@ -303,6 +311,8 @@ export function PantallaDeJuego({
         <FinDeNivel
           juego={juego}
           datos={fin}
+          descansa={descansa}
+          alElegirOtro={alElegirOtro}
           alSeguir={() => {
             // El nivel alcanzado ya quedó guardado: se juega el que toque ahora.
             setFin(null);

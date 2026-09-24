@@ -1,5 +1,6 @@
 /** Resumen al volver a la base: minutos, monedas, estrellas y récords. */
 import { es } from '../../i18n/es';
+import { mmss } from '../componentes/RelojDelDia';
 
 export interface DatosDeResumen {
   minutos: number;
@@ -16,7 +17,7 @@ export function ResumenDeSesion({
   alVolver: () => void;
 }) {
   const filas = [
-    [es.sesion.resumen.minutos, Math.round(datos.minutos)],
+    [es.sesion.resumen.tiempo, mmss(datos.minutos * 60)],
     [es.sesion.resumen.monedas, datos.monedas],
     [es.sesion.resumen.estrellas, datos.estrellas],
     [es.sesion.resumen.records, datos.records],
