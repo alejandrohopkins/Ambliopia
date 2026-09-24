@@ -41,7 +41,7 @@ export function TarjetaDePremio({ alCerrar }: { alCerrar: () => void }) {
           borderWidth: 6,
         }}
       >
-        <AvatarCompuesto escala={8} conMascota />
+        <AvatarCompuesto alto={170} conMascota />
         <h1 style={{ color: 'var(--ambar-estelar)' }}>
           {es.premioDePantalla.titulo(estado.perfil.nombre)}
         </h1>

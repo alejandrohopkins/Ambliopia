@@ -41,9 +41,29 @@ modo elegido.
 
 La dificultad visual la lleva una **escalera adaptativa** invisible, que busca
 el punto donde acierta alrededor del 79 % de las veces. Los mundos y niveles
-solo cambian temática, velocidad y variedad, para que las estrellas premien el
-esfuerzo y no la agudeza. Ningún juego tiene fin de partida: fallar nunca
-quita monedas ni progreso.
+cambian temática, velocidad y variedad: un nivel se **supera con 85 % de
+aciertos** (tres estrellas) y entonces el juego guarda ese nivel y la próxima
+partida empieza en el siguiente; si no, se repite el mismo. Nunca se baja, y
+fallar nunca quita monedas ni progreso.
+
+Cada día y cada semana:
+
+- Antes de cada juego se muestran sus teclas y gestos. **Z** hace lo mismo que
+  Enter y **X** lo mismo que la barra espaciadora.
+- Un **reloj del día** siempre visible cuenta el tiempo de juego activo contra
+  la meta (20 minutos por defecto). Al cumplirla con 85 % de aciertos en el
+  día sale una felicitación con nombre, fecha, minutos y precisión, para hacer
+  una captura y reclamar 15 minutos extra de pantalla.
+- **Rotación semanal**: cada juego del modo pide 3 intentos de lunes a
+  domingo. El que ya los tiene descansa hasta que los demás también los tengan.
+- El botón atrás del navegador (y el gesto atrás de la tablet) cierra la
+  pantalla de encima en vez de salir de la app.
+
+El avatar se dibuja con vectores: cara, casco, traje, accesorios, mascota y
+paisaje, con tono de piel y color de pelo a elegir. En la tienda cada artículo
+se ve y se puede probar antes de comprarlo. Dentro de los juegos el avatar
+sigue siendo de bloques, que es lo que permite los cuatro colores del modo
+lentes.
 
 Un panel de adultos, con PIN, muestra minutos por modo, umbrales a lo largo del
 tiempo y permite exportar los datos para llevarlos a consulta.

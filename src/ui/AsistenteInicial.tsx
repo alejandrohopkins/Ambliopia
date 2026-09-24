@@ -10,6 +10,7 @@ import { hashDePin, pinValido } from '../storage/pin';
 import { ARTICULOS_GRATIS, equipoInicial } from '../rewards/catalogo';
 import { Aviso } from './componentes/Aviso';
 import { Campo, Error_ } from './componentes/Campo';
+import { AvatarCompuesto } from './componentes/AvatarCompuesto';
 
 const PASOS = [
   'bienvenida',
@@ -267,6 +268,7 @@ export function AsistenteInicial({
         <>
           <h1>{es.asistente.avatar.titulo}</h1>
           <p>{es.asistente.avatar.explicacion}</p>
+          <AvatarCompuesto alto={200} equipoExtra={{ cascos: casco, trajes: traje }} />
 
           <h2>{es.asistente.avatar.casco}</h2>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>

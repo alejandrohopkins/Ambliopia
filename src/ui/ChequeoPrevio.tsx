@@ -8,8 +8,7 @@ import { useState } from 'react';
 import type { Modo } from '../config';
 import { es, ojoContrario } from '../i18n/es';
 import { useEstado } from '../storage/contexto';
-import { conParche } from '../avatar/sprites';
-import { Pixelnauta } from '../avatar/Pixelnauta';
+import { AvatarCompuesto } from './componentes/AvatarCompuesto';
 import { EscanerPrevio } from '../calibration/EscanerPrevio';
 
 export function ChequeoPrevio({
@@ -53,11 +52,7 @@ export function ChequeoPrevio({
 
   return (
     <main style={{ padding: 24, maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
-      <Pixelnauta
-        mapa={conParche(ojoTapado)}
-        escala={10}
-        etiqueta={es.chequeo.parche(ojoTapado)}
-      />
+      <AvatarCompuesto alto={200} parche={ojoTapado} />
       <h1>{es.chequeo.parche(ojoTapado)}</h1>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button className="pixelado" onClick={() => setConfirmado(true)}>

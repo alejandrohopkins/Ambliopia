@@ -159,8 +159,8 @@ describe('exportar e importar', () => {
 
 describe('derivaciones del esquema', () => {
   it('el ojo dominante es siempre el contrario al ambliope', () => {
-    expect(ojoDominante({ nombre: 'A', edad: 12, ojoAmbliope: 'derecho' })).toBe('izquierdo');
-    expect(ojoDominante({ nombre: 'A', edad: 12, ojoAmbliope: 'izquierdo' })).toBe('derecho');
+    expect(ojoDominante({ ojoAmbliope: 'derecho' })).toBe('izquierdo');
+    expect(ojoDominante({ ojoAmbliope: 'izquierdo' })).toBe('derecho');
   });
 
   it('el color de cada ojo sale del dato calibrado del hardware', () => {

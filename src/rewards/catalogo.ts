@@ -71,7 +71,7 @@ function legendario(
     ...(color2 ? { color2 } : {}),
   };
 }
-/** Traje o visor de dos tonos: sale a rayas. */
+/** Traje o visor de dos tonos: sale a rayas en los juegos y en degradado en el avatar. */
 function dosTonos(base: Articulo, color: string, color2: string): Articulo {
   return { ...base, color, color2 };
 }
@@ -89,6 +89,10 @@ export const CATALOGO: Articulo[] = [
   comun('casco-visera', 'cascos', 210),
   comun('casco-aletas', 'cascos', 230),
   raro('casco-estrella', 'cascos', 520),
+  comun('casco-conejo', 'cascos', 220),
+  comun('casco-auriculares', 'cascos', 240),
+  raro('casco-unicornio', 'cascos', 540),
+  raro('casco-flores', 'cascos', 500),
   legendario('casco-corona', 'cascos', 12),
 
   // Trajes: ocho colores sólidos, dos gratis.
@@ -103,6 +107,9 @@ export const CATALOGO: Articulo[] = [
   comun('traje-menta', 'trajes', 160, '#7FE8C4'),
   comun('traje-fresa', 'trajes', 200, '#FF7AA8'),
   comun('traje-cobre', 'trajes', 220, '#D98A4F'),
+  comun('traje-noche', 'trajes', 180, '#2E4A8C'),
+  dosTonos(raro('traje-sol', 'trajes', 580), '#FFB347', '#FF5E62'),
+  dosTonos(raro('traje-bosque', 'trajes', 560), '#2F7D4E', '#A8E063'),
   dosTonos(raro('traje-galaxia', 'trajes', 600), '#3B2A7A', '#8F6FE8'),
   dosTonos(raro('traje-lava', 'trajes', 620), '#C43A16', '#FFA23C'),
   dosTonos(legendario('traje-arcoiris', 'trajes', 14), '#FF5FA2', '#6FB3FF'),
@@ -115,7 +122,9 @@ export const CATALOGO: Articulo[] = [
   comun('visor-cielo', 'visores', 180, '#6FB3FF'),
   comun('visor-lila', 'visores', 190, '#C49BFF'),
   comun('visor-lunar', 'visores', 200, '#EDE9FF'),
+  comun('visor-rosa', 'visores', 180, '#FF9CC8'),
   raro('visor-espejo', 'visores', 520, '#C9F2FF'),
+  dosTonos(raro('visor-aurora', 'visores', 540), '#8FE3FF', '#FF9CC8'),
 
   // Accesorios
   comun('accesorio-mochila', 'accesorios', 220),
@@ -124,6 +133,8 @@ export const CATALOGO: Articulo[] = [
   comun('accesorio-bufanda-larga', 'accesorios', 240),
   raro('accesorio-capa', 'accesorios', 560),
   raro('accesorio-jetpack', 'accesorios', 580),
+  comun('accesorio-medalla', 'accesorios', 200),
+  comun('accesorio-lazo', 'accesorios', 180),
   legendario('accesorio-alas', 'accesorios', 14),
 
   // Mascotas
@@ -136,6 +147,9 @@ export const CATALOGO: Articulo[] = [
   comun('mascota-tortuga', 'mascotas', 220),
   comun('mascota-conejo', 'mascotas', 240),
   raro('mascota-medusa', 'mascotas', 520),
+  comun('mascota-pinguino', 'mascotas', 230),
+  comun('mascota-perrito', 'mascotas', 240),
+  raro('mascota-panda', 'mascotas', 560),
   legendario('mascota-dragon', 'mascotas', 14),
   legendario('mascota-fenix', 'mascotas', 13),
 

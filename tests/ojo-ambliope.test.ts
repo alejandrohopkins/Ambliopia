@@ -55,8 +55,8 @@ describe('cambiar el ojo ambliope', () => {
   });
 
   it('invierte el ojo dominante', () => {
-    expect(ojoDominante({ nombre: 'A', edad: 12, ojoAmbliope: 'derecho' })).toBe('izquierdo');
-    expect(ojoDominante({ nombre: 'A', edad: 12, ojoAmbliope: 'izquierdo' })).toBe('derecho');
+    expect(ojoDominante({ ojoAmbliope: 'derecho' })).toBe('izquierdo');
+    expect(ojoDominante({ ojoAmbliope: 'izquierdo' })).toBe('derecho');
   });
 
   it('invierte el ojo que se tapa con el parche', () => {
@@ -84,7 +84,7 @@ describe('cambiar el ojo ambliope', () => {
 
   it('invierte el ojo que se cierra en la calibración y en el escáner', () => {
     for (const ojo of ['derecho', 'izquierdo'] as Ojo[]) {
-      const dominante = ojoDominante({ nombre: 'A', edad: 12, ojoAmbliope: ojo });
+      const dominante = ojoDominante({ ojoAmbliope: ojo });
       const texto = es.calibracion.escaner.instruccion(nombreDeOjo(dominante));
       expect(texto).toContain(nombreDeOjo(dominante));
       expect(texto).not.toContain(nombreDeOjo(ojo));

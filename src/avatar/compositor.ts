@@ -4,7 +4,7 @@
  * que le corresponde según lo equipado.
  */
 import { articulo } from '../rewards/catalogo';
-import { ACCESORIOS, ALTO, ANCHO, CASCOS, CUERPO } from './piezas';
+import { ACCESORIOS, ACCESORIOS_DELANTE, ALTO, ANCHO, CASCOS, CUERPO } from './piezas';
 import { PALETA_POR_DEFECTO, type MapaDePixeles, type PaletaDeSprite } from './sprites';
 
 export interface Equipo {
@@ -46,6 +46,10 @@ export function componerAvatar(equipo: Equipo): MapaDePixeles {
   if (equipo.trajes && articulo(equipo.trajes)?.color2) {
     mapa = mapa.map((fila, y) => (y % 2 === 0 ? fila.replace(/B/g, 'C') : fila));
   }
+
+  // Lo que va por delante (medalla, lazo) se ve encima de todo.
+  const delante = equipo.accesorios ? ACCESORIOS_DELANTE[equipo.accesorios] : undefined;
+  if (delante) mapa = superponer(mapa, delante);
 
   return mapa;
 }

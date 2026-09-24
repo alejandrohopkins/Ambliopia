@@ -16,7 +16,7 @@ import { juegosDelModo } from '../../games/registro';
 import { useMovimientoReducido } from '../movimiento';
 import { Contadores } from './Contadores';
 import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
-import { fondoDeBase } from '../../avatar/fondos';
+import { Paisaje } from '../../avatar/vector/Fondos';
 import { MisionDelDia } from './MisionDelDia';
 import { BotonDePremio } from '../componentes/PremioDePantalla';
 import type { Pantalla } from '../navegacion';
@@ -38,44 +38,20 @@ function usarSoloLaPrimeraVez(): boolean {
 }
 
 /**
- * El avatar grande sobre su plataforma: el elemento memorable de la base.
+ * El avatar grande sobre su paisaje: el elemento memorable de la base.
  * Aterriza una sola vez al abrir la app; después solo respira.
  * Todo lo demás de la pantalla es sobrio a propósito.
  */
 function Plataforma({ aterrizar, fondo }: { aterrizar: boolean; fondo: string | undefined }) {
-  const paisaje = fondoDeBase(fondo);
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div
-        className="pixelado"
-        style={{ position: 'relative', padding: '14px 18px 0', background: paisaje.cielo }}
-      >
-        {/* El paisaje comprado, detrás del avatar. */}
-        <svg
-          aria-hidden
-          viewBox="0 0 32 14"
-          preserveAspectRatio="none"
-          shapeRendering="crispEdges"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-        >
-          {paisaje.puntos.map(([x, y]) => (
-            <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={paisaje.adorno} />
-          ))}
-        </svg>
-        <div style={{ position: 'relative' }} className={aterrizar ? 'aterriza' : undefined}>
-          <AvatarCompuesto escala={12} conMascota respira />
-        </div>
-        <div
-          aria-hidden
-          className={`pixelado${aterrizar ? ' aterriza-polvo' : ''}`}
-          style={{
-            position: 'relative',
-            height: 14,
-            marginTop: 6,
-            background: paisaje.suelo,
-            borderTop: '3px solid var(--borde)',
-          }}
-        />
+    <div
+      className="pixelado"
+      style={{ position: 'relative', overflow: 'hidden', padding: '14px 26px 8px', textAlign: 'center' }}
+    >
+      {/* El paisaje comprado, detrás del avatar. */}
+      <Paisaje id={fondo} />
+      <div style={{ position: 'relative' }} className={aterrizar ? 'aterriza' : undefined}>
+        <AvatarCompuesto alto={210} conMascota respira />
       </div>
     </div>
   );

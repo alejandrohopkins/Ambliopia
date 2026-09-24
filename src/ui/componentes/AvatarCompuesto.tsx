@@ -1,50 +1,60 @@
 /** El avatar de la jugadora tal como lo lleva equipado, con su mascota al lado. */
-import { useEffect, useState } from 'react';
-import { config } from '../../config';
+import type { Ojo } from '../../config';
 import { es } from '../../i18n/es';
 import { useEstado } from '../../storage/contexto';
-import { componerAvatar, paletaCompleta, respirar } from '../../avatar/compositor';
-import { MASCOTAS } from '../../avatar/piezas';
-import { Pixelnauta } from '../../avatar/Pixelnauta';
+import { Figura } from '../../avatar/vector/Figura';
+import { Mascota } from '../../avatar/vector/Mascotas';
+import { colorDePelo, colorDePiel, type Apariencia } from '../../avatar/vector/apariencia';
 import { useMovimientoReducido } from '../movimiento';
 
 export function AvatarCompuesto({
-  escala = 8,
+  alto = 200,
   conMascota = false,
   equipoExtra,
+  aparienciaExtra,
   respira = false,
+  parche = null,
 }: {
-  escala?: number;
+  /** Alto de la figura en píxeles. */
+  alto?: number;
   conMascota?: boolean;
-  /** Vista previa: sustituye lo equipado por el artículo que se está mirando. */
+  /** Vista previa: sustituye lo equipado por el artículo que se está probando. */
   equipoExtra?: Record<string, string>;
-  /** Respiración suave: un píxel arriba y abajo. Se apaga con reducir movimiento. */
+  /** Vista previa de un tono de piel o un color de pelo. */
+  aparienciaExtra?: Partial<Apariencia>;
+  /** Respiración suave. Se apaga con reducir movimiento. */
   respira?: boolean;
+  /** Ojo con parche, para el chequeo del modo parche. */
+  parche?: Ojo | null;
 }) {
   const { estado } = useEstado();
   const sinMovimiento = useMovimientoReducido();
-  const [arriba, setArriba] = useState(false);
-
-  useEffect(() => {
-    if (!respira || sinMovimiento) return;
-    const id = setInterval(() => setArriba((a) => !a), config.avatar.respiracionMs / 2);
-    return () => clearInterval(id);
-  }, [respira, sinMovimiento]);
-
   const equipo = { ...estado.economia.equipado, ...equipoExtra };
-  const mapa = respirar(componerAvatar(equipo), respira && !sinMovimiento && arriba);
-  const paleta = paletaCompleta(equipo);
-  const mascota = equipo.mascotas ? MASCOTAS[equipo.mascotas] : undefined;
+  const apariencia = { ...estado.perfil.apariencia, ...aparienciaExtra };
 
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center' }}>
-      <Pixelnauta mapa={mapa} paleta={paleta} escala={escala} etiqueta={es.avatar.titulo} />
-      {conMascota && mascota && (
-        <Pixelnauta
-          mapa={mascota}
-          paleta={paleta}
-          escala={Math.max(3, Math.round(escala * 0.7))}
-          etiqueta={es.articulos[equipo.mascotas!] ?? es.categorias.mascotas}
+    <div
+      style={{
+        display: 'flex',
+        gap: 4,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}
+    >
+      <Figura
+        equipo={equipo}
+        piel={colorDePiel(apariencia)}
+        pelo={colorDePelo(apariencia)}
+        parche={parche}
+        alto={alto}
+        etiqueta={es.avatar.titulo}
+        respira={respira && !sinMovimiento}
+      />
+      {conMascota && equipo.mascotas && (
+        <Mascota
+          id={equipo.mascotas}
+          alto={Math.round(alto * 0.38)}
+          etiqueta={es.articulos[equipo.mascotas] ?? es.categorias.mascotas}
         />
       )}
     </div>

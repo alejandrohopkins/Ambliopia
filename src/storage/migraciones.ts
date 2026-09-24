@@ -19,6 +19,9 @@ const PASOS: Record<number, (datos: Datos) => Datos> = {
     version: 2,
     sesiones: Array.isArray(datos.sesiones) ? datos.sesiones.map(conNivelesContados) : datos.sesiones,
   }),
+  // v3: la apariencia del avatar (piel y pelo) y los premios de pantalla.
+  // Las dos las rellena `completar` con sus valores iniciales.
+  2: (datos) => ({ ...datos, version: 3 }),
 };
 
 function conNivelesContados(sesion: unknown): unknown {

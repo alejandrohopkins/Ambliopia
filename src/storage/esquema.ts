@@ -4,11 +4,14 @@
  * y añadir su paso en `migraciones.ts`.
  */
 import { config, type ColorLente, type IdJuego, type Modo, type Ojo } from '../config';
+import { APARIENCIA_INICIAL, type Apariencia } from '../avatar/vector/apariencia';
 
 export interface Perfil {
   nombre: string;
   edad: number;
   ojoAmbliope: Ojo;
+  /** Tono de piel y color de pelo del avatar, elegidos gratis en «Mi avatar». */
+  apariencia: Apariencia;
 }
 
 export interface Ajustes {
@@ -234,6 +237,7 @@ export function estadoInicial(): Estado {
       nombre: config.perfil.nombrePorDefecto,
       edad: config.perfil.edadPorDefecto,
       ojoAmbliope: config.ojoAmbliope,
+      apariencia: { ...APARIENCIA_INICIAL },
     },
     ajustes: {
       metaDiariaMin: config.sesion.metaDiariaMin,
@@ -296,7 +300,7 @@ export function estadoInicial(): Estado {
 }
 
 /** El ojo dominante es siempre el contrario al ambliope. */
-export function ojoDominante(perfil: Perfil): Ojo {
+export function ojoDominante(perfil: Pick<Perfil, 'ojoAmbliope'>): Ojo {
   return perfil.ojoAmbliope === 'derecho' ? 'izquierdo' : 'derecho';
 }
 

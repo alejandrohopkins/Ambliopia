@@ -27,12 +27,19 @@ export const PIXELNAUTA: MapaDePixeles = [
 ];
 
 /**
+ * Lado de la imagen donde cae un ojo del avatar. Nos mira de frente, así que
+ * su ojo derecho cae a la izquierda de quien mira.
+ */
+export function ladoEnLaImagen(ojo: Ojo): 'izquierda' | 'derecha' {
+  return ojo === 'derecho' ? 'izquierda' : 'derecha';
+}
+
+/**
  * La misma pixelnauta con el parche sobre un ojo.
- * Nos mira de frente, así que su ojo derecho cae a la izquierda de quien mira.
  * Sirve para cualquier avatar compuesto, no solo para el de serie.
  */
 export function conParche(ojoTapado: Ojo, mapa: MapaDePixeles = PIXELNAUTA): MapaDePixeles {
-  const ladoIzquierdoDeLaImagen = ojoTapado === 'derecho';
+  const ladoIzquierdoDeLaImagen = ladoEnLaImagen(ojoTapado) === 'izquierda';
   return mapa.map((fila, y) => {
     if (y < 4 || y > 5) return fila;
     return [...fila]

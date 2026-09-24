@@ -62,9 +62,17 @@ export interface JuegoFalso {
 export function montarJuego(
   id: IdJuego,
   modo: Modo,
-  opciones: { mundo?: number; nivel?: number; ancho?: number; alto?: number; semilla?: number } = {},
+  opciones: {
+    mundo?: number;
+    nivel?: number;
+    ancho?: number;
+    alto?: number;
+    semilla?: number;
+    /** Lo que lleva equipado la jugadora: sale en algunos juegos. */
+    equipo?: Record<string, string>;
+  } = {},
 ): JuegoFalso {
-  const { mundo = 1, nivel = 1, ancho = 1024, alto = 700, semilla = 1 } = opciones;
+  const { mundo = 1, nivel = 1, ancho = 1024, alto = 700, semilla = 1, equipo = {} } = opciones;
 
   const ventana = objetivoFalso();
   const global = globalThis as unknown as Record<string, unknown>;
@@ -103,7 +111,7 @@ export function montarJuego(
   const instancia = definicion.crear(canvas as unknown as HTMLCanvasElement, {
     modo,
     renderer,
-    equipo: {},
+    equipo,
     ojoTapado: modo === 'parche' ? ojoContrario(config.ojoAmbliope) : null,
     escaleras,
     config,

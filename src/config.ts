@@ -704,7 +704,7 @@ export const config = {
 
   avatar: {
     escalas: [4, 6, 8],
-    /** Respiración: 1 px arriba y abajo cada 1.5 s. */
+    /** Respiración del avatar: sube y baja unos píxeles, 1,5 s cada tramo. */
     respiracionMs: 1500,
     parpadeoMs: 4200,
   },
@@ -724,7 +724,7 @@ export const config = {
 
   almacenamiento: {
     clave: 'misionPixel:v1',
-    version: 2,
+    version: 3,
     guardadoPeriodicoMs: 30_000,
   },
 

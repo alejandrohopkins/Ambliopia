@@ -16,10 +16,23 @@ import {
   type Sesion,
 } from '../src/storage/esquema';
 import { es } from '../src/i18n/es';
+import { montarJuego } from './ayudas/juegoFalso';
+import { coloresProhibidos } from './ayudas/cuatroColores';
 import { aportesDelNivel, huboTresFallosSeguidos } from '../src/rewards/progresoDeJuego';
 import { componerAvatar, paletaDeAvatar } from '../src/avatar/compositor';
-import { ACCESORIOS, CASCOS, ESTELAS, MASCOTAS, NAVES, PICOS } from '../src/avatar/piezas';
-import { FONDOS } from '../src/avatar/fondos';
+import {
+  ACCESORIOS,
+  ACCESORIOS_DELANTE,
+  CASCOS,
+  ESTELAS,
+  MASCOTAS,
+  NAVES,
+  PICOS,
+} from '../src/avatar/piezas';
+import { ACCESORIOS_VECTORIALES, CASCOS_VECTORIALES } from '../src/avatar/vector/Figura';
+import { MASCOTAS_VECTORIALES } from '../src/avatar/vector/Mascotas';
+import { FONDOS_VECTORIALES } from '../src/avatar/vector/Fondos';
+import { PELOS, PIELES, APARIENCIA_INICIAL } from '../src/avatar/vector/apariencia';
 import {
   avatarDeJuego,
   estelaDeJuego,
@@ -102,22 +115,46 @@ describe('catálogo', () => {
  * gastas monedas y no cambia nada en pantalla.
  */
 describe('todo lo que se compra tiene su dibujo', () => {
+  // En los juegos: sprites de bloques, que respetan los cuatro colores.
   const PIEZAS: Record<string, Record<string, unknown>> = {
     cascos: CASCOS,
-    accesorios: ACCESORIOS,
+    accesorios: { ...ACCESORIOS, ...ACCESORIOS_DELANTE },
     mascotas: MASCOTAS,
     naves: NAVES,
     estelas: ESTELAS,
     picos: PICOS,
-    fondos: FONDOS,
   };
 
-  it('cada artículo con dibujo propio lo tiene de verdad', () => {
+  // En la base, la tienda y «Mi avatar»: dibujo vectorial, sin píxeles.
+  const VECTORIALES: Record<string, string[]> = {
+    cascos: CASCOS_VECTORIALES,
+    accesorios: ACCESORIOS_VECTORIALES,
+    mascotas: Object.keys(MASCOTAS_VECTORIALES),
+    fondos: FONDOS_VECTORIALES,
+  };
+
+  it('cada artículo que sale en los juegos tiene su sprite', () => {
     for (const art of CATALOGO) {
       const piezas = PIEZAS[art.categoria];
       if (!piezas) continue;
       expect(piezas[art.id], `${art.categoria}: ${art.id}`).toBeTruthy();
     }
+  });
+
+  it('cada artículo del avatar tiene su dibujo vectorial', () => {
+    for (const art of CATALOGO) {
+      const dibujos = VECTORIALES[art.categoria];
+      if (!dibujos) continue;
+      expect(dibujos, `${art.categoria}: ${art.id}`).toContain(art.id);
+    }
+  });
+
+  it('la apariencia tiene nombre para cada tono de piel y color de pelo', () => {
+    for (const id of Object.keys(PIELES)) expect(es.avatar.pieles[id], id).toBeTruthy();
+    for (const id of Object.keys(PELOS)) expect(es.avatar.pelos[id], id).toBeTruthy();
+    expect(PIELES[APARIENCIA_INICIAL.piel]).toBeTruthy();
+    expect(PELOS[APARIENCIA_INICIAL.pelo]).toBeTruthy();
+    expect(estadoInicial().perfil.apariencia).toEqual(APARIENCIA_INICIAL);
   });
 
   it('los trajes y los visores cambian de color', () => {
@@ -640,6 +677,36 @@ describe('aportes de un nivel a insignias y misión', () => {
   });
 });
 
+describe('lo comprado dentro de los juegos', () => {
+  // Todo lo nuevo a la vez, en los juegos que dibujan el avatar y sus cosas.
+  const EQUIPO = {
+    cascos: 'casco-flores',
+    trajes: 'traje-sol',
+    visores: 'visor-aurora',
+    accesorios: 'accesorio-medalla',
+    mascotas: 'mascota-panda',
+    naves: 'nave-orca',
+    estelas: 'estela-rayos',
+    picos: 'pico-doble',
+  };
+
+  it('en modo lentes siguen saliendo solo los cuatro colores', () => {
+    for (const juego of ['minero', 'meteoritos'] as const) {
+      const partida = montarJuego(juego, 'lentes', { equipo: EQUIPO });
+      partida.avanzar(4000);
+      expect(coloresProhibidos(partida.lienzo), juego).toEqual([]);
+      partida.instancia.destruir();
+    }
+  });
+
+  it('la medalla y el lazo se ven por delante del cuerpo y del casco', () => {
+    const medalla = componerAvatar({ accesorios: 'accesorio-medalla' });
+    const lazo = componerAvatar({ accesorios: 'accesorio-lazo' });
+    expect(medalla.slice(8).join('')).toContain('A');
+    expect(lazo.slice(0, 2).join('')).toContain('A');
+  });
+});
+
 describe('avatar', () => {
   it('compone el avatar con el casco equipado', () => {
     const clasico = componerAvatar({ cascos: 'casco-clasico' }).join('\n');
@@ -684,7 +751,9 @@ describe('avatar', () => {
       if (art.categoria === 'mascotas') expect(MASCOTAS[art.id], art.id).toBeDefined();
       if (art.categoria === 'naves') expect(NAVES[art.id], art.id).toBeDefined();
       if (art.categoria === 'picos') expect(PICOS[art.id], art.id).toBeDefined();
-      if (art.categoria === 'accesorios') expect(ACCESORIOS[art.id], art.id).toBeDefined();
+      if (art.categoria === 'accesorios') {
+        expect(ACCESORIOS[art.id] ?? ACCESORIOS_DELANTE[art.id], art.id).toBeDefined();
+      }
       if (art.categoria === 'estelas') expect(ESTELAS[art.id], art.id).toBeDefined();
     }
   });

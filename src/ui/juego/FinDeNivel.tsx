@@ -5,8 +5,7 @@
  */
 import type { IdJuego } from '../../config';
 import { es } from '../../i18n/es';
-import { Pixelnauta } from '../../avatar/Pixelnauta';
-import { PIXELNAUTA } from '../../avatar/sprites';
+import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
 import { useEffect } from 'react';
 import { audio } from '../../engine/audio';
 import { useTeclasGemelas } from '../useTeclasGemelas';
@@ -53,7 +52,8 @@ export function FinDeNivel({
 
   return (
     <main style={{ padding: 24, maxWidth: 620, margin: '0 auto', textAlign: 'center' }}>
-      <Pixelnauta mapa={PIXELNAUTA} escala={8} etiqueta={es.juegos[juego]} />
+      <AvatarCompuesto alto={150} conMascota />
+      <p style={{ color: 'var(--texto-tenue)', margin: '6px auto 0' }}>{es.juegos[juego]}</p>
       <h1>{titulo}</h1>
 
       <p
