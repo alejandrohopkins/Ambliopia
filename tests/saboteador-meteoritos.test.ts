@@ -133,12 +133,27 @@ describe('regla de ensayo de meteoritos', () => {
 
 describe('dificultad de meteoritos', () => {
   it('sube del primer al último nivel', () => {
+    const m = config.meteoritos;
     const primero = dificultad(1, 1);
     const ultimo = dificultad(config.progresion.mundos, config.progresion.nivelesPorMundo);
-    expect(primero.velocidad).toBe(config.meteoritos.velocidadCaidaInicialPxSeg);
-    expect(ultimo.velocidad).toBe(config.meteoritos.velocidadCaidaFinalPxSeg);
-    expect(primero.simultaneos).toBe(config.meteoritos.objetosSimultaneosMin);
-    expect(ultimo.simultaneos).toBe(config.meteoritos.objetosSimultaneosMax);
+    expect(primero.velocidad).toBe(m.velocidadCaidaInicialPxSeg);
+    expect(ultimo.velocidad).toBe(m.velocidadCaidaFinalPxSeg);
+    expect(primero.oleada).toBe(m.oleadaMin);
+    expect(ultimo.oleada).toBe(m.oleadaMax);
+    expect(primero.intervaloSeg).toBe(m.intervaloDeOleadaInicialSeg);
+    expect(ultimo.intervaloSeg).toBe(m.intervaloDeOleadaFinalSeg);
+    expect(primero.enElAire).toBe(m.enElAireMin);
+    expect(ultimo.enElAire).toBe(m.enElAireMax);
+  });
+
+  it('desde el primer nivel caen varios a la vez, y nunca más que el tope', () => {
+    expect(config.meteoritos.oleadaMin).toBeGreaterThanOrEqual(2);
+    for (let mundo = 1; mundo <= config.progresion.mundos; mundo += 1) {
+      for (let nivel = 1; nivel <= config.progresion.nivelesPorMundo; nivel += 1) {
+        const { oleada, enElAire } = dificultad(mundo, nivel);
+        expect(oleada).toBeLessThanOrEqual(enElAire);
+      }
+    }
   });
 
   it('nunca retrocede', () => {

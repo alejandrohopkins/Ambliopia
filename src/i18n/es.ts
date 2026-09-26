@@ -38,6 +38,14 @@ export interface FilaDeTeclas {
   accion: string;
 }
 
+/** Teclas y gestos de un juego. */
+export interface ControlesDeJuego {
+  teclas: FilaDeTeclas[];
+  dedo: string;
+  /** Z y X hacen algo propio en este juego, en vez de repetir Enter y Espacio. */
+  zxPropias?: boolean;
+}
+
 export const es = {
   app: {
     nombre: 'Misión Pixel',
@@ -191,8 +199,15 @@ export const es = {
         dedo: 'Arrastra para mover, toca para girar y desliza hacia abajo para soltar. También hay botones.',
       },
       meteoritos: {
-        teclas: [{ teclas: ['←', '→'], accion: 'Mover la nave' }],
-        dedo: 'Arrastra la nave: atrapa las estrellas y esquiva las rocas.',
+        teclas: [
+          { teclas: ['←', '→'], accion: 'Mover la nave' },
+          { teclas: ['Z'], accion: 'Salto grande a la izquierda' },
+          { teclas: ['X'], accion: 'Salto grande a la derecha' },
+          { teclas: ['Espacio'], accion: 'Disparar: rompe las rocas, no las estrellas' },
+        ],
+        dedo: 'Arrastra la nave para atrapar las estrellas y toca el botón de la derecha para disparar a las rocas.',
+        // En este juego Z y X tienen su propio papel: no repiten Enter ni Espacio.
+        zxPropias: true,
       },
       cazador: {
         teclas: [
@@ -249,7 +264,7 @@ export const es = {
         ],
         dedo: 'Toca la pieza que completa el mosaico.',
       },
-    } as Record<IdJuego, { teclas: FilaDeTeclas[]; dedo: string }>,
+    } as Record<IdJuego, ControlesDeJuego>,
   },
 
   pozo: {

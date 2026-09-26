@@ -29,8 +29,8 @@ export function ControlesDelJuego({
   alVolver: () => void;
 }) {
   useTeclasGemelas();
-  const { teclas, dedo } = es.controles.porJuego[juego];
-  const conGemelas = teclas.some((fila) => fila.teclas.includes('Z'));
+  const { teclas, dedo, zxPropias } = es.controles.porJuego[juego];
+  const conGemelas = !zxPropias && teclas.some((fila) => fila.teclas.includes('Z'));
 
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto' }}>

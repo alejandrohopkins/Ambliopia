@@ -254,17 +254,42 @@ export const config = {
     tamanoMaximoPx: 96,
     /** Un objeto cuenta como ensayo si pasa a menos de N anchos de nave. */
     anchosDeNaveParaEnsayo: 2,
-    objetosSimultaneosMin: 1,
-    objetosSimultaneosMax: 4,
+    /**
+     * Caen en oleadas: varios a la vez, en la misma fila. Del primer nivel al
+     * último crecen los objetos de cada oleada y se acortan los segundos entre
+     * una y la siguiente; los que hay en el aire nunca pasan del tope.
+     */
+    oleadaMin: 3,
+    oleadaMax: 5,
+    intervaloDeOleadaInicialSeg: 2.6,
+    intervaloDeOleadaFinalSeg: 1.6,
+    enElAireMin: 5,
+    enElAireMax: 12,
+    /** Hueco entre dos objetos de una oleada, además del ancho de la nave y el suyo. */
+    margenEntreObjetosPx: 12,
     /**
      * Ritmo de caída. A 170 px/s un objeto cruza una pantalla de tablet en
-     * unos 4 s, así que un nivel de 75 s deja unos 17 ensayos: suficientes
-     * para que la escalera se mueva sin apurar a la jugadora.
+     * unos 4 s: tiempo de sobra para decidir si es estrella o roca.
      */
     velocidadCaidaInicialPxSeg: 170,
     velocidadCaidaFinalPxSeg: 420,
-    /** Proporción estrella/roca. */
+    /** Proporción estrella/roca. Cada oleada trae al menos una de cada. */
     probabilidadEstrella: 0.5,
+    /**
+     * Disparos: suben desde la nave y rompen lo que tocan. Romper una roca es
+     * un acierto; romper una estrella, un fallo. La cadencia mínima deja como
+     * mucho tres estallidos por segundo, como pide la regla de destellos.
+     */
+    disparoVelocidad: 1.6,
+    disparoCadenciaMs: 350,
+    disparosEnElAireMax: 4,
+    disparoAnchoPx: 4,
+    disparoLargoPx: 16,
+    /** Un disparo toca un objeto a esta distancia de su centro, o dentro de él si es mayor. */
+    disparoToleranciaPx: 10,
+    /** Z y X: salto grande de la nave a un lado, en fracción del ancho del área. */
+    saltoLateral: 0.25,
+    saltoDuracionMs: 140,
     energiaMaxima: 100,
     energiaPorChoque: 15,
     energiaRecargaPorSeg: 6,
