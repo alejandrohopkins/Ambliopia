@@ -6,11 +6,61 @@ import { config } from '../src/config';
 import {
   dificultadDeRebote,
   golpeaLaPaleta,
+  llegadaALaPaleta,
+  llegadasAlcanzables,
   rebotarEnCaja,
   rebotarEnParedes,
   salidaDePaleta,
+  type Caja,
+  type Llegada,
 } from '../src/games/rebote/fisica';
-import { montarJuego } from './ayudas/juegoFalso';
+import { montarJuego, type JuegoFalso } from './ayudas/juegoFalso';
+
+interface BolaVista {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  acelerada: number;
+  vuelveEnMs: number | null;
+}
+
+const por = (juego: JuegoFalso) =>
+  juego.instancia as unknown as {
+    bolas: BolaVista[];
+    bloques: Caja[];
+    area: Caja;
+    paletaX: number;
+    paletaY(): number;
+    anchoDePaleta(): number;
+  };
+
+const enJuego = (juego: JuegoFalso) => por(juego).bolas.filter((b) => b.vuelveEnMs === null);
+
+/** La próxima bola que llegará a la paleta, según el cálculo del propio juego. */
+function proximaLlegada(juego: JuegoFalso): Llegada | undefined {
+  const estado = por(juego);
+  return enJuego(juego)
+    .map((b) => llegadaALaPaleta(b, estado.area, estado.bloques, estado.paletaY()))
+    .filter((l): l is Llegada => l !== null)
+    .sort((a, b) => a.t - b.t)[0];
+}
+
+/** Juega con el dedo: la paleta va a donde llegará la próxima bola. */
+function jugarConElDedo(mundo: number, nivel: number, semilla: number) {
+  const juego = montarJuego('rebote', 'parche', { mundo, nivel, semilla });
+  juego.avanzar(16);
+  let maximoDeBolas = 0;
+  for (let t = 0; t < config.rebote.duracionNivelSeg * 1000 && !juego.fin(); t += 16) {
+    maximoDeBolas = Math.max(maximoDeBolas, enJuego(juego).length);
+    const llegada = proximaLlegada(juego);
+    if (llegada) juego.arrastrar(llegada.x, 500);
+    juego.avanzar(16);
+  }
+  const fin = juego.fin();
+  juego.instancia.destruir();
+  return { fin, maximoDeBolas };
+}
 
 const AREA = { x: 0, y: 0, ancho: 400, alto: 300 };
 
@@ -84,24 +134,92 @@ describe('física del rebote', () => {
     expect(ultimo.paleta).toBeLessThan(primero.paleta);
     expect(ultimo.velocidad).toBeGreaterThan(primero.velocidad);
     expect(ultimo.bloques).toBeGreaterThan(primero.bloques);
-    expect(ultimo.bolas).toBeGreaterThanOrEqual(primero.bolas);
+    expect(ultimo.bolasMax).toBeGreaterThan(primero.bolasMax);
+    expect(primero.bolasMax).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('la bola se divide', () => {
+  it('la paleta llega si le da tiempo, con su reacción y su velocidad', () => {
+    // Dos bolas a 300 px, con la paleta cubriendo 20 px a cada lado.
+    const llegadas: Llegada[] = [
+      { t: 0.5, x: 100 },
+      { t: 2.0, x: 400 },
+    ];
+    expect(llegadasAlcanzables(llegadas, 100, 20, 300, 0.3)).toBe(true);
+    expect(llegadasAlcanzables(llegadas, 100, 20, 150, 0.3)).toBe(false);
+    // Dos a la vez en el mismo sitio sí; en sitios distintos, no.
+    expect(llegadasAlcanzables([{ t: 1, x: 200 }, { t: 1, x: 210 }], 200, 20, 300, 0.3)).toBe(true);
+    expect(llegadasAlcanzables([{ t: 1, x: 200 }, { t: 1, x: 400 }], 200, 20, 300, 0.3)).toBe(false);
+  });
+
+  it('el cálculo de la llegada coincide con lo que pasa en la partida', () => {
+    const juego = montarJuego('rebote', 'parche', { mundo: 5, nivel: 1, semilla: 3 });
+    juego.avanzar(16);
+    const estado = por(juego);
+    const bola = enJuego(juego)[0];
+    const prevista = llegadaALaPaleta(bola, estado.area, estado.bloques, estado.paletaY())!;
+    // Se deja pasar la bola sin tocarla y se mira dónde cruza la línea.
+    estado.paletaX = estado.area.x + estado.area.ancho * (prevista.x < estado.area.ancho / 2 ? 0.9 : 0.1);
+    let cruce: { t: number; x: number } | null = null;
+    for (let t = 16; t < 10_000 && !cruce; t += 16) {
+      const antes = { x: bola.x, y: bola.y };
+      juego.avanzar(16);
+      if (bola.vuelveEnMs !== null) cruce = { t: t / 1000, x: antes.x };
+    }
+    expect(cruce).not.toBeNull();
+    expect(Math.abs(cruce!.t - prevista.t)).toBeLessThan(0.05);
+    expect(Math.abs(cruce!.x - prevista.x)).toBeLessThan(15);
+    juego.instancia.destruir();
+  });
+
+  it('tras varias devoluciones seguidas hay más bolas, sin pasar nunca del tope', () => {
+    for (const [mundo, nivel] of [[1, 1], [5, 5]]) {
+      const tope = dificultadDeRebote(mundo, nivel).bolasMax;
+      const { maximoDeBolas } = jugarConElDedo(mundo, nivel, 2);
+      expect(maximoDeBolas).toBeGreaterThanOrEqual(2);
+      expect(maximoDeBolas).toBeLessThanOrEqual(tope);
+    }
+  });
+
+  it('la bola que se escapa desaparece si quedan otras, y la última vuelve a salir', () => {
+    const juego = montarJuego('rebote', 'parche', { mundo: 1, nivel: 1, semilla: 2 });
+    juego.avanzar(16);
+    // Se juega bien hasta tener dos bolas.
+    for (let t = 0; t < 60_000 && enJuego(juego).length < 2; t += 16) {
+      const llegada = proximaLlegada(juego);
+      if (llegada) juego.arrastrar(llegada.x, 500);
+      juego.avanzar(16);
+    }
+    expect(enJuego(juego).length).toBe(2);
+    // Y luego nadie juega: se van escapando, pero nunca se queda sin bola.
+    juego.arrastrar(por(juego).area.x, 500);
+    let minimo = Infinity;
+    for (let t = 0; t < 10_000; t += 16) {
+      juego.avanzar(16);
+      minimo = Math.min(minimo, por(juego).bolas.length);
+    }
+    expect(minimo).toBe(1);
+    expect(por(juego).bolas.length).toBe(1);
+    juego.instancia.destruir();
+  });
+
+  it('con la bola dividida se puede ganar hasta el último nivel', () => {
+    for (const semilla of [1, 2, 3]) {
+      const { fin, maximoDeBolas } = jugarConElDedo(config.progresion.mundos, config.progresion.nivelesPorMundo, semilla);
+      expect(fin).not.toBeNull();
+      expect(fin!.precision).toBeGreaterThanOrEqual(config.progresion.precisionParaSubir);
+      expect(maximoDeBolas).toBeGreaterThanOrEqual(3);
+    }
   });
 });
 
 describe('partida de Rebote', () => {
-  it('quien sigue la bola la devuelve casi siempre', () => {
-    const juego = montarJuego('rebote', 'parche', { mundo: 1, nivel: 1 });
-    const bolas = () =>
-      (juego.instancia as unknown as { bolas: Array<{ x: number; vy: number; vuelveEnMs: number | null }> }).bolas;
-    for (let t = 0; t < 45_000; t += 16) {
-      const bola = bolas().find((b) => b.vuelveEnMs === null);
-      if (bola) juego.arrastrar(bola.x, 500);
-      juego.avanzar(16);
-    }
-    const medidos = juego.ensayos.filter((e) => !e.esEnsayoDeConfianza);
-    expect(medidos.length).toBeGreaterThan(5);
-    expect(medidos.every((e) => e.acierto)).toBe(true);
-    expect(medidos.every((e) => e.parametro === 'tamano' && e.juego === 'rebote')).toBe(true);
+  it('quien sigue las bolas las devuelve casi siempre', () => {
+    const { fin } = jugarConElDedo(1, 1, 1);
+    expect(fin).not.toBeNull();
+    expect(fin!.ensayos).toBeGreaterThan(5);
+    expect(fin!.precision).toBe(1);
   });
 
   it('si nadie juega, la bola se escapa, vuelve a salir y nada se pierde', () => {

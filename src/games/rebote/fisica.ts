@@ -3,7 +3,7 @@
  * Todas las distancias en píxeles CSS y las velocidades en píxeles por segundo.
  */
 import { config } from '../../config';
-import { avanceDeNivel, delMundo, segunNivel } from '../base';
+import { avanceDeNivel, delMundo, enteroSegunNivel, segunNivel } from '../base';
 
 export interface Caja {
   x: number;
@@ -19,7 +19,83 @@ export interface Movil {
   vy: number;
 }
 
-/** Lo que manda el nivel: tamaño de la paleta, velocidad, bloques y bolas. */
+/** Una bola en vuelo, con lo que ya la aceleraron los bloques. */
+export interface BolaEnVuelo extends Movil {
+  acelerada: number;
+}
+
+/** Acelerón al chocar con un bloque: dura hasta que la paleta la devuelve. */
+export function acelerarEnBloque(bola: BolaEnVuelo): void {
+  const factor = config.rebote.aceleracionDeBloque;
+  if (bola.acelerada >= factor * factor) return;
+  bola.acelerada *= factor;
+  bola.vx *= factor;
+  bola.vy *= factor;
+}
+
+export interface Llegada {
+  /** Segundos que faltan para que llegue a la línea de la paleta. */
+  t: number;
+  x: number;
+}
+
+/**
+ * Cuándo y dónde llegará una bola a la línea de la paleta: se simula su vuelo
+ * —paredes, techo y bloques— a pasos cortos, sin tocar la bola de verdad.
+ */
+export function llegadaALaPaleta(
+  bola: BolaEnVuelo,
+  area: Caja,
+  bloques: Caja[],
+  lineaY: number,
+  maximoSeg = 10,
+): Llegada | null {
+  const copia = { ...bola };
+  const paso = config.rebote.pasoFisicoSeg;
+  for (let pasos = 1; pasos * paso <= maximoSeg; pasos += 1) {
+    avanzarBola(copia, paso, area, bloques);
+    if (copia.vy > 0 && copia.y >= lineaY) return { t: pasos * paso, x: copia.x };
+  }
+  return null;
+}
+
+/** Un paso de física: avanza, rebota en paredes y techo, y en los bloques. */
+export function avanzarBola(bola: BolaEnVuelo, paso: number, area: Caja, bloques: Caja[]): void {
+  bola.x += bola.vx * paso;
+  bola.y += bola.vy * paso;
+  rebotarEnParedes(bola, area);
+  for (const bloque of bloques) {
+    // Acelerón repentino: dura hasta que la paleta la devuelve.
+    if (rebotarEnCaja(bola, bloque)) acelerarEnBloque(bola);
+  }
+}
+
+/**
+ * ¿Puede la paleta llegar a todas estas bolas? Se recorren las llegadas en
+ * orden y la paleta se mueve lo justo para cubrir cada una, a una velocidad
+ * dada y dejando un tiempo de reacción entre una y la siguiente. Si así llega
+ * a todas, se puede.
+ */
+export function llegadasAlcanzables(
+  llegadas: Llegada[],
+  paletaX: number,
+  alcance: number,
+  velocidad: number,
+  reaccionSeg: number,
+): boolean {
+  let x = paletaX;
+  let antes = 0;
+  for (const llegada of [...llegadas].sort((a, b) => a.t - b.t)) {
+    const destino = Math.max(llegada.x - alcance, Math.min(llegada.x + alcance, x));
+    const tiempo = Math.max(0, llegada.t - antes - reaccionSeg);
+    if (Math.abs(destino - x) > velocidad * tiempo + 1e-9) return false;
+    x = destino;
+    antes = llegada.t;
+  }
+  return true;
+}
+
+/** Lo que manda el nivel: tamaño de la paleta, velocidad, bloques y tope de bolas. */
 export function dificultadDeRebote(mundo: number, nivel: number) {
   const { paletaInicial, paletaFinal } = config.rebote;
   return {
@@ -27,7 +103,7 @@ export function dificultadDeRebote(mundo: number, nivel: number) {
     paleta: paletaInicial * (paletaFinal / paletaInicial) ** avanceDeNivel(mundo, nivel),
     velocidad: segunNivel(mundo, nivel, config.rebote.velocidadInicial, config.rebote.velocidadFinal),
     bloques: delMundo(config.rebote.bloquesPorMundo, mundo),
-    bolas: delMundo(config.rebote.bolasPorMundo, mundo),
+    bolasMax: enteroSegunNivel(mundo, nivel, config.rebote.bolasMaxInicial, config.rebote.bolasMaxFinal),
   };
 }
 

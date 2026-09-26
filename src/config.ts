@@ -401,8 +401,40 @@ export const config = {
     bloqueEnAncho: 1 / 9,
     bloqueEnAlto: 1 / 22,
     franjaDeBloques: [0.22, 0.55] as [number, number],
-    /** Bolas a la vez, por mundo. */
-    bolasPorMundo: [1, 1, 1, 2, 2],
+    /**
+     * La bola se divide: cada tantas devoluciones seguidas, la bola devuelta
+     * se parte en dos, hasta el tope de bolas del nivel (de 2 a 4). Solo se
+     * divide si la paleta puede llegar a todas las bolas; la que se escapa
+     * desaparece si quedan otras, así que fallar devuelve a menos bolas.
+     */
+    bolasMaxInicial: 2,
+    bolasMaxFinal: 4,
+    devolucionesParaDividir: 3,
+    /** Ángulos, desde la vertical, que se prueban para la bola nueva. */
+    angulosDeDivisionGrados: [25, 40, 55, 15],
+    /** La bola nueva sale al menos así de separada de la otra, en grados. */
+    aperturaMinimaGrados: 20,
+    /**
+     * Lo que se supone de la jugadora al comprobar que se puede llegar a todas
+     * las bolas: tiempo de reacción, velocidad de la paleta con el teclado
+     * (fracción del ancho por segundo) y parte de la media paleta que se deja
+     * de margen para no exigir golpes con el borde.
+     */
+    reaccionSeg: 0.35,
+    velocidadSupuestaDePaleta: 0.3,
+    /**
+     * Paso fijo de la física de las bolas, en segundos. El cálculo de dónde
+     * llegará cada bola usa el mismo paso, así que acierta siempre.
+     */
+    pasoFisicoSeg: 1 / 120,
+    holguraDePaleta: 0.35,
+    /**
+     * Ayuda invisible: si al devolver una bola dos llegadas quedarían
+     * imposibles de cubrir, la bola devuelta sale un poco torcida o un poco
+     * más lenta o rápida. Se prueba primero lo que menos se nota.
+     */
+    ajustesDeAnguloGrados: [0, 8, -8, 15, -15, 22, -22],
+    ajustesDeRapidez: [1, 0.85, 1.15, 0.75, 1.25],
     /** Ángulo máximo del rebote en la paleta, desde la vertical. */
     anguloMaximoGrados: 60,
     /**

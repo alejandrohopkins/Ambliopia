@@ -150,7 +150,11 @@ export const es = {
    */
   ayudas: {
     cazador: ['Toca cada diana antes', 'de que se esconda.', 'Las bombas, no.'],
-    rebote: ['Mueve la paleta', 'y devuelve la bola.'],
+    rebote: [
+      'Devuelve todas las bolas.',
+      `Cada ${config.rebote.devolucionesParaDividir} seguidas, una`,
+      'bola se parte en dos.',
+    ],
     gabor: ['Un parche tiene las rayas', 'giradas. ¡Encuéntralo!'],
     corte: ['Desliza el dedo sobre', 'las frutas para cortarlas.'],
     laberinto: ['Lleva el punto a la meta', 'sin tocar las paredes.'],
