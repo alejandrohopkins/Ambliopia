@@ -83,39 +83,42 @@ export function ProgresoDePremioSemanal({ modo }: { modo: Modo }) {
   const premio = premioDeLaSemana(estado, hoyDelJuego(), modo);
   const hechos = Math.min(premio.perfectos.length, premio.meta);
 
+  // La tarjeta va fuera del panel: su recorte de esquinas la taparía.
   return (
-    <section
-      className="panel pixelado"
-      style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 18 }}
-    >
-      <BolsaDePlatanitos escala={4} etiqueta={es.premioSemanal.bolsa} />
-      <div style={{ flex: 1 }}>
-        <h2 style={{ marginBottom: 6 }}>{es.premioSemanal.etiqueta}</h2>
-        <p style={{ margin: '0 0 8px' }}>
-          {premio.ganado ? es.premioSemanal.ganado : es.premioSemanal.explicacion}
-        </p>
-        <div
-          aria-label={es.premioSemanal.progreso(hechos, premio.meta)}
-          style={{ background: '#140e38', border: '3px solid var(--borde)', height: 18 }}
-        >
+    <>
+      <section
+        className="panel pixelado"
+        style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 18 }}
+      >
+        <BolsaDePlatanitos escala={4} etiqueta={es.premioSemanal.bolsa} />
+        <div style={{ flex: 1 }}>
+          <h2 style={{ marginBottom: 6 }}>{es.premioSemanal.etiqueta}</h2>
+          <p style={{ margin: '0 0 8px' }}>
+            {premio.ganado ? es.premioSemanal.ganado : es.premioSemanal.explicacion}
+          </p>
           <div
-            style={{
-              width: `${(hechos / Math.max(1, premio.meta)) * 100}%`,
-              height: '100%',
-              background: 'var(--musgo-pixel)',
-            }}
-          />
+            aria-label={es.premioSemanal.progreso(hechos, premio.meta)}
+            style={{ background: '#140e38', border: '3px solid var(--borde)', height: 18 }}
+          >
+            <div
+              style={{
+                width: `${(hechos / Math.max(1, premio.meta)) * 100}%`,
+                height: '100%',
+                background: 'var(--musgo-pixel)',
+              }}
+            />
+          </div>
+          <p className="numero" style={{ margin: '6px 0 0' }}>
+            {es.premioSemanal.progreso(hechos, premio.meta)}
+          </p>
+          {premio.ganado && (
+            <button className="pixelado" onClick={() => setAbierto(true)} style={{ marginTop: 10 }}>
+              {es.premioSemanal.ver}
+            </button>
+          )}
         </div>
-        <p className="numero" style={{ margin: '6px 0 0' }}>
-          {es.premioSemanal.progreso(hechos, premio.meta)}
-        </p>
-        {premio.ganado && (
-          <button className="pixelado" onClick={() => setAbierto(true)} style={{ marginTop: 10 }}>
-            {es.premioSemanal.ver}
-          </button>
-        )}
-      </div>
+      </section>
       {abierto && <TarjetaDePremioSemanal modo={modo} alCerrar={() => setAbierto(false)} />}
-    </section>
+    </>
   );
 }

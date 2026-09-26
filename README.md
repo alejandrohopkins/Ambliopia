@@ -39,6 +39,13 @@ modo elegido.
 | El sapo cruzador | Lentes | Seguir al personaje con el ojo ambliope |
 | Mosaicos y secuencias | Lentes | Detalle fino y lógica |
 
+En **Lluvia de meteoritos** caen oleadas de varios objetos a la vez: se atrapan
+las estrellas y las rocas se esquivan o se destruyen con disparos (barra
+espaciadora o botón en pantalla); **Z** y **X** dan un salto grande a la
+izquierda y a la derecha. En **Rebote ágil**, cada tres devoluciones seguidas
+una bola se parte en dos, hasta cuatro a la vez; cada bola nueva sale con un
+ángulo que la paleta puede alcanzar, así que siempre se puede ganar.
+
 La dificultad visual la lleva una **escalera adaptativa** invisible, que busca
 el punto donde acierta alrededor del 79 % de las veces. Los mundos y niveles
 cambian temática, velocidad y variedad: un nivel se **supera con 85 % de
@@ -49,21 +56,30 @@ fallar nunca quita monedas ni progreso.
 Cada día y cada semana:
 
 - Antes de cada juego se muestran sus teclas y gestos. **Z** hace lo mismo que
-  Enter y **X** lo mismo que la barra espaciadora.
+  Enter y **X** lo mismo que la barra espaciadora (salvo en Meteoritos, donde
+  son el salto grande).
 - Un **reloj del día** siempre visible cuenta el tiempo de juego activo contra
   la meta (20 minutos por defecto). Al cumplirla con 85 % de aciertos en el
   día sale una felicitación con nombre, fecha, minutos y precisión, para hacer
   una captura y reclamar 15 minutos extra de pantalla.
-- **Rotación semanal**: cada juego del modo pide 3 intentos de lunes a
-  domingo. El que ya los tiene descansa hasta que los demás también los tengan.
+- **Rotación semanal**: cada juego del modo pide 2 intentos (niveles
+  terminados) de lunes a domingo. Los que ya los tienen descansan mientras
+  falten más de dos juegos; esos dos puede dejarlos para otro día, salvo el
+  domingo, que toca completarlos. El juego de la misión del día nunca descansa.
+- **Premio de la semana**: si termina un nivel sin ningún fallo (100 %) en la
+  mitad de los juegos de la semana, gana una bolsa de platanitos. Sale una
+  felicitación para hacer una captura y reclamarla, y en la base se ve cuántos
+  juegos con 100 % lleva.
 - El botón atrás del navegador (y el gesto atrás de la tablet) cierra la
   pantalla de encima en vez de salir de la app.
 
-El avatar se dibuja con vectores: cara, casco, traje, accesorios, mascota y
-paisaje, con tono de piel y color de pelo a elegir. En la tienda cada artículo
-se ve y se puede probar antes de comprarlo. Dentro de los juegos el avatar
-sigue siendo de bloques, que es lo que permite los cuatro colores del modo
-lentes.
+El avatar es **pixel art**: cara, casco, traje, visor, accesorios, mascota y
+paisaje, con tono de piel y color de pelo a elegir. Se dibuja con vectores y se
+pixela en el momento (con los colores exactos del dibujo y contorno nítido), de
+modo que cada combinación sale bien sin dibujar a mano cada una. En la tienda
+cada artículo se ve y se puede probar antes de comprarlo. Dentro de los juegos
+el avatar es el sprite de bloques, que es lo que permite los cuatro colores del
+modo lentes.
 
 Un panel de adultos, con PIN, muestra minutos por modo, umbrales a lo largo del
 tiempo y permite exportar los datos para llevarlos a consulta.
@@ -165,7 +181,7 @@ src/
   calibration/       pantalla, lentes, escáner previo, patrón de verificación
   games/             un minijuego por carpeta, con el contrato común
   rewards/           economía, tienda, insignias, misión del día, cofre
-  avatar/            sprites y compositor por capas
+  avatar/            sprites de los juegos, dibujos vectoriales y pixelado
   storage/           esquema versionado, migraciones, selectores, CSV
   ui/                base, pantalla de juego y panel de adultos
 tests/               pruebas de toda la lógica
