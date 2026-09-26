@@ -77,6 +77,8 @@ export interface EstadoEscalera {
 export interface ResumenDeJuegoEnSesion {
   /** Niveles terminados: cuentan como intentos para la rotación semanal. */
   niveles: number;
+  /** Niveles terminados sin ningún fallo: cuentan para el premio de la semana. */
+  perfectos: number;
   ensayos: number;
   aciertos: number;
   /** Umbral estimado al cerrar la sesión, por parámetro. */
@@ -201,6 +203,8 @@ export interface Estado {
   extraDelDia: { fecha: string; minutos: number } | null;
   /** Días en que se ganó —y ya se mostró— el premio de tiempo de pantalla. */
   premiosDePantalla: string[];
+  /** Semanas ISO en que se ganó —y ya se mostró— la bolsa de platanitos. */
+  premiosSemanales: string[];
   /** El asistente inicial se completó. */
   asistenteCompletado: boolean;
 }
@@ -295,6 +299,7 @@ export function estadoInicial(): Estado {
     ultimoCierre: null,
     extraDelDia: null,
     premiosDePantalla: [],
+    premiosSemanales: [],
     asistenteCompletado: false,
   };
 }

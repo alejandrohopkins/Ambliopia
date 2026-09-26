@@ -42,6 +42,7 @@ export type Accion =
   | { tipo: 'sesion/registrarJuego'; juego: IdJuego; resumen: ResumenDeJuegoEnSesion }
   | { tipo: 'sesion/terminar' }
   | { tipo: 'premio/visto'; dia: string }
+  | { tipo: 'premioSemanal/visto'; semana: string }
   | { tipo: 'escaleras/guardar'; escaleras: Record<string, EstadoEscalera> }
   | { tipo: 'progreso/estrellas'; juego: IdJuego; mundo: number; nivel: number; estrellas: number }
   | { tipo: 'progreso/superar'; juego: IdJuego; mundo: number; nivel: number }
@@ -167,6 +168,10 @@ export function reducir(estado: Estado, accion: Accion): Estado {
     case 'premio/visto':
       if (estado.premiosDePantalla.includes(accion.dia)) return estado;
       return { ...estado, premiosDePantalla: [...estado.premiosDePantalla, accion.dia] };
+
+    case 'premioSemanal/visto':
+      if (estado.premiosSemanales.includes(accion.semana)) return estado;
+      return { ...estado, premiosSemanales: [...estado.premiosSemanales, accion.semana] };
 
     case 'sesion/registrarJuego':
       return conSesionAbierta(estado, (sesion) => {
@@ -311,6 +316,7 @@ function combinarResumen(
       : 0;
   return {
     niveles: previo.niveles + nuevo.niveles,
+    perfectos: previo.perfectos + nuevo.perfectos,
     ensayos,
     aciertos: previo.aciertos + nuevo.aciertos,
     // El último umbral es el más informado: la escalera ya convergió más.

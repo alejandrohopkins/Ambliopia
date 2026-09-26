@@ -29,7 +29,8 @@ import { FinDeNivel } from './FinDeNivel';
 import { ControlesDelJuego } from './ControlesDelJuego';
 import { relojDeJuego } from './relojDeJuego';
 import { BarraDeTiempo, ESTILO_EN_JUEGO, RelojEnJuego } from '../componentes/RelojDelDia';
-import { AvisoDePremio } from '../componentes/PremioDePantalla';
+import { AvisosDePremio } from '../componentes/PremioSemanal';
+import { nivelPerfecto } from '../../rewards/premioSemanal';
 
 export interface FinDeNivelDatos {
   resumen: ResumenDeNivel;
@@ -41,6 +42,8 @@ export interface FinDeNivelDatos {
   siguiente: Nivel | null;
   /** Nombre del mundo que se acaba de abrir, si lo hubo. */
   mundoNuevo: string | null;
+  /** Sin ningún fallo: cuenta para el premio de la semana. */
+  perfecto: boolean;
 }
 
 export function PantallaDeJuego({
@@ -144,6 +147,7 @@ export function PantallaDeJuego({
         siguiente,
         mundoNuevo:
           siguiente && siguiente.mundo !== progreso.mundo ? es.mundos[juego][siguiente.mundo - 1] : null,
+        perfecto: nivelPerfecto(resumen),
       });
     },
     [despachar, escaleras, guardarTiempo, juego, progreso, registrarNivel],
@@ -299,7 +303,7 @@ export function PantallaDeJuego({
           alElegirOtro={alElegirOtro}
           alVolver={alCancelar}
         />
-        <AvisoDePremio />
+        <AvisosDePremio modo={modo} />
       </>
     );
   }
@@ -321,7 +325,7 @@ export function PantallaDeJuego({
           alVolver={salir}
         />
         {/* La felicitación del día sale aquí, entre niveles, nunca jugando. */}
-        <AvisoDePremio />
+        <AvisosDePremio modo={modo} />
       </>
     );
   }

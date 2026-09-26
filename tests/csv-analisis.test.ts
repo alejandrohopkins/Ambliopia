@@ -38,6 +38,7 @@ function conSesiones(...sesiones: Sesion[]): Estado {
 
 const resumen = (ensayos: number, aciertos: number, umbrales: Record<string, number>) => ({
   niveles: 1,
+  perfectos: 0,
   ensayos,
   aciertos,
   umbrales,

@@ -29,7 +29,7 @@ export function FinDeNivel({
   alVolver: () => void;
 }) {
   useTeclasGemelas();
-  const { resumen, monedas, huboRecord, superado, siguiente, mundoNuevo } = datos;
+  const { resumen, monedas, huboRecord, superado, siguiente, mundoNuevo, perfecto } = datos;
   // En la Torre, una figura a medias no deja subir: cada nivel es una figura
   // de la galería y saltársela la dejaría fuera para siempre.
   const aMedias = resumen.objetivo !== undefined && !resumen.objetivo.cumplido;
@@ -84,6 +84,7 @@ export function FinDeNivel({
         {es.finDeNivel.monedasGanadas(monedas)}
       </p>
 
+      {perfecto && <p role="status">{es.finDeNivel.perfecto}</p>}
       {huboRecord && <p role="status">{es.finDeNivel.nuevoRecord}</p>}
       {mundoNuevo && <p role="status">{es.finDeNivel.mundoDesbloqueado(mundoNuevo)}</p>}
 

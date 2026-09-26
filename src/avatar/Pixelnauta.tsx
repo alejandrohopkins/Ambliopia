@@ -8,7 +8,8 @@ export function Pixelnauta({
   etiqueta,
 }: {
   mapa: MapaDePixeles;
-  paleta?: Partial<PaletaDeSprite>;
+  /** Color de cada carácter del mapa; lo que falte sale de la paleta de serie. */
+  paleta?: Partial<PaletaDeSprite> | Record<string, string>;
   escala?: number;
   etiqueta: string;
 }) {

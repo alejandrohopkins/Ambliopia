@@ -12,6 +12,7 @@ import type { ResultadoDeEnsayo, ResumenDeNivel } from '../../games/tipos';
 import { monedasPorTiempo } from '../../rewards/economia';
 import { aportesDelNivel } from '../../rewards/progresoDeJuego';
 import { nivelSuperado } from '../../rewards/niveles';
+import { nivelPerfecto } from '../../rewards/premioSemanal';
 import { juegosDelDia, minutosDelDia, redondearASegundos } from '../../storage/selectores';
 import { reducir } from '../../storage/acciones';
 import { esParametroDeTamano } from '../../storage/analisis';
@@ -121,6 +122,7 @@ export function useEstadoDeSesion(juego: IdJuego, modo: Modo) {
 
       const porJuego: ResumenDeJuegoEnSesion = {
         niveles: 1,
+        perfectos: nivelPerfecto(resumen) ? 1 : 0,
         ensayos: resumen.ensayos,
         aciertos: resumen.aciertos,
         umbrales: resumen.umbrales,

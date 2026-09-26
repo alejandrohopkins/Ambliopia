@@ -104,12 +104,12 @@ describe('registro de la sesión', () => {
     estado = reducir(estado, {
       tipo: 'sesion/registrarJuego',
       juego: 'minero',
-      resumen: { niveles: 1, ensayos: 15, aciertos: 10, umbrales: { tamano: 12 }, tiempoReaccionMedioMs: 1000 },
+      resumen: { niveles: 1, perfectos: 0, ensayos: 15, aciertos: 10, umbrales: { tamano: 12 }, tiempoReaccionMedioMs: 1000 },
     });
     estado = reducir(estado, {
       tipo: 'sesion/registrarJuego',
       juego: 'minero',
-      resumen: { niveles: 1, ensayos: 15, aciertos: 12, umbrales: { tamano: 9 }, tiempoReaccionMedioMs: 800 },
+      resumen: { niveles: 1, perfectos: 0, ensayos: 15, aciertos: 12, umbrales: { tamano: 9 }, tiempoReaccionMedioMs: 800 },
     });
     const minero = estado.sesiones[0].porJuego.minero!;
     expect(minero.niveles).toBe(2);

@@ -19,6 +19,7 @@ import { AvatarCompuesto } from '../componentes/AvatarCompuesto';
 import { Paisaje } from '../../avatar/vector/Fondos';
 import { MisionDelDia } from './MisionDelDia';
 import { BotonDePremio } from '../componentes/PremioDePantalla';
+import { ProgresoDePremioSemanal } from '../componentes/PremioSemanal';
 import type { Pantalla } from '../navegacion';
 
 
@@ -158,6 +159,8 @@ export function Base({
           {es.base.metaDeHoy(minutos, meta)}
         </p>
       </section>
+
+      <ProgresoDePremioSemanal modo={modo} />
 
       <p style={{ color: 'var(--texto-tenue)' }}>
         {es.rotacion.aviso(avisoDeRotacion(rotacion), rotacion.pendientes.length)}

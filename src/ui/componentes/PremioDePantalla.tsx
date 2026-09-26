@@ -2,7 +2,8 @@
  * Premio de tiempo de pantalla. Al cumplir la meta de minutos del día con la
  * precisión pedida, una felicitación con los datos del día para que la
  * jugadora haga una captura y reclame sus minutos extra. Sale sola una vez al
- * día, siempre fuera del juego; después se puede volver a abrir desde la base.
+ * día, siempre fuera del juego (ver AvisosDePremio); después se puede volver a
+ * abrir desde la base.
  */
 import { useState } from 'react';
 import { es } from '../../i18n/es';
@@ -56,14 +57,6 @@ export function TarjetaDePremio({ alCerrar }: { alCerrar: () => void }) {
       </div>
     </div>
   );
-}
-
-/** Sale sola la primera vez que se gana el premio en el día. */
-export function AvisoDePremio() {
-  const { estado, despachar } = useEstado();
-  const dia = hoyDelJuego();
-  if (!premioDePantallaGanado(estado, dia) || estado.premiosDePantalla.includes(dia)) return null;
-  return <TarjetaDePremio alCerrar={() => despachar({ tipo: 'premio/visto', dia })} />;
 }
 
 /** Botón de la base para volver a ver el premio del día, por si falta la captura. */

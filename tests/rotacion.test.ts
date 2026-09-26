@@ -19,6 +19,7 @@ function sesion(fecha: string, niveles: Partial<Record<IdJuego, number>>): Sesio
   for (const [juego, cuantos] of Object.entries(niveles)) {
     porJuego[juego as IdJuego] = {
       niveles: cuantos ?? 0,
+      perfectos: 0,
       ensayos: 10,
       aciertos: 9,
       umbrales: {},

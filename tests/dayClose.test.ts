@@ -19,7 +19,7 @@ function conSesionesDeLentes(fecha: string, minutos: number, umbral: number): Se
   return {
     ...sesion(fecha, minutos, 'lentes'),
     porJuego: {
-      minero: { niveles: 1, ensayos: 30, aciertos: 21, umbrales: { tamano: umbral }, tiempoReaccionMedioMs: 800 },
+      minero: { niveles: 1, perfectos: 0, ensayos: 30, aciertos: 21, umbrales: { tamano: umbral }, tiempoReaccionMedioMs: 800 },
     },
   };
 }

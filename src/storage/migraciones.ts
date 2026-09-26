@@ -22,13 +22,27 @@ const PASOS: Record<number, (datos: Datos) => Datos> = {
   // v3: la apariencia del avatar (piel y pelo) y los premios de pantalla.
   // Las dos las rellena `completar` con sus valores iniciales.
   2: (datos) => ({ ...datos, version: 3 }),
+  // v4: niveles perfectos por juego y sesión, para el premio de la semana.
+  // De las sesiones anteriores no se sabe: empiezan en cero.
+  3: (datos) => ({
+    ...datos,
+    version: 4,
+    sesiones: Array.isArray(datos.sesiones)
+      ? datos.sesiones.map((sesion) => conCampoEnCero(sesion, 'perfectos'))
+      : datos.sesiones,
+  }),
 };
 
 function conNivelesContados(sesion: unknown): unknown {
+  return conCampoEnCero(sesion, 'niveles');
+}
+
+/** Añade un contador en cero al resumen de cada juego de la sesión, si le falta. */
+function conCampoEnCero(sesion: unknown, campo: string): unknown {
   if (!esObjeto(sesion) || !esObjeto(sesion.porJuego)) return sesion;
   const porJuego: Datos = {};
   for (const [juego, resumen] of Object.entries(sesion.porJuego)) {
-    porJuego[juego] = esObjeto(resumen) ? { niveles: 0, ...resumen } : resumen;
+    porJuego[juego] = esObjeto(resumen) ? { [campo]: 0, ...resumen } : resumen;
   }
   return { ...sesion, porJuego };
 }
@@ -86,6 +100,7 @@ function completar(datos: Datos): Estado {
   if (!Array.isArray(salida.eventos)) salida.eventos = [];
   if (!Array.isArray(salida.notas)) salida.notas = [];
   if (!Array.isArray(salida.premiosDePantalla)) salida.premiosDePantalla = [];
+  if (!Array.isArray(salida.premiosSemanales)) salida.premiosSemanales = [];
   if (!Array.isArray(salida.balance.historial)) salida.balance.historial = [];
   if (!esObjeto(salida.insignias)) salida.insignias = {};
   if (!esObjeto(salida.misiones)) salida.misiones = {};

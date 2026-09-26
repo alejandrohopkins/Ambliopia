@@ -306,6 +306,24 @@ export const es = {
     metaCumplida: '¡Meta cumplida!',
   },
 
+  /** Premio de la semana: la bolsa de platanitos. */
+  premioSemanal: {
+    etiqueta: 'Premio de la semana',
+    bolsa: 'Bolsa de platanitos',
+    titulo: '¡Premio de la semana!',
+    logro: (perfectos: number, juegos: number) =>
+      `Esta semana terminaste un nivel sin ningún fallo en ${perfectos} de tus ${juegos} juegos.`,
+    captura: 'Toma una captura de pantalla y muéstrala para reclamar una bolsa de platanitos.',
+    semana: (lunes: string, domingo: string) =>
+      `Semana del ${diaLegible(lunes)} al ${diaLegible(domingo)}`,
+    listo: '¡Listo, ya la tomé!',
+    ver: 'Ver mi premio de la semana',
+    progreso: (hechos: number, meta: number) =>
+      `Juegos con 100 % esta semana: ${Math.min(hechos, meta)} de ${meta}`,
+    explicacion: `Termina un nivel sin ningún fallo en el ${Math.round(config.premioSemanal.fraccionDeJuegos * 100)} % de tus juegos de la semana y gana una bolsa de platanitos.`,
+    ganado: '¡Bolsa de platanitos ganada esta semana!',
+  },
+
   /** Premio de tiempo de pantalla por cumplir la meta con buena precisión. */
   premioDePantalla: {
     titulo: (nombre: string) => `¡Felicidades, ${nombre}!`,
@@ -526,6 +544,7 @@ export const es = {
     precision: (pct: number) => `${Math.round(pct)} % de aciertos`,
     monedasGanadas: (n: number) => `+${n} monedas`,
     nuevoRecord: '¡Nuevo récord!',
+    perfecto: '¡100 %! Este juego ya cuenta para el premio de la semana.',
     siguienteNivel: 'Siguiente nivel',
     intentarOtraVez: 'Intentar otra vez',
     seguir: 'Seguir jugando',

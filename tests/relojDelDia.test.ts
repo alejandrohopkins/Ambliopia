@@ -28,6 +28,7 @@ function sesion(parcial: Partial<Sesion> = {}): Sesion {
 
 const jugado = (ensayos: number, aciertos: number) => ({
   niveles: 1,
+  perfectos: 0,
   ensayos,
   aciertos,
   umbrales: {},

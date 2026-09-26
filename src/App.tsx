@@ -27,7 +27,7 @@ import { CalibracionDePantalla } from './calibration/CalibracionDePantalla';
 import { CalibracionDeLentes } from './calibration/CalibracionDeLentes';
 import { OverlayDeDesarrollo } from './ui/componentes/OverlayDeDesarrollo';
 import { BarraDeTiempo } from './ui/componentes/RelojDelDia';
-import { AvisoDePremio } from './ui/componentes/PremioDePantalla';
+import { AvisosDePremio } from './ui/componentes/PremioSemanal';
 import { modoDesarrollo, useBotonAtras, type Pantalla } from './ui/navegacion';
 import { avanzarUnDiaDeDesarrollo, hoyDelJuego } from './ui/reloj';
 import { useCierreDelDia } from './ui/useCierreDelDia';
@@ -105,7 +105,7 @@ function Rutas() {
         calibrando={calibrando}
         setCalibrando={setCalibrando}
       />
-      {conReloj && <AvisoDePremio />}
+      {conReloj && <AvisosDePremio modo={modo} />}
     </div>
   );
 }

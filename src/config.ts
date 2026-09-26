@@ -52,6 +52,16 @@ export const config = {
   },
 
   /**
+   * Premio de la semana: una bolsa de platanitos si en esta fracción de los
+   * juegos de la semana termina al menos un nivel con el 100 % de aciertos.
+   * Un nivel con menos ensayos que el mínimo no cuenta como perfecto.
+   */
+  premioSemanal: {
+    fraccionDeJuegos: 0.5,
+    ensayosMinimos: 5,
+  },
+
+  /**
    * Premio de tiempo de pantalla: al cumplir la meta de minutos del día con
    * esta precisión, se felicita a la jugadora y se le pide una captura para
    * reclamar los minutos extra con su familia.
@@ -783,7 +793,7 @@ export const config = {
 
   almacenamiento: {
     clave: 'misionPixel:v1',
-    version: 3,
+    version: 4,
     guardadoPeriodicoMs: 30_000,
   },
 

@@ -70,7 +70,7 @@ describe('selectores de tiempo', () => {
   });
 
   it('cuenta los juegos distintos del día', () => {
-    const resumen = { niveles: 1, ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 500 };
+    const resumen = { niveles: 1, perfectos: 0, ensayos: 1, aciertos: 1, umbrales: {}, tiempoReaccionMedioMs: 500 };
     const estado = conSesiones(
       sesion({ porJuego: { minero: resumen } }),
       sesion({ porJuego: { torre: resumen, minero: resumen } }),
