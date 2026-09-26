@@ -1,20 +1,22 @@
 /**
- * El avatar dibujado con vectores: sin píxeles, con volumen y detalle. Se ve
- * la cara a través del visor, el traje tiene luces y sombras, guantes, botas,
- * cinturón y un panel en el pecho. Cada casco y cada accesorio aporta lo que
- * va detrás del cuerpo y lo que va delante.
+ * El avatar, dibujado con vectores y mostrado en pixel art (avatar/Pixelado):
+ * se ve la cara a través del visor, el traje tiene luces y sombras, guantes,
+ * botas, cinturón y un panel en el pecho. Cada casco y cada accesorio aporta
+ * lo que va detrás del cuerpo y lo que va delante.
  *
  * Es el avatar de la base, la tienda, «Mi avatar», el fin de nivel, el
- * chequeo y el premio. Dentro de los juegos sigue saliendo el sprite de
- * bloques (avatar/enJuego), que respeta los cuatro colores del modo lentes.
+ * chequeo y el premio. Dentro de los juegos sale el sprite de bloques
+ * (avatar/enJuego), que respeta los cuatro colores del modo lentes.
  *
  * Diseño propio: una exploradora espacial genérica, sin nada de ningún juego.
  */
-import { useId, type ReactNode } from 'react';
-import { config, type Ojo } from '../../config';
+import type { ReactNode } from 'react';
+import type { Ojo } from '../../config';
 import { articulo } from '../../rewards/catalogo';
 import { PALETA_POR_DEFECTO, ladoEnLaImagen } from '../sprites';
-import { aclarar, oscurecer } from './color';
+import { Pixelado } from '../Pixelado';
+import type { Desborde } from '../pixelar';
+import { aclarar, mezclar, oscurecer } from './color';
 
 const TINTA = '#1E1638';
 const CASCO = '#EEEAFF';
@@ -51,16 +53,31 @@ export interface PropsDeFigura {
   respira?: boolean;
 }
 
-export function Figura({
+/** Caja de la figura y lo que pueden sobresalir coronas, orejas y alas, en unidades del SVG. */
+const VISTA = { ancho: 200, alto: 280 };
+const DESBORDE: Desborde = { lados: 6, arriba: 10, abajo: 2 };
+
+export function Figura({ alto, etiqueta, respira, ...dibujo }: PropsDeFigura) {
+  return (
+    <Pixelado
+      vista={VISTA}
+      desborde={DESBORDE}
+      contorno={TINTA}
+      alto={alto}
+      etiqueta={etiqueta}
+      respira={respira}
+      dibujo={(prefijo) => <DibujoDeFigura prefijo={prefijo} {...dibujo} />}
+    />
+  );
+}
+
+function DibujoDeFigura({
+  prefijo,
   equipo,
   piel,
   pelo,
   parche = null,
-  alto,
-  etiqueta,
-  respira,
-}: PropsDeFigura) {
-  const prefijo = useId().replace(/[^a-zA-Z0-9]/g, '');
+}: Pick<PropsDeFigura, 'equipo' | 'piel' | 'pelo' | 'parche'> & { prefijo: string }) {
   const traje = articulo(equipo.trajes ?? '');
   const visor = articulo(equipo.visores ?? '');
   const estilo: Estilo = {
@@ -78,38 +95,24 @@ export function Figura({
   const accesorio = equipo.accesorios;
 
   return (
-    <svg
-      viewBox="0 0 200 280"
-      height={alto}
-      width={(alto * 200) / 280}
-      role="img"
-      aria-label={etiqueta}
-      style={{ overflow: 'visible' }}
-    >
+    <>
       <Degradados e={estilo} />
       <g transform="translate(0 20)">
-        <g
-          className={respira ? 'respira' : undefined}
-          style={
-            respira ? { animationDuration: `${config.avatar.respiracionMs * 2}ms` } : undefined
-          }
-        >
-          {accesorio && ACCESORIOS[accesorio]?.detras?.(estilo)}
-          <Piernas e={estilo} />
-          <Brazos e={estilo} />
-          <Torso e={estilo} />
-          {accesorio && ACCESORIOS[accesorio]?.delante?.(estilo)}
-          {CASCOS[casco]?.detras?.(estilo)}
-          {casco === 'casco-burbuja' ? (
-            <CabezaEnBurbuja e={estilo} parche={parche} />
-          ) : (
-            <Cabeza e={estilo} parche={parche} conAuriculares={casco === 'casco-auriculares'} />
-          )}
-          {CASCOS[casco]?.delante?.(estilo)}
-          {accesorio && ACCESORIOS[accesorio]?.arriba?.(estilo)}
-        </g>
+        {accesorio && ACCESORIOS[accesorio]?.detras?.(estilo)}
+        <Piernas e={estilo} />
+        <Brazos e={estilo} />
+        <Torso e={estilo} />
+        {accesorio && ACCESORIOS[accesorio]?.delante?.(estilo)}
+        {CASCOS[casco]?.detras?.(estilo)}
+        {casco === 'casco-burbuja' ? (
+          <CabezaEnBurbuja e={estilo} parche={parche} />
+        ) : (
+          <Cabeza e={estilo} parche={parche} conAuriculares={casco === 'casco-auriculares'} />
+        )}
+        {CASCOS[casco]?.delante?.(estilo)}
+        {accesorio && ACCESORIOS[accesorio]?.arriba?.(estilo)}
       </g>
-    </svg>
+    </>
   );
 }
 
@@ -141,12 +144,6 @@ function Degradados({ e }: { e: Estilo }) {
           <stop key={i} offset={i / (visorParadas.length - 1)} stopColor={color} />
         ))}
       </linearGradient>
-      {/* Cristal del visor: limpio en el centro para que la cara se vea con su
-          color, y teñido hacia el borde con el color del visor. */}
-      <radialGradient id={e.id('vidrio')} cx="0.5" cy="0.55" r="0.62">
-        <stop offset="0.5" stopColor={e.visor} stopOpacity="0.04" />
-        <stop offset="1" stopColor={e.visor2 ?? e.visor} stopOpacity="0.6" />
-      </radialGradient>
       <linearGradient id={e.id('oro')} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stopColor="#FFE9A3" />
         <stop offset="0.5" stopColor={ORO} />
@@ -310,14 +307,17 @@ function Cara({ e, parche }: { e: Estilo; parche: Ojo | null }) {
         strokeLinecap="round"
         fill="none"
       />
+      {/* Ojos en bloque, con su brillo, y colorete de un color entero: en
+          píxeles se leen mejor que un óvalo o un velo transparente. */}
       {[85, 115].map((x) => (
         <g key={x}>
-          <ellipse cx={x} cy="98" rx="5.5" ry="7" fill={TINTA} />
-          <circle cx={x + 2} cy="95" r="2" fill="#FFFFFF" />
+          <rect x={x - 6} y="90" width="12" height="15" rx="3" fill={TINTA} />
+          <rect x={x - 1} y="91" width="5" height="5" fill="#FFFFFF" />
         </g>
       ))}
-      <ellipse cx="73" cy="109" rx="7" ry="4.5" fill="#FF8FA3" opacity="0.55" />
-      <ellipse cx="127" cy="109" rx="7" ry="4.5" fill="#FF8FA3" opacity="0.55" />
+      {[73, 127].map((x) => (
+        <ellipse key={x} cx={x} cy="110" rx="8" ry="5" fill={mezclar(e.piel, '#FF8FA3', 0.6)} />
+      ))}
       <path
         d="M92 111 Q100 119 108 111"
         stroke={TINTA}
@@ -354,13 +354,21 @@ function Cabeza({
       <g clipPath={e.url('recorteVisor')}>
         <rect x="56" y="50" width="88" height="72" fill="#2A2150" />
         {!e.espejo && <Cara e={e} parche={parche} />}
-        <rect
-          x="56"
-          y="50"
-          width="88"
-          height="72"
-          fill={e.espejo ? e.url('visor') : e.url('vidrio')}
-        />
+        {e.espejo ? (
+          <rect x="56" y="50" width="88" height="72" fill={e.url('visor')} />
+        ) : (
+          // El cristal se ve como un aro del color del visor alrededor de la cara.
+          <rect
+            x="56"
+            y="50"
+            width="88"
+            height="72"
+            rx="34"
+            fill="none"
+            stroke={e.url('visor')}
+            strokeWidth="14"
+          />
+        )}
         <path
           d="M66 72 Q70 58 88 54"
           stroke="#FFFFFF"
@@ -406,10 +414,9 @@ function CabezaEnBurbuja({ e, parche }: { e: Estilo; parche: Ojo | null }) {
         cx="100"
         cy="82"
         r="64"
-        fill={e.visor}
-        fillOpacity="0.16"
-        stroke="#C9F2FF"
-        strokeWidth="4"
+        fill="none"
+        stroke={aclarar(e.visor, 0.45)}
+        strokeWidth="8"
       />
       <circle cx="100" cy="82" r="64" fill="none" stroke={TINTA} strokeWidth="2" opacity="0.6" />
       <path

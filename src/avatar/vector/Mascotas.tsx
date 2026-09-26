@@ -1,8 +1,11 @@
 /**
- * Mascotas dibujadas con vectores, cada una en una rejilla de 100 × 100.
+ * Mascotas dibujadas con vectores, cada una en una rejilla de 100 × 100, y
+ * mostradas en pixel art (avatar/Pixelado).
  * Diseño propio y genérico: animales y criaturas de peluche espacial.
  */
 import type { ReactNode } from 'react';
+import { Pixelado } from '../Pixelado';
+import type { Desborde } from '../pixelar';
 
 const TINTA = '#1E1638';
 const ROSA = '#FF9CC8';
@@ -416,12 +419,33 @@ function espejoMascota(contenido: ReactNode): ReactNode {
   );
 }
 
-export function Mascota({ id, alto, etiqueta }: { id: string; alto: number; etiqueta: string }) {
+/** Caja de la mascota y lo que pueden sobresalir orejas y llamas, en unidades del SVG. */
+const VISTA = { ancho: 100, alto: 100 };
+const DESBORDE: Desborde = { lados: 3, arriba: 6, abajo: 2 };
+
+export function Mascota({
+  id,
+  alto,
+  tamano,
+  etiqueta,
+}: {
+  id: string;
+  alto: number;
+  /** Px de pantalla por píxel del dibujo: el mismo que el avatar al que acompaña. */
+  tamano?: number;
+  etiqueta: string;
+}) {
   const dibujo = MASCOTAS_VECTORIALES[id];
   if (!dibujo) return null;
   return (
-    <svg viewBox="0 0 100 100" width={alto} height={alto} role="img" aria-label={etiqueta}>
-      {dibujo()}
-    </svg>
+    <Pixelado
+      vista={VISTA}
+      desborde={DESBORDE}
+      contorno={TINTA}
+      alto={alto}
+      tamano={tamano}
+      etiqueta={etiqueta}
+      dibujo={() => dibujo()}
+    />
   );
 }

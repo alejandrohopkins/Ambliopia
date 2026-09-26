@@ -202,19 +202,20 @@ canvas {
   transform: none;
 }
 
-/* Respiración del avatar: un vaivén lento de pocos píxeles, sin cambios de luz. */
+/* Respiración del avatar pixelado: sube un píxel del dibujo y vuelve, de golpe
+   y sin pasos intermedios, como en los juegos de píxeles. Sin cambios de luz. */
 @keyframes respirar {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(calc(-1 * var(--pixel, 3px)));
   }
 }
 
 .respira {
-  animation: respirar 3s ease-in-out infinite;
+  animation: respirar 3s steps(1, end) infinite;
 }
 
 .sin-movimiento .respira {

@@ -772,10 +772,29 @@ export const config = {
   },
 
   avatar: {
-    escalas: [4, 6, 8],
-    /** Respiración del avatar: sube y baja unos píxeles, 1,5 s cada tramo. */
+    /** Respiración del avatar: sube un píxel y baja, 1,5 s cada tramo. */
     respiracionMs: 1500,
     parpadeoMs: 4200,
+    /**
+     * Avatar, mascotas y fondos pixelados. Cada píxel del dibujo mide un
+     * número entero de px de pantalla (como mínimo `tamanoMinimo`), elegido
+     * para que la figura tenga unas `filasObjetivo` filas. Los fondos usan
+     * píxeles de `tamanoDelFondo` px. El avatar se dibuja primero
+     * `superMuestreo` veces más fino; cada píxel toma el color que más ocupa
+     * de su bloque, o el del contorno si cubre al menos `contornoMinimo` del
+     * bloque. Lo que tenga menos opacidad que `opacidadMinima` (0–255) queda
+     * transparente. Se recuerdan los últimos `recuerdo` dibujos ya pixelados
+     * para no repetir el trabajo.
+     */
+    pixelado: {
+      filasObjetivo: 64,
+      tamanoMinimo: 2,
+      tamanoDelFondo: 3,
+      superMuestreo: 4,
+      contornoMinimo: 0.3,
+      opacidadMinima: 128,
+      recuerdo: 120,
+    },
   },
 
   audio: {

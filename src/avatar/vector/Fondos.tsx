@@ -1,8 +1,10 @@
 /**
- * Fondos de la base, dibujados con vectores: el paisaje detrás del avatar.
- * Cada uno trae su cielo, su suelo y sus adornos en una rejilla de 320 × 200.
+ * Fondos de la base, dibujados con vectores y mostrados en pixel art
+ * (avatar/Pixelado): el paisaje detrás del avatar. Cada uno trae su cielo,
+ * su suelo y sus adornos en una rejilla de 320 × 200.
  */
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { FondoPixelado } from '../Pixelado';
 
 /** Estrellas repartidas sin simetría, siempre las mismas. */
 function estrellas(
@@ -220,16 +222,8 @@ export const FONDO_POR_DEFECTO = 'fondo-base-lunar';
 
 /** El paisaje, a sangre: llena su contenedor y recorta lo que sobra. */
 export function Paisaje({ id }: { id: string | undefined }) {
-  const prefijo = useId().replace(/[^a-zA-Z0-9]/g, '');
   const dibujo = (id && FONDOS[id]) || FONDOS[FONDO_POR_DEFECTO];
   return (
-    <svg
-      aria-hidden
-      viewBox="0 0 320 200"
-      preserveAspectRatio="xMidYMid slice"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-    >
-      {dibujo(`${prefijo}cielo`)}
-    </svg>
+    <FondoPixelado vista={{ ancho: 320, alto: 200 }} dibujo={(prefijo) => dibujo(`${prefijo}cielo`)} />
   );
 }

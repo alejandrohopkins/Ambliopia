@@ -5,6 +5,7 @@ import { useEstado } from '../../storage/contexto';
 import { Figura } from '../../avatar/vector/Figura';
 import { Mascota } from '../../avatar/vector/Mascotas';
 import { colorDePelo, colorDePiel, type Apariencia } from '../../avatar/vector/apariencia';
+import { tamanoDePixel } from '../../avatar/pixelar';
 import { useMovimientoReducido } from '../movimiento';
 
 export function AvatarCompuesto({
@@ -53,7 +54,8 @@ export function AvatarCompuesto({
       {conMascota && equipo.mascotas && (
         <Mascota
           id={equipo.mascotas}
-          alto={Math.round(alto * 0.38)}
+          alto={Math.round(alto * 0.4)}
+          tamano={tamanoDePixel(alto)}
           etiqueta={es.articulos[equipo.mascotas] ?? es.categorias.mascotas}
         />
       )}
