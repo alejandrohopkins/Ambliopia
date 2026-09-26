@@ -42,11 +42,13 @@ export const config = {
 
   /**
    * Rotación semanal: cada juego del modo pide estos intentos (niveles
-   * terminados) de lunes a domingo. Los que ya los tienen se bloquean hasta
-   * que los demás también los tengan.
+   * terminados) de lunes a domingo. Los que ya los tienen descansan mientras
+   * falten más de `juegosQuePuedeDejar`: esos puede dejarlos para otro día.
+   * El último día de la semana ya no se puede dejar ninguno.
    */
   rotacion: {
-    intentosPorSemana: 3,
+    intentosPorSemana: 2,
+    juegosQuePuedeDejar: 2,
   },
 
   /**

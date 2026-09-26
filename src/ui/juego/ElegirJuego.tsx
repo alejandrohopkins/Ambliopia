@@ -6,7 +6,7 @@
 import type { IdJuego, Modo } from '../../config';
 import { es } from '../../i18n/es';
 import { juegosDelModo } from '../../games/registro';
-import { intentosDeLaSemana, juegosBloqueados } from '../../rewards/rotacion';
+import { avisoDeRotacion, rotacionDeLaSemana } from '../../rewards/rotacion';
 import { useEstado } from '../../storage/contexto';
 import { hoyDelJuego } from '../reloj';
 
@@ -22,13 +22,15 @@ export function ElegirJuego({
   const { estado } = useEstado();
   const dia = hoyDelJuego();
   const juegos = juegosDelModo(modo);
-  const intentos = intentosDeLaSemana(estado, dia);
-  const bloqueados = juegosBloqueados(estado, dia, juegos);
+  const rotacion = rotacionDeLaSemana(estado, dia, juegos);
+  const { intentos, bloqueados } = rotacion;
 
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: '0 auto' }}>
       <h1>{es.elegirJuego.titulo}</h1>
-      <p style={{ color: 'var(--texto-tenue)' }}>{es.rotacion.explicacion}</p>
+      <p style={{ color: 'var(--texto-tenue)' }}>
+        {es.rotacion.aviso(avisoDeRotacion(rotacion), rotacion.pendientes.length)}
+      </p>
       <div style={{ display: 'grid', gap: 12, marginBottom: 18 }}>
         {juegos.map((juego) => (
           <button

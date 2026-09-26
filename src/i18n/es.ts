@@ -277,8 +277,21 @@ export const es = {
 
   /** Rotación semanal: todos los juegos, al menos unos intentos por semana. */
   rotacion: {
-    explicacion: `Esta semana cada juego pide ${config.rotacion.intentosPorSemana} intentos. Los que ya los tienen descansan hasta que completes los demás.`,
+    explicacion: `Cada juego pide ${config.rotacion.intentosPorSemana} intentos por semana. Los que ya los tienen descansan mientras falten más de ${config.rotacion.juegosQuePuedeDejar}: esos puedes dejarlos para otro día.`,
+    puedesDejar: (cuantos: number) =>
+      cuantos === 1
+        ? 'Te falta 1 juego esta semana. Hoy puedes dejarlo para otro día, pero el domingo toca jugarlo.'
+        : `Te faltan ${cuantos} juegos esta semana. Hoy puedes dejarlos para otro día, pero el domingo toca jugarlos.`,
+    ultimoDia: 'Hoy es el último día de la semana: completa los juegos que faltan.',
     semanaCompleta: '¡Semana completa! Todos los juegos tienen sus intentos: juega el que quieras.',
+    aviso: (aviso: 'completa' | 'reparte' | 'puedeDejar' | 'ultimoDia', pendientes: number): string =>
+      aviso === 'completa'
+        ? es.rotacion.semanaCompleta
+        : aviso === 'ultimoDia'
+          ? es.rotacion.ultimoDia
+          : aviso === 'puedeDejar'
+            ? es.rotacion.puedesDejar(pendientes)
+            : es.rotacion.explicacion,
     intentos: (hechos: number) =>
       `Esta semana: ${Math.min(hechos, config.rotacion.intentosPorSemana)}/${config.rotacion.intentosPorSemana}`,
     descansa: 'Descansa hasta que completes los demás juegos.',
