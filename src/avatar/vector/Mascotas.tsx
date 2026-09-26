@@ -4,6 +4,7 @@
  * Diseño propio y genérico: animales y criaturas de peluche espacial.
  */
 import type { ReactNode } from 'react';
+import { config } from '../../config';
 import { Pixelado } from '../Pixelado';
 import type { Desborde } from '../pixelar';
 
@@ -427,12 +428,15 @@ export function Mascota({
   id,
   alto,
   tamano,
+  vivo = false,
   etiqueta,
 }: {
   id: string;
   alto: number;
   /** Px de pantalla por píxel del dibujo: el mismo que el avatar al que acompaña. */
   tamano?: number;
+  /** Se balancea a su ritmo y, de vez en cuando, mira hacia el otro lado. */
+  vivo?: boolean;
   etiqueta: string;
 }) {
   const dibujo = MASCOTAS_VECTORIALES[id];
@@ -445,7 +449,18 @@ export function Mascota({
       alto={alto}
       tamano={tamano}
       etiqueta={etiqueta}
+      respira={vivo}
+      respiracionMs={config.avatar.vaivenMascotaMs}
       dibujo={() => dibujo()}
+      alterno={
+        vivo
+          ? {
+              dibujo: () => <g transform="translate(100 0) scale(-1 1)">{dibujo()}</g>,
+              clase: 'mira',
+              cicloMs: config.avatar.miradaMascotaMs,
+            }
+          : undefined
+      }
     />
   );
 }

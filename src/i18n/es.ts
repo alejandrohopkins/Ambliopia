@@ -342,6 +342,7 @@ export const es = {
     metaDeHoy: (hechos: number, meta: number) => `${hechos} de ${meta} min`,
     etiquetaMetaDeHoy: 'Meta de hoy',
     misionDelDia: 'Misión del día',
+    misionHecha: '¡Cumplida!',
     tienda: 'Tienda',
     miAvatar: 'Mi avatar',
     insignias: 'Insignias',
@@ -839,8 +840,21 @@ export const es = {
 
   cofre: {
     titulo: '¡Cofre semanal!',
-    texto: 'Cumpliste la meta cinco días esta semana.',
+    texto: `Cumpliste la meta ${config.economia.diasParaCofreSemanal} días esta semana.`,
     abrir: 'Abrir el cofre',
+  },
+
+  /** Lo que se paga solo al cerrar el día, en su tarjeta. */
+  premiosDelCierre: {
+    titulo: '¡Tus premios!',
+    meta: (n: number) => `+${n} monedas por cumplir tu meta`,
+    racha: (dias: number) => `¡Racha de ${dias} ${dias === 1 ? 'día' : 'días'}!`,
+    monedasDeRacha: (n: number) => `+${n} monedas por tu racha`,
+    mision: (n: number) => `+${n} monedas por la misión del día`,
+    cristales: (n: number) => `+${n} cristales`,
+    cofreMonedas: (n: number) => `+${n} monedas del cofre`,
+    cofreArticulo: (nombre: string) => `¡Y algo nuevo para ti: ${nombre}!`,
+    listo: '¡Genial!',
   },
 
   insigniaNueva: (nombre: string) => `¡Insignia nueva: ${nombre}!`,

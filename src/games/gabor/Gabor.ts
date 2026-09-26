@@ -13,7 +13,7 @@ import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import { gris, aCss } from '../../engine/color';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud, teclaDe } from '../comun';
+import { dibujarMarcoYHud, dibujarOnda, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import { crearParche, dificultadDeGabor, grisDeFondo, orientaciones, type Parche } from './parche';
 
@@ -251,6 +251,13 @@ class InstanciaDeGabor extends JuegoBase {
         renderer.marco('ambos', correcto.x - 5, correcto.y - 5, correcto.lado + 10, correcto.lado + 10, 4, {
           tono: renderer.paleta.acento,
         });
+        // Si lo encontró, una onda sale una vez del parche distinto.
+        if (ensayo.elegido === ensayo.distinto) {
+          const desde = ensayo.revelarHastaMs - config.modulos.revelarMs;
+          dibujarOnda(renderer, 'ambos', correcto, (tiempoMs - desde) / config.modulos.ondaMs, {
+            tono: renderer.paleta.acento,
+          });
+        }
         if (ensayo.elegido !== null && ensayo.elegido !== ensayo.distinto) {
           const elegido = this.caja(ensayo.elegido);
           renderer.marco('ambos', elegido.x - 3, elegido.y - 3, elegido.lado + 6, elegido.lado + 6, 2);

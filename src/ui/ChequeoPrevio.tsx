@@ -52,7 +52,7 @@ export function ChequeoPrevio({
 
   return (
     <main style={{ padding: 24, maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
-      <AvatarCompuesto alto={200} parche={ojoTapado} />
+      <AvatarCompuesto alto={200} parche={ojoTapado} vivo />
       <h1>{es.chequeo.parche(ojoTapado)}</h1>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button className="pixelado" onClick={() => setConfirmado(true)}>

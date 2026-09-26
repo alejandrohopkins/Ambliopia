@@ -268,7 +268,7 @@ export function AsistenteInicial({
         <>
           <h1>{es.asistente.avatar.titulo}</h1>
           <p>{es.asistente.avatar.explicacion}</p>
-          <AvatarCompuesto alto={200} equipoExtra={{ cascos: casco, trajes: traje }} />
+          <AvatarCompuesto alto={200} equipoExtra={{ cascos: casco, trajes: traje }} vivo />
 
           <h2>{es.asistente.avatar.casco}</h2>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>

@@ -43,6 +43,8 @@ export type Accion =
   | { tipo: 'sesion/terminar' }
   | { tipo: 'premio/visto'; dia: string }
   | { tipo: 'premioSemanal/visto'; semana: string }
+  | { tipo: 'premiosPorVer/vistos' }
+  | { tipo: 'galeria/vista' }
   | { tipo: 'escaleras/guardar'; escaleras: Record<string, EstadoEscalera> }
   | { tipo: 'progreso/estrellas'; juego: IdJuego; mundo: number; nivel: number; estrellas: number }
   | { tipo: 'progreso/superar'; juego: IdJuego; mundo: number; nivel: number }
@@ -172,6 +174,13 @@ export function reducir(estado: Estado, accion: Accion): Estado {
     case 'premioSemanal/visto':
       if (estado.premiosSemanales.includes(accion.semana)) return estado;
       return { ...estado, premiosSemanales: [...estado.premiosSemanales, accion.semana] };
+
+    case 'premiosPorVer/vistos':
+      return estado.premiosPorVer === null ? estado : { ...estado, premiosPorVer: null };
+
+    case 'galeria/vista':
+      if (estado.galeriaVista === estado.galeria.length) return estado;
+      return { ...estado, galeriaVista: estado.galeria.length };
 
     case 'sesion/registrarJuego':
       return conSesionAbierta(estado, (sesion) => {

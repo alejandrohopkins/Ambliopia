@@ -11,7 +11,7 @@
  * Diseño propio: una exploradora espacial genérica, sin nada de ningún juego.
  */
 import type { ReactNode } from 'react';
-import type { Ojo } from '../../config';
+import { config, type Ojo } from '../../config';
 import { articulo } from '../../rewards/catalogo';
 import { PALETA_POR_DEFECTO, ladoEnLaImagen } from '../sprites';
 import { Pixelado } from '../Pixelado';
@@ -51,13 +51,17 @@ export interface PropsDeFigura {
   etiqueta: string;
   /** Respiración suave, que se apaga con reducir movimiento. */
   respira?: boolean;
+  /** Cierra los ojos un instante de vez en cuando. */
+  parpadea?: boolean;
+  /** Con los ojos cerrados. */
+  dormida?: boolean;
 }
 
 /** Caja de la figura y lo que pueden sobresalir coronas, orejas y alas, en unidades del SVG. */
 const VISTA = { ancho: 200, alto: 280 };
 const DESBORDE: Desborde = { lados: 6, arriba: 10, abajo: 2 };
 
-export function Figura({ alto, etiqueta, respira, ...dibujo }: PropsDeFigura) {
+export function Figura({ alto, etiqueta, respira, parpadea, dormida = false, ...dibujo }: PropsDeFigura) {
   return (
     <Pixelado
       vista={VISTA}
@@ -66,7 +70,16 @@ export function Figura({ alto, etiqueta, respira, ...dibujo }: PropsDeFigura) {
       alto={alto}
       etiqueta={etiqueta}
       respira={respira}
-      dibujo={(prefijo) => <DibujoDeFigura prefijo={prefijo} {...dibujo} />}
+      dibujo={(prefijo) => <DibujoDeFigura prefijo={prefijo} ojosCerrados={dormida} {...dibujo} />}
+      alterno={
+        parpadea && !dormida
+          ? {
+              dibujo: (prefijo) => <DibujoDeFigura prefijo={prefijo} ojosCerrados {...dibujo} />,
+              clase: 'parpadea',
+              cicloMs: config.avatar.parpadeoMs,
+            }
+          : undefined
+      }
     />
   );
 }
@@ -77,7 +90,11 @@ function DibujoDeFigura({
   piel,
   pelo,
   parche = null,
-}: Pick<PropsDeFigura, 'equipo' | 'piel' | 'pelo' | 'parche'> & { prefijo: string }) {
+  ojosCerrados,
+}: Pick<PropsDeFigura, 'equipo' | 'piel' | 'pelo' | 'parche'> & {
+  prefijo: string;
+  ojosCerrados: boolean;
+}) {
   const traje = articulo(equipo.trajes ?? '');
   const visor = articulo(equipo.visores ?? '');
   const estilo: Estilo = {
@@ -105,9 +122,14 @@ function DibujoDeFigura({
         {accesorio && ACCESORIOS[accesorio]?.delante?.(estilo)}
         {CASCOS[casco]?.detras?.(estilo)}
         {casco === 'casco-burbuja' ? (
-          <CabezaEnBurbuja e={estilo} parche={parche} />
+          <CabezaEnBurbuja e={estilo} parche={parche} ojosCerrados={ojosCerrados} />
         ) : (
-          <Cabeza e={estilo} parche={parche} conAuriculares={casco === 'casco-auriculares'} />
+          <Cabeza
+            e={estilo}
+            parche={parche}
+            ojosCerrados={ojosCerrados}
+            conAuriculares={casco === 'casco-auriculares'}
+          />
         )}
         {CASCOS[casco]?.delante?.(estilo)}
         {accesorio && ACCESORIOS[accesorio]?.arriba?.(estilo)}
@@ -282,7 +304,7 @@ function Torso({ e }: { e: Estilo }) {
 // ---------------------------------------------------------------------------
 
 /** La cara que se ve a través del visor. */
-function Cara({ e, parche }: { e: Estilo; parche: Ojo | null }) {
+function Cara({ e, parche, ojosCerrados }: { e: Estilo; parche: Ojo | null; ojosCerrados: boolean }) {
   const tapado = parche ? (ladoEnLaImagen(parche) === 'izquierda' ? 85 : 115) : null;
   return (
     <g>
@@ -309,12 +331,16 @@ function Cara({ e, parche }: { e: Estilo; parche: Ojo | null }) {
       />
       {/* Ojos en bloque, con su brillo, y colorete de un color entero: en
           píxeles se leen mejor que un óvalo o un velo transparente. */}
-      {[85, 115].map((x) => (
-        <g key={x}>
-          <rect x={x - 6} y="90" width="12" height="15" rx="3" fill={TINTA} />
-          <rect x={x - 1} y="91" width="5" height="5" fill="#FFFFFF" />
-        </g>
-      ))}
+      {[85, 115].map((x) =>
+        ojosCerrados ? (
+          <rect key={x} x={x - 6} y="97" width="12" height="4" rx="2" fill={TINTA} />
+        ) : (
+          <g key={x}>
+            <rect x={x - 6} y="90" width="12" height="15" rx="3" fill={TINTA} />
+            <rect x={x - 1} y="91" width="5" height="5" fill="#FFFFFF" />
+          </g>
+        ),
+      )}
       {[73, 127].map((x) => (
         <ellipse key={x} cx={x} cy="110" rx="8" ry="5" fill={mezclar(e.piel, '#FF8FA3', 0.6)} />
       ))}
@@ -338,10 +364,12 @@ function Cara({ e, parche }: { e: Estilo; parche: Ojo | null }) {
 function Cabeza({
   e,
   parche,
+  ojosCerrados,
   conAuriculares,
 }: {
   e: Estilo;
   parche: Ojo | null;
+  ojosCerrados: boolean;
   conAuriculares: boolean;
 }) {
   return (
@@ -353,7 +381,7 @@ function Cabeza({
         ))}
       <g clipPath={e.url('recorteVisor')}>
         <rect x="56" y="50" width="88" height="72" fill="#2A2150" />
-        {!e.espejo && <Cara e={e} parche={parche} />}
+        {!e.espejo && <Cara e={e} parche={parche} ojosCerrados={ojosCerrados} />}
         {e.espejo ? (
           <rect x="56" y="50" width="88" height="72" fill={e.url('visor')} />
         ) : (
@@ -402,14 +430,22 @@ function Cabeza({
 }
 
 /** Casco burbuja: una cúpula de cristal que deja ver toda la cabeza. */
-function CabezaEnBurbuja({ e, parche }: { e: Estilo; parche: Ojo | null }) {
+function CabezaEnBurbuja({
+  e,
+  parche,
+  ojosCerrados,
+}: {
+  e: Estilo;
+  parche: Ojo | null;
+  ojosCerrados: boolean;
+}) {
   return (
     <g>
       <path
         d="M46 96 C44 50 70 30 100 30 C130 30 156 50 154 96 C150 124 136 132 128 128 L72 128 C64 132 50 124 46 96 Z"
         fill={e.pelo}
       />
-      <Cara e={e} parche={parche} />
+      <Cara e={e} parche={parche} ojosCerrados={ojosCerrados} />
       <circle
         cx="100"
         cy="82"

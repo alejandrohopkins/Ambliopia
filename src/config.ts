@@ -192,6 +192,10 @@ export const config = {
     /** Pulso del brillo del cristal: nunca más de 3 Hz. */
     pulsoHz: 1,
     resaltarFalloMs: 1000,
+    /** Al acertar, el cristal vuela en arco al contador y llega de este lado. */
+    vueloArcoPx: 40,
+    vueloLadoFinalPx: 8,
+    vueloAlContadorPx: 10,
   },
 
   saboteador: {
@@ -349,6 +353,10 @@ export const config = {
     zonaDePausaPx: 120,
     /** Recorrido mínimo del dedo para que un deslizamiento cuente como dirección. */
     deslizarMinimoPx: 26,
+    /** Onda de acierto: un marco que sale una vez de la respuesta y se afina. */
+    ondaMs: 360,
+    ondaPx: 18,
+    ondaGrosorPx: 4,
   },
 
   cazador: {
@@ -456,6 +464,10 @@ export const config = {
      */
     margenDeGolpePx: 6,
     reaparecerMs: 700,
+    /** Al partirse una bola, un chasquido de esquirlas en el punto donde se parte. */
+    chasquidoMs: 300,
+    esquirlas: 6,
+    esquirlaLadoPx: 4,
     altoDePaletaPx: 12,
     anchoMinimoDePaletaPx: 48,
     /** La paleta va por encima del botón de pausa, que está abajo a la izquierda. */
@@ -567,6 +579,11 @@ export const config = {
     contrasteMinimo: 0.03,
     contrasteMaximo: 4,
     avisoChoqueMs: 500,
+    /** Tras chocar, lo que tarda el punto en volver deslizándose al último control. */
+    vueltaMs: 350,
+    /** La banderita del último control: lo que tarda en subir y su alto en fracción del pasillo. */
+    banderaMs: 240,
+    banderaEnPasillo: 0.5,
   },
 
   pozo: {
@@ -594,6 +611,10 @@ export const config = {
 
   serpiente: {
     duracionNivelSeg: 75,
+    /** Al comer, unas migas salen de la manzana (ya anotado el ensayo). */
+    bocadoMs: 300,
+    migas: 6,
+    migaLadoPx: 4,
     celdasPorMundo: [
       { cols: 16, filas: 10 },
       { cols: 18, filas: 11 },
@@ -774,7 +795,14 @@ export const config = {
   avatar: {
     /** Respiración del avatar: sube un píxel y baja, 1,5 s cada tramo. */
     respiracionMs: 1500,
+    /** Cada cuánto parpadea: cierra los ojos un instante al final de cada ciclo. */
     parpadeoMs: 4200,
+    /**
+     * La mascota se balancea a otro ritmo que el avatar, y cada
+     * `miradaMascotaMs` mira un rato hacia el otro lado.
+     */
+    vaivenMascotaMs: 2200,
+    miradaMascotaMs: 6200,
     /**
      * Avatar, mascotas y fondos pixelados. Cada píxel del dibujo mide un
      * número entero de px de pantalla (como mínimo `tamanoMinimo`), elegido
@@ -797,6 +825,47 @@ export const config = {
     },
   },
 
+  /**
+   * Animaciones de la interfaz. Todas van a saltos de píxel, se apagan con
+   * «Reducir movimiento» y ninguna cambia la luz más de 3 veces por segundo.
+   */
+  animacion: {
+    /** Números y barras que cuentan hasta su nuevo valor. */
+    cuentaMs: 600,
+    pasosDeCuenta: 10,
+    /** Tarjetas que aparecen y sellos que se estampan. */
+    aparecerMs: 240,
+    selloMs: 280,
+    /** Salto del avatar: sube y baja a saltos. */
+    saltoMs: 420,
+    pasosDeSalto: 6,
+    alturaDeSaltoPx: 12,
+    /**
+     * Fin de nivel: cada estrella al compás de la fanfarria, las monedas con
+     * el tintineo y, después, los sellos, uno tras otro.
+     */
+    estrellasMs: [100, 200, 300],
+    saltoDesdeMs: 300,
+    monedasDesdeMs: 450,
+    sellosDesdeMs: 1000,
+    entreSellosMs: 300,
+    /** Cambio de ropa: el aspecto nuevo baja de la cabeza a los pies. */
+    barridoMs: 240,
+    pasosDeBarrido: 6,
+    /** Polvo al aterrizar y zetas de la avatar dormida. */
+    polvoMs: 900,
+    zetaMs: 2400,
+    /** Bucle del arte de un portal al enfocarlo, y apertura al dejar de descansar. */
+    portalMs: 800,
+    aperturaDePortalMs: 600,
+    /** Galería: cada bloque de una figura nueva cae tras el anterior. */
+    bloqueMs: 30,
+    caidaDeBloqueMs: 160,
+    /** Cofre: se abre, suelta sus monedas y enseña lo que traía. */
+    cofreMs: 700,
+    entrePremiosMs: 350,
+  },
+
   audio: {
     volumenPorDefecto: 0.6,
     musicaPorDefecto: false,
@@ -812,7 +881,7 @@ export const config = {
 
   almacenamiento: {
     clave: 'misionPixel:v1',
-    version: 4,
+    version: 5,
     guardadoPeriodicoMs: 30_000,
   },
 

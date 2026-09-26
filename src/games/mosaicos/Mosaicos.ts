@@ -18,7 +18,7 @@ import { config, type Modo } from '../../config';
 import type { ConfigDeEscalera } from '../../engine/Staircase';
 import type { Capa } from '../../engine/DichopticRenderer';
 import { JuegoBase } from '../base';
-import { dibujarMarcoYHud, teclaDe } from '../comun';
+import { dibujarMarcoYHud, dibujarOnda, teclaDe } from '../comun';
 import { claveDeEscalera, type ContextoDeJuego, type Minijuego } from '../tipos';
 import {
   crearMosaico,
@@ -220,6 +220,11 @@ class InstanciaDeMosaicos extends JuegoBase {
         if (i === mosaico.falta) {
           renderer.marco('ambos', px + 2, py + 2, pieza - 4, pieza - 4, 3);
           if (revelando) this.simbolo('ojoAmbliope', giro, cx, cy, tamano);
+          // Si acertó, una onda sale una vez de la pieza que faltaba.
+          if (revelando && ensayo.elegida !== null && OPCIONES[ensayo.elegida] === giro) {
+            const desde = ensayo.revelarHastaMs! - config.modulos.revelarMs;
+            dibujarOnda(renderer, 'ambos', { x: px + 2, y: py + 2, lado: pieza - 4 }, (tiempoMs - desde) / config.modulos.ondaMs);
+          }
           else {
             const escala = Math.max(2, Math.floor(pieza / 16));
             renderer.sprite(

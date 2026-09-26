@@ -14,6 +14,7 @@ import { Paisaje } from '../avatar/vector/Fondos';
 import { Contadores } from './base/Contadores';
 import { audio } from '../engine/audio';
 import { useMovimientoReducido } from './movimiento';
+import { useSalto } from './animacion';
 
 /** Lo que sale en los juegos y no en el cuerpo del avatar. */
 const DE_JUEGO: Categoria[] = ['naves', 'estelas', 'picos'];
@@ -26,6 +27,8 @@ export function Tienda({ alVolver }: { alVolver: () => void }) {
   const [probando, setProbando] = useState<Articulo | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const vistaPrevia = useRef<HTMLDivElement>(null);
+  const [saltos, setSaltos] = useState(0);
+  const avatar = useSalto<HTMLDivElement>(saltos);
 
   function probar(art: Articulo) {
     setProbando(art);
@@ -45,6 +48,7 @@ export function Tienda({ alVolver }: { alVolver: () => void }) {
     }
     setAviso(null);
     setProbando(null);
+    setSaltos((n) => n + 1);
     audio().reproducir('compra');
     despachar({
       tipo: 'reemplazar',
@@ -54,6 +58,7 @@ export function Tienda({ alVolver }: { alVolver: () => void }) {
 
   function equiparArticulo(art: Articulo) {
     setProbando(null);
+    setSaltos((n) => n + 1);
     despachar({
       tipo: 'reemplazar',
       estado: { ...estado, economia: equipar(economia, art.id) },
@@ -91,10 +96,11 @@ export function Tienda({ alVolver }: { alVolver: () => void }) {
           }}
         >
           <Paisaje id={fondo} />
-          <div style={{ position: 'relative' }}>
+          <div ref={avatar} style={{ position: 'relative' }}>
             <AvatarCompuesto
               alto={240}
               conMascota
+              vivo
               equipoExtra={probando ? { [probando.categoria]: probando.id } : undefined}
             />
             {probando && DE_JUEGO.includes(probando.categoria) && (

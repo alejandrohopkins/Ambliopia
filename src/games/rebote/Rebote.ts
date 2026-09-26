@@ -74,6 +74,8 @@ class InstanciaDeRebote extends JuegoBase {
   private segundosPulsada = 0;
   /** Tiempo aún sin simular, para que la física avance siempre a paso fijo. */
   private sinSimularSeg = 0;
+  /** Chasquidos de las bolas que se acaban de partir: se ve que salen de una. */
+  private chasquidos: Array<{ x: number; y: number; tamano: number; ms: number }> = [];
 
   constructor(canvas: HTMLCanvasElement, ctx: ContextoDeJuego) {
     super(canvas, ctx, 'rebote');
@@ -251,7 +253,7 @@ class InstanciaDeRebote extends JuegoBase {
    * primero con el que se puede llegar a todas las bolas. Si ninguno sirve,
    * se espera a la próxima devolución.
    */
-  private quizaDividir(bola: Bola): void {
+  private quizaDividir(bola: Bola, tiempoMs: number): void {
     const r = config.rebote;
     if (this.seguidas < r.devolucionesParaDividir) return;
     if (this.enJuego().length >= this.dificultad.bolasMax) return;
@@ -273,6 +275,7 @@ class InstanciaDeRebote extends JuegoBase {
       };
       if (!this.alcanzables([...this.enJuego(), nueva])) continue;
       this.bolas.push(nueva);
+      this.chasquidos.push({ x: bola.x, y: bola.y, tamano: bola.tamano, ms: tiempoMs });
       this.seguidas = 0;
       return;
     }
@@ -346,7 +349,7 @@ class InstanciaDeRebote extends JuegoBase {
       bola.vy = salida.vy;
       bola.y = linea;
       this.ajustarSalida(bola);
-      this.quizaDividir(bola);
+      this.quizaDividir(bola, tiempoMs);
       return;
     }
 
@@ -398,11 +401,34 @@ class InstanciaDeRebote extends JuegoBase {
         tono: paleta.acento,
       });
     }
+    this.dibujarChasquidos(tiempoMs);
 
     const duracion = config.rebote.duracionNivelSeg;
     const restante = Math.max(0, 1 - tiempoMs / (duracion * 1000));
     dibujarMarcoYHud(renderer, `${this.devueltas}`, `${Math.ceil(restante * duracion)} s`, restante);
     this.dibujarAyuda(tiempoMs);
+  }
+
+  /** Al partirse una bola, unas esquirlas salen del punto y se encogen hasta desaparecer. */
+  private dibujarChasquidos(tiempoMs: number): void {
+    const { chasquidoMs, esquirlas, esquirlaLadoPx } = config.rebote;
+    this.chasquidos = this.chasquidos.filter((c) => tiempoMs - c.ms < chasquidoMs);
+    for (const chasquido of this.chasquidos) {
+      const avance = (tiempoMs - chasquido.ms) / chasquidoMs;
+      const radio = chasquido.tamano * (0.5 + 1.2 * (1 - (1 - avance) ** 2));
+      const lado = Math.max(1, Math.round(esquirlaLadoPx * (1 - avance)));
+      for (let i = 0; i < esquirlas; i += 1) {
+        const angulo = (i / esquirlas) * Math.PI * 2;
+        this.renderer.rect(
+          'ojoAmbliope',
+          Math.round(chasquido.x + Math.cos(angulo) * radio - lado / 2),
+          Math.round(chasquido.y + Math.sin(angulo) * radio - lado / 2),
+          lado,
+          lado,
+          { tono: this.renderer.paleta.acento },
+        );
+      }
+    }
   }
 }
 

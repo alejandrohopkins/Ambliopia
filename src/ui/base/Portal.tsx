@@ -3,10 +3,12 @@
  * cueva, estación, plano cuadriculado, campo de estrellas y una escena propia
  * para cada juego de los módulos.
  */
-import type { IdJuego } from '../../config';
+import { useEffect, useState, type ReactNode } from 'react';
+import { config, type IdJuego } from '../../config';
 import { es } from '../../i18n/es';
 import { useEstado } from '../../storage/contexto';
 import { estrellasTotales } from '../../storage/selectores';
+import { conAnimacion } from '../animacion';
 
 export function Portal({
   juego,
@@ -24,10 +26,15 @@ export function Portal({
   const { estado } = useEstado();
   const { mundo, nivel } = estado.progreso[juego];
   const estrellas = estrellasTotales(estado, juego);
+  // Si descansaba la última vez que se vio y ya no, su arte se abre.
+  const [seAbre] = useState(() => descansaba.get(juego) === true && !bloqueado);
+  useEffect(() => {
+    descansaba.set(juego, bloqueado);
+  }, [juego, bloqueado]);
 
   return (
     <button
-      className="pixelado"
+      className="pixelado portal"
       onClick={alEntrar}
       disabled={bloqueado}
       style={{
@@ -41,7 +48,7 @@ export function Portal({
         minHeight: 'auto',
       }}
     >
-      <ArteDePortal juego={juego} />
+      <ArteDePortal juego={juego} seAbre={seAbre} />
       <span style={{ display: 'block', padding: '10px 14px 14px' }}>
         <strong style={{ display: 'block', fontFamily: 'var(--fuente-titulos)', fontSize: 21 }}>
           {es.juegos[juego]}
@@ -63,6 +70,21 @@ export function Portal({
         )}
       </span>
     </button>
+  );
+}
+
+/** Lo que descansaba cada portal la última vez que se vio la base. */
+const descansaba = new Map<IdJuego, boolean>();
+
+/**
+ * La parte del arte que cobra vida al enfocar el portal: va y vuelve `dx`,
+ * `dy` píxeles de la rejilla, a saltos.
+ */
+function Actor({ dx = 0, dy = -1, children }: { dx?: number; dy?: number; children: ReactNode }) {
+  return (
+    <g className="actor" style={{ ['--dx' as string]: `${dx}px`, ['--dy' as string]: `${dy}px` }}>
+      {children}
+    </g>
   );
 }
 
@@ -94,7 +116,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
           <rect key={`${x}-${y}`} x={x + 1} y={y + 1} width="6" height="4" fill="#43364f" />
         )),
       )}
-      <path d="M14 7h2v1h1v2h-1v1h-2v-1h-1V8h1z" fill="var(--cristal)" />
+      <Actor>
+        <path d="M14 7h2v1h1v2h-1v1h-2v-1h-1V8h1z" fill="var(--cristal)" />
+      </Actor>
     </>
   ),
 
@@ -102,13 +126,17 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
     <>
       <rect width="32" height="18" fill="#101a33" />
       <rect y="12" width="32" height="6" fill="#20305c" />
-      {[4, 11, 18, 25].map((x) => (
-        <g key={x}>
-          <rect x={x} y="5" width="4" height="4" fill="#8fa6d8" />
-          <rect x={x + 1} y="6" width="2" height="2" fill="#101a33" />
-          <rect x={x} y="9" width="4" height="4" fill="var(--nebulosa)" />
-        </g>
-      ))}
+      {[4, 11, 18, 25].map((x) => {
+        const tripulante = (
+          <>
+            <rect x={x} y="5" width="4" height="4" fill="#8fa6d8" />
+            <rect x={x + 1} y="6" width="2" height="2" fill="#101a33" />
+            <rect x={x} y="9" width="4" height="4" fill="var(--nebulosa)" />
+          </>
+        );
+        // Uno de ellos se mueve distinto: el saboteador.
+        return <g key={x}>{x === 18 ? <Actor>{tripulante}</Actor> : tripulante}</g>;
+      })}
     </>
   ),
 
@@ -123,7 +151,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       ))}
       <rect x="8" y="10" width="4" height="8" fill="var(--musgo-pixel)" />
       <rect x="13" y="6" width="4" height="12" fill="var(--musgo-pixel)" />
-      <rect x="18" y="12" width="4" height="6" fill="var(--musgo-pixel)" />
+      <Actor dy={-4}>
+        <rect x="18" y="12" width="4" height="6" fill="var(--musgo-pixel)" />
+      </Actor>
     </>
   ),
 
@@ -134,8 +164,10 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
         puntos={[[3, 3], [9, 7], [15, 2], [21, 9], [27, 5], [6, 13], [19, 15], [29, 12]]}
         color="var(--polvo-lunar)"
       />
-      <path d="M15 12h2v1h1v2h-4v-2h1z" fill="var(--ambar-estelar)" />
-      <rect x="15" y="10" width="2" height="2" fill="var(--cristal)" />
+      <Actor dx={3} dy={0}>
+        <path d="M15 12h2v1h1v2h-4v-2h1z" fill="var(--ambar-estelar)" />
+        <rect x="15" y="10" width="2" height="2" fill="var(--cristal)" />
+      </Actor>
     </>
   ),
 
@@ -150,8 +182,10 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
         )),
       )}
       {/* Una diana asomando en un agujero. */}
-      <rect x="14" y="2" width="4" height="4" fill="var(--ambar-estelar)" />
-      <rect x="15" y="3" width="2" height="2" fill="#141a2e" />
+      <Actor dy={2}>
+        <rect x="14" y="2" width="4" height="4" fill="var(--ambar-estelar)" />
+        <rect x="15" y="3" width="2" height="2" fill="#141a2e" />
+      </Actor>
     </>
   ),
 
@@ -159,7 +193,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
     <>
       <rect width="32" height="18" fill="#10202a" />
       <Puntos puntos={[[6, 4], [9, 6], [12, 8], [15, 10]]} color="#2a8f85" />
-      <rect x="18" y="12" width="2" height="2" fill="var(--polvo-lunar)" />
+      <Actor dx={-3} dy={-3}>
+        <rect x="18" y="12" width="2" height="2" fill="var(--polvo-lunar)" />
+      </Actor>
       <rect x="13" y="16" width="10" height="1" fill="var(--cristal)" />
     </>
   ),
@@ -169,12 +205,14 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect width="32" height="18" fill="#5e5e72" />
       {[3, 12, 21].map((x, i) => (
         <g key={x}>
-          {[0, 2, 4].map((d) =>
-            i === 1 ? (
-              <rect key={d} x={x} y={5 + d} width="7" height="1" fill="#d8d8e6" />
-            ) : (
-              <rect key={d} x={x + d + 1} y="4" width="1" height="7" fill="#d8d8e6" />
-            ),
+          {i === 1 ? (
+            <Actor>
+              {[0, 2, 4].map((d) => (
+                <rect key={d} x={x} y={5 + d} width="7" height="1" fill="#d8d8e6" />
+              ))}
+            </Actor>
+          ) : (
+            [0, 2, 4].map((d) => <rect key={d} x={x + d + 1} y="4" width="1" height="7" fill="#d8d8e6" />)
           )}
         </g>
       ))}
@@ -184,9 +222,11 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
   corte: () => (
     <>
       <rect width="32" height="18" fill="#12240f" />
-      <rect x="11" y="6" width="8" height="7" fill="#4f9b3a" />
-      <rect x="12" y="5" width="6" height="9" fill="#4f9b3a" />
-      <rect x="15" y="3" width="2" height="2" fill="var(--musgo-pixel)" />
+      <Actor dy={-2}>
+        <rect x="11" y="6" width="8" height="7" fill="#4f9b3a" />
+        <rect x="12" y="5" width="6" height="9" fill="#4f9b3a" />
+        <rect x="15" y="3" width="2" height="2" fill="var(--musgo-pixel)" />
+      </Actor>
       {/* El corte en diagonal. */}
       <Puntos
         puntos={[[8, 14], [10, 13], [12, 12], [14, 11], [16, 9], [18, 8], [20, 7], [22, 6]]}
@@ -205,7 +245,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="8" y="2" width="1" height="9" fill="#c49bff" />
       <rect x="15" y="7" width="1" height="9" fill="#c49bff" />
       <rect x="22" y="2" width="1" height="9" fill="#c49bff" />
-      <rect x="5" y="12" width="2" height="2" fill="var(--ambar-estelar)" />
+      <Actor dx={0} dy={-4}>
+        <rect x="5" y="12" width="2" height="2" fill="var(--ambar-estelar)" />
+      </Actor>
     </>
   ),
 
@@ -218,8 +260,10 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="22" y="1" width="1" height="17" fill="#8a8a8a" />
       <rect x="10" y="14" width="12" height="3" fill={CIAN} />
       <rect x="13" y="12" width="4" height="2" fill={CIAN} />
-      <rect x="14" y="3" width="3" height="1" fill={ROJO} />
-      <rect x="15" y="4" width="1" height="2" fill={ROJO} />
+      <Actor dy={4}>
+        <rect x="14" y="3" width="3" height="1" fill={ROJO} />
+        <rect x="15" y="4" width="1" height="2" fill={ROJO} />
+      </Actor>
     </>
   ),
 
@@ -229,7 +273,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="1" y="1" width="30" height="16" fill="none" stroke="#8a8a8a" strokeWidth="1" />
       <rect x="5" y="12" width="12" height="2" fill={CIAN} />
       <rect x="15" y="6" width="2" height="6" fill={CIAN} />
-      <rect x="15" y="6" width="6" height="2" fill={CIAN} />
+      <Actor dx={1} dy={0}>
+        <rect x="15" y="6" width="6" height="2" fill={CIAN} />
+      </Actor>
       <rect x="25" y="6" width="2" height="2" fill={ROJO} />
     </>
   ),
@@ -241,8 +287,10 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="18" y="12" width="4" height="6" fill={ROJO} />
       <rect x="28" y="0" width="4" height="3" fill={ROJO} />
       <rect x="28" y="9" width="4" height="9" fill={ROJO} />
-      <rect x="8" y="8" width="4" height="3" fill={CIAN} />
-      <rect x="11" y="8" width="2" height="1" fill={CIAN} />
+      <Actor dy={-2}>
+        <rect x="8" y="8" width="4" height="3" fill={CIAN} />
+        <rect x="11" y="8" width="2" height="1" fill={CIAN} />
+      </Actor>
     </>
   ),
 
@@ -255,7 +303,9 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
       <rect x="20" y="4" width="6" height="3" fill={CIAN} />
       <rect x="10" y="9" width="6" height="3" fill={CIAN} />
       <rect x="25" y="9" width="6" height="3" fill={CIAN} />
-      <rect x="15" y="13" width="3" height="2" fill={ROJO} />
+      <Actor dy={-3}>
+        <rect x="15" y="13" width="3" height="2" fill={ROJO} />
+      </Actor>
     </>
   ),
 
@@ -267,20 +317,22 @@ const ARTE: Record<IdJuego, () => JSX.Element> = {
           const x = 8 + col * 6;
           const y = 1 + fila * 6;
           const clave = fila === 2 && col === 2;
-          return (
-            <g key={`${fila}-${col}`}>
+          const pieza = (
+            <>
               <rect x={x} y={y} width="4" height="4" fill={clave ? '#8a8a8a' : fila === 2 ? ROJO : CIAN} />
               {!clave && <rect x={x + 1} y={y + 1 + ((fila + col) % 2)} width="3" height="1" fill="#000" />}
-            </g>
+            </>
           );
+          return <g key={`${fila}-${col}`}>{clave ? <Actor>{pieza}</Actor> : pieza}</g>;
         }),
       )}
     </>
   ),
 };
 
-function ArteDePortal({ juego }: { juego: IdJuego }) {
+function ArteDePortal({ juego, seAbre }: { juego: IdJuego; seAbre: boolean }) {
   const Arte = ARTE[juego];
+  const { portalMs, aperturaDePortalMs } = config.animacion;
   return (
     <svg
       viewBox="0 0 32 18"
@@ -289,6 +341,8 @@ function ArteDePortal({ juego }: { juego: IdJuego }) {
       aria-hidden
       shapeRendering="crispEdges"
       preserveAspectRatio="none"
+      className={seAbre ? 'se-abre' : undefined}
+      style={{ ...conAnimacion(aperturaDePortalMs), ['--portal' as string]: `${portalMs}ms` }}
     >
       <Arte />
     </svg>

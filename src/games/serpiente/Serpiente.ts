@@ -72,6 +72,8 @@ class InstanciaDeSerpiente extends JuegoBase {
   private giros: Direccion[] = [];
   private acumulado = 0;
   private comidas = 0;
+  /** Manzanas recién comidas, para su estallido de migas. */
+  private bocados: Array<{ celda: Celda; tamano: number; ms: number }> = [];
   private botones: Array<Boton<Direccion>> = [];
   private dedo: { x: number; y: number } | null = null;
   private tiempoMs = 0;
@@ -211,8 +213,9 @@ class InstanciaDeSerpiente extends JuegoBase {
     const libres = this.tablero.cols * this.tablero.filas - this.tablero.muros.size;
     const crecer = this.serpiente.cuerpo.length < libres * config.serpiente.largoMaximo;
     const resultado = avanzar(this.tablero, this.serpiente, this.manzana?.celda ?? null, crecer);
-    if (resultado === 'come') {
+    if (resultado === 'come' && this.manzana) {
       this.comidas += 1;
+      this.bocados.push({ celda: this.manzana.celda, tamano: this.manzana.tamano, ms: this.tiempoMs });
       this.cerrarManzana(true);
     }
   }
@@ -254,6 +257,8 @@ class InstanciaDeSerpiente extends JuegoBase {
     renderer.borrar(x0 + cc * lado + lado / 4, y0 + cf * lado + lado / 4, ojo, ojo);
     renderer.borrar(x0 + cc * lado + (lado * 3) / 4 - ojo, y0 + cf * lado + lado / 4, ojo, ojo);
 
+    this.dibujarBocados(tiempoMs, x0, y0, lado);
+
     // La manzana: ojo ambliope.
     if (this.manzana) {
       const [c, f] = this.manzana.celda;
@@ -268,6 +273,32 @@ class InstanciaDeSerpiente extends JuegoBase {
     const restante = Math.max(0, 1 - tiempoMs / (duracion * 1000));
     dibujarMarcoYHud(renderer, `${this.comidas}`, `${Math.ceil(restante * duracion)} s`, restante);
     this.dibujarAyuda(tiempoMs);
+  }
+
+  /**
+   * Al comerse la manzana, ya anotado el ensayo, unas migas salen de donde
+   * estaba, en el color de la manzana, y se encogen hasta desaparecer.
+   */
+  private dibujarBocados(tiempoMs: number, x0: number, y0: number, lado: number): void {
+    const { bocadoMs, migas, migaLadoPx } = config.serpiente;
+    this.bocados = this.bocados.filter((b) => tiempoMs - b.ms < bocadoMs);
+    for (const bocado of this.bocados) {
+      const avance = (tiempoMs - bocado.ms) / bocadoMs;
+      const cx = x0 + (bocado.celda[0] + 0.5) * lado;
+      const cy = y0 + (bocado.celda[1] + 0.5) * lado;
+      const radio = bocado.tamano / 2 + lado * (1 - (1 - avance) ** 2);
+      const miga = Math.max(1, Math.round(migaLadoPx * (1 - avance)));
+      for (let i = 0; i < migas; i += 1) {
+        const angulo = (i / migas) * Math.PI * 2 + Math.PI / migas;
+        this.renderer.rect(
+          'ojoAmbliope',
+          Math.round(cx + Math.cos(angulo) * radio - miga / 2),
+          Math.round(cy + Math.sin(angulo) * radio - miga / 2),
+          miga,
+          miga,
+        );
+      }
+    }
   }
 }
 

@@ -81,6 +81,15 @@ cada artículo se ve y se puede probar antes de comprarlo. Dentro de los juegos
 el avatar es el sprite de bloques, que es lo que permite los cuatro colores del
 modo lentes.
 
+Lo que se gana al cerrar el día (meta, racha, misión, cristales, **cofre
+semanal** e **insignias** nuevas) sale en una tarjeta al abrir la app; el cofre
+se abre al tocarlo. El fin de nivel enseña las estrellas una a una y cuenta las
+monedas; contadores y barras suben desde lo último visto; el avatar parpadea,
+salta al estrenar algo y duerme cuando se acaba el tiempo del día. En los
+juegos, cada acierto tiene su respuesta visual (en el Laberinto, el punto vuelve
+deslizándose al último control). Todo va a saltos de píxel, nada cambia la luz
+más de 3 veces por segundo y todo se queda quieto con «Reducir movimiento».
+
 Un panel de adultos, con PIN, muestra minutos por modo, umbrales a lo largo del
 tiempo y permite exportar los datos para llevarlos a consulta.
 

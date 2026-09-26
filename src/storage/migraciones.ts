@@ -3,7 +3,7 @@
  * cada versión antigua se transforma hasta la actual rellenando lo que falte.
  */
 import { config } from '../config';
-import { estadoInicial, JUEGOS, type Estado } from './esquema';
+import { estadoInicial, JUEGOS, type Estado, type PremiosPorVer } from './esquema';
 
 type Datos = Record<string, unknown>;
 
@@ -31,6 +31,9 @@ const PASOS: Record<number, (datos: Datos) => Datos> = {
       ? datos.sesiones.map((sesion) => conCampoEnCero(sesion, 'perfectos'))
       : datos.sesiones,
   }),
+  // v5: premios del cierre por ver y figuras de la galería ya vistas. Los
+  // rellena `completar`: sin premios pendientes y toda la galería vista.
+  4: (datos) => ({ ...datos, version: 5 }),
 };
 
 function conNivelesContados(sesion: unknown): unknown {
@@ -101,6 +104,9 @@ function completar(datos: Datos): Estado {
   if (!Array.isArray(salida.notas)) salida.notas = [];
   if (!Array.isArray(salida.premiosDePantalla)) salida.premiosDePantalla = [];
   if (!Array.isArray(salida.premiosSemanales)) salida.premiosSemanales = [];
+  salida.premiosPorVer = esObjeto(salida.premiosPorVer) ? conPremiosCompletos(salida.premiosPorVer) : null;
+  // Si no venía, la galería de antes se da por vista: no se vuelve a construir.
+  if (typeof datos.galeriaVista !== 'number') salida.galeriaVista = salida.galeria.length;
   if (!Array.isArray(salida.balance.historial)) salida.balance.historial = [];
   if (!esObjeto(salida.insignias)) salida.insignias = {};
   if (!esObjeto(salida.misiones)) salida.misiones = {};
@@ -108,6 +114,24 @@ function completar(datos: Datos): Estado {
   if (!esObjeto(salida.records)) salida.records = {};
 
   return salida;
+}
+
+/** Premios por ver con todos sus campos, aunque vengan de una copia a medias. */
+function conPremiosCompletos(guardados: Datos): PremiosPorVer {
+  const vacios: PremiosPorVer = {
+    monedasPorMeta: 0,
+    monedasPorRacha: 0,
+    monedasPorMision: 0,
+    cristales: 0,
+    cofres: [],
+    insignias: [],
+    rachaAntes: 0,
+    rachaDespues: 0,
+  };
+  const premios = { ...vacios, ...(guardados as Partial<PremiosPorVer>) };
+  if (!Array.isArray(premios.cofres)) premios.cofres = [];
+  if (!Array.isArray(premios.insignias)) premios.insignias = [];
+  return premios;
 }
 
 /** Lleva cualquier estado guardado hasta la versión actual. */

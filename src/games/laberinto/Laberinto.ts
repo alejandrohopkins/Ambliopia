@@ -75,6 +75,10 @@ class InstanciaDeLaberinto extends JuegoBase {
   private obstaculos: Obstaculo[] = [];
   private tramo!: Tramo;
   private choque: (Punto & { ms: number }) | null = null;
+  /** Tras un choque, el punto vuelve por el pasillo hasta el último control. */
+  private vuelta: { camino: Punto[]; inicioMs: number } | null = null;
+  /** Cuándo se plantó la bandera del último control, para verla subir. */
+  private banderaDesdeMs = 0;
   private readonly teclas = new Set<string>();
   private logrados = 0;
   private tiempoMs = 0;
@@ -89,6 +93,7 @@ class InstanciaDeLaberinto extends JuegoBase {
     this.abrirTramo();
 
     this.escuchar(this.canvas, 'pointerdown', (evento) => {
+      if (this.vuelta) return;
       const p = this.puntoDe(evento as PointerEvent);
       // Se agarra el punto tocando cerca; desde ahí se mueve con el dedo, sin saltos.
       if (Math.hypot(p.x - this.punto.x, p.y - this.punto.y) <= config.laberinto.agarreMaximoPx) {
@@ -151,8 +156,10 @@ class InstanciaDeLaberinto extends JuegoBase {
     this.controles = controles(camino);
     this.siguiente = 0;
     this.ultimoControl = salida;
+    this.banderaDesdeMs = this.tiempoMs;
     this.punto = this.centroDe(salida);
     this.agarre = null;
+    this.vuelta = null;
 
     const rectos = pasillosRectos(this.lab, config.laberinto.pasilloDeObstaculo).filter(
       ({ desde, hasta }) =>
@@ -214,17 +221,34 @@ class InstanciaDeLaberinto extends JuegoBase {
     this.cerrarTramo(true);
     this.logrados += 1;
     this.ultimoControl = control;
+    this.banderaDesdeMs = this.tiempoMs;
     this.siguiente += 1;
     if (this.siguiente >= this.controles.length) this.nuevoLaberinto();
     this.abrirTramo();
   }
 
-  /** Tocar una pared o un obstáculo: fallo, y vuelta al último control. */
+  /**
+   * Tocar una pared o un obstáculo: fallo, y vuelta al último control. El
+   * punto no salta: se desliza por el pasillo, para que la mirada lo siga en
+   * vez de tener que buscarlo otra vez. El tramo siguiente empieza al llegar.
+   */
   private chocar(donde: Punto): void {
     this.cerrarTramo(false);
     this.choque = { ...donde, ms: this.tiempoMs };
-    this.punto = this.centroDe(this.ultimoControl);
     this.agarre = null;
+    const celdas = caminoMasCorto(this.lab, this.celdaDe(this.punto), this.ultimoControl);
+    const camino = [{ ...this.punto }, ...celdas.slice(1).map((c) => this.centroDe(c))];
+    if (celdas.length <= 1) camino.push(this.centroDe(this.ultimoControl));
+    this.vuelta = { camino, inicioMs: this.tiempoMs };
+  }
+
+  /** El punto, deslizándose de vuelta: al llegar, empieza el tramo siguiente. */
+  private seguirVuelta(tiempoMs: number): void {
+    if (!this.vuelta) return;
+    const t = Math.min(1, (tiempoMs - this.vuelta.inicioMs) / config.laberinto.vueltaMs);
+    this.punto = puntoDelRecorrido(this.vuelta.camino, t);
+    if (t < 1) return;
+    this.vuelta = null;
     this.abrirTramo();
   }
 
@@ -243,8 +267,9 @@ class InstanciaDeLaberinto extends JuegoBase {
   protected cuadro(dtMs: number, tiempoMs: number): void {
     this.tiempoMs = tiempoMs;
     const dt = dtMs / 1000;
+    this.seguirVuelta(tiempoMs);
 
-    if (this.teclas.size > 0) {
+    if (this.teclas.size > 0 && !this.vuelta) {
       const paso = config.laberinto.velocidadTecladoCeldasSeg * this.celda * dt;
       const dx = (this.teclas.has('ArrowRight') ? 1 : 0) - (this.teclas.has('ArrowLeft') ? 1 : 0);
       const dy = (this.teclas.has('ArrowDown') ? 1 : 0) - (this.teclas.has('ArrowUp') ? 1 : 0);
@@ -260,13 +285,21 @@ class InstanciaDeLaberinto extends JuegoBase {
       const caja = { x: x - lado / 2, y: y - lado / 2, ancho: lado, alto: lado };
       // Recién devuelto al control, el obstáculo que pasa por ahí no vuelve a contar.
       const reciente = this.choque !== null && tiempoMs - this.choque.ms < config.laberinto.avisoChoqueMs;
-      if (!reciente && circuloTocaCaja(this.punto.x, this.punto.y, config.laberinto.radioDelPuntoPx, caja)) {
+      if (
+        !reciente &&
+        !this.vuelta &&
+        circuloTocaCaja(this.punto.x, this.punto.y, config.laberinto.radioDelPuntoPx, caja)
+      ) {
         this.chocar(this.punto);
       }
     }
 
     // Con límite de tiempo, un tramo que no se termina a tiempo es un fallo.
-    if (this.dificultad.limiteSeg > 0 && tiempoMs - this.tramo.inicioMs >= this.dificultad.limiteSeg * 1000) {
+    if (
+      !this.vuelta &&
+      this.dificultad.limiteSeg > 0 &&
+      tiempoMs - this.tramo.inicioMs >= this.dificultad.limiteSeg * 1000
+    ) {
       this.cerrarTramo(false);
       this.abrirTramo();
     }
@@ -320,12 +353,14 @@ class InstanciaDeLaberinto extends JuegoBase {
       renderer.rect('ojoDominante', x - lado / 2, y - lado / 2, lado, lado, { tono: paleta.primario });
     }
 
+    this.dibujarBandera(tiempoMs);
+
     const radio = config.laberinto.radioDelPuntoPx;
     renderer.poligono('ojoAmbliope', puntosDeCirculo(this.punto.x, this.punto.y, radio), {
       tono: paleta.acento,
     });
     // Sin agarrar, un anillo dice dónde poner el dedo.
-    if (!this.agarre && this.teclas.size === 0) {
+    if (!this.agarre && this.teclas.size === 0 && !this.vuelta) {
       const d = Math.min(config.laberinto.agarreMaximoPx, pasillo) * 1.2;
       renderer.anilloConAbertura('ambos', this.punto.x, this.punto.y, d, 2, 0, 0.25);
     }
@@ -339,6 +374,47 @@ class InstanciaDeLaberinto extends JuegoBase {
     dibujarMarcoYHud(renderer, `${this.logrados}`, `${Math.ceil(restante * duracion)} s`, restante);
     this.dibujarAyuda(tiempoMs);
   }
+
+  /**
+   * Banderita en el último control: ahí vuelve el punto si choca. Al
+   * plantarse, sube en cuatro saltos.
+   */
+  private dibujarBandera(tiempoMs: number): void {
+    const { pasillo } = this.dificultad;
+    const centro = this.centroDe(this.ultimoControl);
+    const subida = Math.min(1, (tiempoMs - this.banderaDesdeMs) / config.laberinto.banderaMs);
+    const alto = Math.round(pasillo * config.laberinto.banderaEnPasillo * (Math.ceil(subida * 4) / 4));
+    if (alto <= 0) return;
+    const x = Math.round(centro.x + pasillo * 0.18);
+    const pie = Math.round(centro.y + pasillo * 0.3);
+    this.renderer.rect('ambos', x, pie - alto, 2, alto);
+    const tela = Math.max(3, Math.round(alto * 0.45));
+    this.renderer.poligono('ambos', [
+      [x + 2, pie - alto],
+      [x + 2 + tela, pie - alto + Math.round(tela / 2)],
+      [x + 2, pie - alto + tela],
+    ]);
+  }
+}
+
+/**
+ * Punto a una fracción `t` (0–1) del recorrido, medida por lo andado: el
+ * punto va a la misma velocidad por tramos largos y cortos.
+ */
+export function puntoDelRecorrido(camino: Punto[], t: number): Punto {
+  const tramos = camino.slice(1).map((p, i) => Math.hypot(p.x - camino[i].x, p.y - camino[i].y));
+  let resto = tramos.reduce((a, b) => a + b, 0) * Math.max(0, Math.min(1, t));
+  for (let i = 0; i < tramos.length; i += 1) {
+    if (resto <= tramos[i] || i === tramos.length - 1) {
+      const f = tramos[i] > 0 ? Math.min(1, resto / tramos[i]) : 1;
+      return {
+        x: camino[i].x + (camino[i + 1].x - camino[i].x) * f,
+        y: camino[i].y + (camino[i + 1].y - camino[i].y) * f,
+      };
+    }
+    resto -= tramos[i];
+  }
+  return { ...camino[camino.length - 1] };
 }
 
 export const laberinto: Minijuego = {

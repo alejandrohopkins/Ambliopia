@@ -6,10 +6,12 @@
  * abrir desde la base.
  */
 import { useState } from 'react';
+import { config } from '../../config';
 import { es } from '../../i18n/es';
 import { useEstado } from '../../storage/contexto';
 import { minutosDelDia, precisionDelDia, premioDePantallaGanado } from '../../storage/selectores';
 import { hoyDelJuego } from '../reloj';
+import { conAnimacion } from '../animacion';
 import { AvatarCompuesto } from './AvatarCompuesto';
 
 export function TarjetaDePremio({ alCerrar }: { alCerrar: () => void }) {
@@ -34,15 +36,16 @@ export function TarjetaDePremio({ alCerrar }: { alCerrar: () => void }) {
       }}
     >
       <div
-        className="panel pixelado"
+        className="panel pixelado aparece"
         style={{
+          ...conAnimacion(config.animacion.aparecerMs),
           maxWidth: 520,
           textAlign: 'center',
           borderColor: 'var(--ambar-estelar)',
           borderWidth: 6,
         }}
       >
-        <AvatarCompuesto alto={170} conMascota />
+        <AvatarCompuesto alto={170} conMascota vivo />
         <h1 style={{ color: 'var(--ambar-estelar)' }}>
           {es.premioDePantalla.titulo(estado.perfil.nombre)}
         </h1>

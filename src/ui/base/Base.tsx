@@ -21,6 +21,7 @@ import { MisionDelDia } from './MisionDelDia';
 import { BotonDePremio } from '../componentes/PremioDePantalla';
 import { ProgresoDePremioSemanal } from '../componentes/PremioSemanal';
 import type { Pantalla } from '../navegacion';
+import { useValorAnimado } from '../animacion';
 
 
 /** El aterrizaje es una sola vez por apertura de la app, no cada visita. */
@@ -51,10 +52,35 @@ function Plataforma({ aterrizar, fondo }: { aterrizar: boolean; fondo: string | 
     >
       {/* El paisaje comprado, detrás del avatar. */}
       <Paisaje id={fondo} />
-      <div style={{ position: 'relative' }} className={aterrizar ? 'aterriza' : undefined}>
-        <AvatarCompuesto alto={210} conMascota respira />
+      <div style={{ position: 'relative' }}>
+        <AvatarCompuesto alto={210} conMascota respira vivo aterriza={aterrizar} />
       </div>
     </div>
+  );
+}
+
+/** Minutos de hoy contra la meta: al volver de jugar, la barra sube desde lo último visto. */
+function MetaDeHoy({ dia, minutos, meta }: { dia: string; minutos: number; meta: number }) {
+  const hechos = Math.round(useValorAnimado(minutos, `meta:${dia}`).valor);
+  return (
+    <section className="panel pixelado" style={{ marginBottom: 18 }}>
+      <h2 style={{ marginBottom: 8 }}>{es.base.etiquetaMetaDeHoy}</h2>
+      <div
+        aria-label={es.base.metaDeHoy(minutos, meta)}
+        style={{ background: '#140e38', border: '3px solid var(--borde)', height: 22 }}
+      >
+        <div
+          style={{
+            width: `${Math.min(100, (hechos / Math.max(1, meta)) * 100)}%`,
+            height: '100%',
+            background: 'var(--musgo-pixel)',
+          }}
+        />
+      </div>
+      <p className="numero" style={{ margin: '8px 0 0' }}>
+        {es.base.metaDeHoy(hechos, meta)}
+      </p>
+    </section>
   );
 }
 
@@ -141,24 +167,7 @@ export function Base({
 
       <MisionDelDia dia={dia} />
 
-      <section className="panel pixelado" style={{ marginBottom: 18 }}>
-        <h2 style={{ marginBottom: 8 }}>{es.base.etiquetaMetaDeHoy}</h2>
-        <div
-          aria-label={es.base.metaDeHoy(minutos, meta)}
-          style={{ background: '#140e38', border: '3px solid var(--borde)', height: 22 }}
-        >
-          <div
-            style={{
-              width: `${Math.min(100, (minutos / Math.max(1, meta)) * 100)}%`,
-              height: '100%',
-              background: 'var(--musgo-pixel)',
-            }}
-          />
-        </div>
-        <p className="numero" style={{ margin: '8px 0 0' }}>
-          {es.base.metaDeHoy(minutos, meta)}
-        </p>
-      </section>
+      <MetaDeHoy dia={dia} minutos={minutos} meta={meta} />
 
       <ProgresoDePremioSemanal modo={modo} />
 

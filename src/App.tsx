@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { IdJuego, Modo } from './config';
 import { es } from './i18n/es';
 import { ProveedorDeEstado, useEstado } from './storage/contexto';
@@ -55,6 +55,12 @@ function Rutas() {
 
   useCierreDelDia(dia);
   useAudio();
+
+  // Cada pantalla empieza arriba: si no, se abriría a la altura del botón
+  // que llevó a ella, y lo primero que tiene que enseñar quedaría oculto.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pantalla, calibrando]);
 
   // Atrás cierra lo que esté encima de la base: una calibración, el juego
   // (que pasa por su resumen) o cualquier otra pantalla.

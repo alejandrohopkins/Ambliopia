@@ -1,4 +1,5 @@
 import { es } from '../../i18n/es';
+import { useValorAnimado } from '../animacion';
 
 /** Monedas, cristales y racha. Los iconos se dibujan por código. */
 export function Contadores({
@@ -37,16 +38,18 @@ function Contador({
   valor: number;
   etiqueta: string;
 }) {
+  // Al volver de un juego o de la tienda, cuenta desde lo que se vio la última vez.
+  const mostrado = Math.round(useValorAnimado(valor, `contador:${etiqueta}`).valor);
   return (
     <li style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       {icono}
-      <span className="numero">{valor}</span>
+      <span className="numero">{mostrado}</span>
       <span style={{ color: 'var(--texto-tenue)', fontSize: 15 }}>{etiqueta}</span>
     </li>
   );
 }
 
-function MonedaPixel() {
+export function MonedaPixel() {
   return (
     <svg width="18" height="18" viewBox="0 0 9 9" aria-hidden shapeRendering="crispEdges">
       <path d="M3 0h3v1H3zM2 1h1v1H2zM6 1h1v1H6zM1 2h1v5H1zM7 2h1v5H7zM2 7h1v1H2zM6 7h1v1H6zM3 8h3v1H3z" fill="#8a6412" />
@@ -56,7 +59,7 @@ function MonedaPixel() {
   );
 }
 
-function CristalPixel() {
+export function CristalPixel() {
   return (
     <svg width="18" height="18" viewBox="0 0 9 9" aria-hidden shapeRendering="crispEdges">
       <path d="M4 0h1v1H4zM3 1h3v1H3zM2 2h5v1H2zM1 3h7v2H1zM2 5h5v1H2zM3 6h3v1H3zM4 7h1v1H4z" fill="var(--cristal)" />
@@ -65,7 +68,7 @@ function CristalPixel() {
   );
 }
 
-function LlamaPixel() {
+export function LlamaPixel() {
   return (
     <svg width="18" height="18" viewBox="0 0 9 9" aria-hidden shapeRendering="crispEdges">
       <path d="M4 0h1v2H4zM3 2h3v1H3zM2 3h5v4H2zM3 7h3v1H3z" fill="var(--ambar-estelar)" />

@@ -18,7 +18,9 @@ import { crearAleatorio, type Aleatorio } from '../../engine/rng';
 import type { ConfigDeEscalera, Staircase } from '../../engine/Staircase';
 import { GameLoop } from '../../engine/GameLoop';
 import {
+  ALTO_DE_HUD,
   ContadorDeNivel,
+  MARGEN,
   areaDeJuego,
   dibujarMarcoYHud,
   factorDePulso,
@@ -100,6 +102,9 @@ class InstanciaDeMinero implements InstanciaDeJuego {
   private cristalesEncontrados = 0;
   private cursor = 0;
   private revelarHasta = 0;
+  /** Si el ensayo que se revela fue un acierto: entonces el cristal vuela al contador. */
+  private revelaAcierto = false;
+  private revelarDesde = 0;
   private destruido = false;
 
   constructor(
@@ -217,6 +222,8 @@ class InstanciaDeMinero implements InstanciaDeJuego {
 
     this.ensayosHechos += 1;
     this.fase = 'revelando';
+    this.revelaAcierto = acierto;
+    this.revelarDesde = this.bucle.tiempoMs;
     this.revelarHasta = this.bucle.tiempoMs + config.minero.resaltarFalloMs;
     // Un acierto no necesita que le enseñen dónde estaba.
     if (acierto) this.revelarHasta = this.bucle.tiempoMs + config.minero.resaltarFalloMs / 3;
@@ -367,8 +374,10 @@ class InstanciaDeMinero implements InstanciaDeJuego {
       this.ctx.ojoTapado,
     );
 
-    // Cristal: capa del ojo ambliope.
-    if (this.ensayo && (this.fase === 'jugando' || this.fase === 'revelando')) {
+    // Cristal: capa del ojo ambliope. Si lo encontró, vuela a su contador.
+    if (this.ensayo && this.fase === 'revelando' && this.revelaAcierto) {
+      this.dibujarVuelo(tiempoMs);
+    } else if (this.ensayo && (this.fase === 'jugando' || this.fase === 'revelando')) {
       this.dibujarCristal(tiempoMs);
     }
 
@@ -412,14 +421,42 @@ class InstanciaDeMinero implements InstanciaDeJuego {
     }
   }
 
-  private dibujarCristal(tiempoMs: number): void {
+  /** Dónde está el cristal del ensayo dentro de su bloque, y su tamaño. */
+  private posicionDelCristal(): { cx: number; cy: number; tamano: number } {
     const ensayo = this.ensayo!;
-    const { renderer } = this.ctx;
     const caja = this.cajaDeBloque(ensayo.bloque);
     const tamano = Math.max(1, Math.round(ensayo.tamanoPx));
     const margen = tamano / 2 + 2;
-    const cx = Math.round(caja.x + margen + ensayo.dx * Math.max(0, caja.lado - margen * 2));
-    const cy = Math.round(caja.y + margen + ensayo.dy * Math.max(0, caja.lado - margen * 2));
+    return {
+      cx: Math.round(caja.x + margen + ensayo.dx * Math.max(0, caja.lado - margen * 2)),
+      cy: Math.round(caja.y + margen + ensayo.dy * Math.max(0, caja.lado - margen * 2)),
+      tamano,
+    };
+  }
+
+  /**
+   * El cristal encontrado vuela en arco hasta el contador de cristales, a
+   * la derecha del marcador. Ya no se mide nada: va con su color pleno.
+   */
+  private dibujarVuelo(tiempoMs: number): void {
+    const { renderer } = this.ctx;
+    const { cx, cy, tamano } = this.posicionDelCristal();
+    const duracion = config.minero.resaltarFalloMs / 3;
+    const t = Math.min(1, (tiempoMs - this.revelarDesde) / duracion);
+    const destinoX = renderer.ancho - MARGEN - config.minero.vueloAlContadorPx;
+    const destinoY = ALTO_DE_HUD / 2;
+    const x = cx + (destinoX - cx) * t;
+    const y = cy + (destinoY - cy) * t - Math.sin(Math.PI * t) * config.minero.vueloArcoPx;
+    const lado = tamano + (config.minero.vueloLadoFinalPx - tamano) * t;
+    this.rombo(Math.round(x), Math.round(y), Math.max(1, Math.round(lado)), {
+      tono: renderer.paleta.acento,
+    });
+  }
+
+  private dibujarCristal(tiempoMs: number): void {
+    const ensayo = this.ensayo!;
+    const { renderer } = this.ctx;
+    const { cx, cy, tamano } = this.posicionDelCristal();
 
     // El pulso nunca sube por encima del valor pedido, así que el contraste
     // registrado es siempre el máximo que se llegó a mostrar.

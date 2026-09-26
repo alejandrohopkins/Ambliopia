@@ -15,6 +15,7 @@ import {
   type RefObject,
 } from 'react';
 import { config } from '../config';
+import { useMovimientoReducido } from '../ui/movimiento';
 import {
   ajustarAPaleta,
   coloresDelDibujo,
@@ -90,40 +91,95 @@ async function rasterizar(svg: string, ancho: number, alto: number, paleta: Pale
   return lienzo;
 }
 
-/** Pinta en `lienzo` el SVG de `fuente` pixelado, cada vez que el SVG cambia. */
+/**
+ * Pinta en `lienzo` el SVG de `fuente` pixelado, cada vez que el SVG cambia.
+ * Con `barrido`, un dibujo nuevo sobre uno anterior del mismo tamaño baja a
+ * saltos de arriba abajo, como quien se cambia de ropa.
+ */
 function usarPixelArt(
   fuente: RefObject<SVGSVGElement>,
   lienzo: RefObject<HTMLCanvasElement>,
   prefijo: string,
   paleta: Paleta,
+  barrido: boolean,
 ) {
-  const pintado = useRef('');
+  const nada = { texto: '', ancho: 0, alto: 0, cancelar: () => {} };
+  const actual = useRef(nada);
+
+  useEffect(
+    () => () => {
+      actual.current.cancelar();
+      actual.current = nada;
+    },
+    // Solo al desmontar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   useEffect(() => {
     const svg = fuente.current;
     const destino = lienzo.current;
     if (!svg || !destino) return;
     // Sin el identificador de este componente, dos dibujos iguales son el mismo texto.
     const texto = new XMLSerializer().serializeToString(svg).split(prefijo).join('d');
-    if (texto === pintado.current) return;
+    const { width: ancho, height: alto } = destino;
+    const antes = actual.current;
+    if (texto === antes.texto && ancho === antes.ancho && alto === antes.alto) return;
+
+    antes.cancelar();
+    const conBarrido = barrido && antes.texto !== '' && antes.ancho === ancho && antes.alto === alto;
     let vigente = true;
-    pixelArt(texto, destino.width, destino.height, paleta).then(
+    let cuadro = 0;
+    let pintar: ((filas: number) => void) | null = null;
+    actual.current = {
+      texto,
+      ancho,
+      alto,
+      // Si llega otro dibujo a mitad del barrido, este se termina de golpe.
+      cancelar: () => {
+        vigente = false;
+        cancelAnimationFrame(cuadro);
+        pintar?.(alto);
+      },
+    };
+
+    pixelArt(texto, ancho, alto, paleta).then(
       (hecho) => {
         const ctx = destino.getContext('2d');
         if (!vigente || !ctx) return;
-        ctx.clearRect(0, 0, destino.width, destino.height);
-        ctx.drawImage(hecho, 0, 0);
-        pintado.current = texto;
+        pintar = (filas) => {
+          if (filas <= 0) return;
+          ctx.clearRect(0, 0, ancho, filas);
+          ctx.drawImage(hecho, 0, 0, ancho, filas, 0, 0, ancho, filas);
+        };
+        if (!conBarrido) {
+          pintar(alto);
+          return;
+        }
+        const { barridoMs, pasosDeBarrido } = config.animacion;
+        const inicio = performance.now();
+        const paso = (ahora: number) => {
+          const t = Math.min(1, (ahora - inicio) / barridoMs);
+          pintar?.(Math.round((Math.floor(t * pasosDeBarrido) / pasosDeBarrido) * alto));
+          if (t < 1) cuadro = requestAnimationFrame(paso);
+        };
+        cuadro = requestAnimationFrame(paso);
       },
       () => {},
     );
-    return () => {
-      vigente = false;
-    };
   });
 }
 
 function usarPrefijo(): string {
   return `pix${useId().replace(/[^a-zA-Z0-9]/g, '')}_`;
+}
+
+/** Un segundo cuadro que asoma de vez en cuando: ojos cerrados, mirar al otro lado. */
+export interface Alterno {
+  dibujo: Dibujo;
+  /** Clase de la hoja base que decide cuándo se ve ('parpadea', 'mira'). */
+  clase: string;
+  cicloMs: number;
 }
 
 /**
@@ -132,6 +188,7 @@ function usarPrefijo(): string {
  */
 export function Pixelado({
   dibujo,
+  alterno,
   vista,
   desborde,
   alto,
@@ -139,8 +196,10 @@ export function Pixelado({
   contorno,
   etiqueta,
   respira = false,
+  respiracionMs = config.avatar.respiracionMs,
 }: {
   dibujo: Dibujo;
+  alterno?: Alterno;
   /** Caja del dibujo, en unidades del SVG (viewBox 0 0 ancho alto). */
   vista: { ancho: number; alto: number };
   desborde: Desborde;
@@ -150,17 +209,26 @@ export function Pixelado({
   /** Color del contorno (#RRGGBB): no se pierde aunque sea fino. */
   contorno?: string;
   etiqueta: string;
-  /** Sube un píxel y baja, despacio. */
+  /** Sube un píxel y baja, despacio: `respiracionMs` cada tramo. */
   respira?: boolean;
+  respiracionMs?: number;
 }) {
+  const sinMovimiento = useMovimientoReducido();
   const prefijo = usarPrefijo();
   const fuente = useRef<SVGSVGElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
-  usarPixelArt(fuente, lienzo, prefijo, { contorno });
+  const fuenteAlterna = useRef<SVGSVGElement>(null);
+  const lienzoAlterno = useRef<HTMLCanvasElement>(null);
+  usarPixelArt(fuente, lienzo, prefijo, { contorno }, !sinMovimiento);
+  usarPixelArt(fuenteAlterna, lienzoAlterno, `${prefijo}b`, { contorno }, false);
   const rejilla = rejillaDeDibujo(vista, desborde, alto, tamano);
+  const medidas: CSSProperties = {
+    width: rejilla.columnas * rejilla.tamano,
+    height: rejilla.filas * rejilla.tamano,
+  };
   const respiracion = {
     '--pixel': `${rejilla.tamano}px`,
-    animationDuration: `${config.avatar.respiracionMs * 2}ms`,
+    animationDuration: `${respiracionMs * 2}ms`,
   } as CSSProperties;
 
   return (
@@ -169,22 +237,47 @@ export function Pixelado({
         <svg ref={fuente} viewBox={rejilla.caja} width={rejilla.columnas} height={rejilla.filas}>
           {dibujo(prefijo)}
         </svg>
+        {alterno && (
+          <svg ref={fuenteAlterna} viewBox={rejilla.caja} width={rejilla.columnas} height={rejilla.filas}>
+            {alterno.dibujo(`${prefijo}b`)}
+          </svg>
+        )}
       </span>
-      <canvas
-        ref={lienzo}
-        width={rejilla.columnas}
-        height={rejilla.filas}
+      <span
         role="img"
         aria-label={etiqueta}
         className={respira ? 'respira' : undefined}
         style={{
-          ...PIXELADO,
           ...(respira ? respiracion : null),
-          width: rejilla.columnas * rejilla.tamano,
-          height: rejilla.filas * rejilla.tamano,
+          position: 'relative',
+          display: 'inline-block',
+          lineHeight: 0,
           margin: rejilla.margen,
         }}
-      />
+      >
+        <canvas
+          ref={lienzo}
+          width={rejilla.columnas}
+          height={rejilla.filas}
+          style={{ ...PIXELADO, ...medidas, display: 'block' }}
+        />
+        {alterno && (
+          <canvas
+            ref={lienzoAlterno}
+            width={rejilla.columnas}
+            height={rejilla.filas}
+            className={alterno.clase}
+            style={{
+              ...PIXELADO,
+              ...medidas,
+              animationDuration: `${alterno.cicloMs}ms`,
+              position: 'absolute',
+              left: 0,
+              top: 0,
+            }}
+          />
+        )}
+      </span>
     </>
   );
 }
@@ -206,7 +299,7 @@ export function FondoPixelado({
   const fuente = useRef<SVGSVGElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const [medida, setMedida] = useState({ ancho: 0, alto: 0 });
-  usarPixelArt(fuente, lienzo, prefijo, null);
+  usarPixelArt(fuente, lienzo, prefijo, null, !useMovimientoReducido());
 
   useLayoutEffect(() => {
     const elemento = caja.current;

@@ -205,8 +205,28 @@ export interface Estado {
   premiosDePantalla: string[];
   /** Semanas ISO en que se ganó —y ya se mostró— la bolsa de platanitos. */
   premiosSemanales: string[];
+  /** Lo ganado al cerrar días que la jugadora aún no ha visto. */
+  premiosPorVer: PremiosPorVer | null;
+  /** Figuras de la galería que ya se vieron construirse (las primeras de `galeria`). */
+  galeriaVista: number;
   /** El asistente inicial se completó. */
   asistenteCompletado: boolean;
+}
+
+/**
+ * Premios que se pagan solos al cerrar días —meta, racha, misión, cristales,
+ * cofre— y las insignias nuevas: se guardan para enseñarlos en una tarjeta.
+ */
+export interface PremiosPorVer {
+  monedasPorMeta: number;
+  monedasPorRacha: number;
+  monedasPorMision: number;
+  cristales: number;
+  cofres: Array<{ articulo: string | null; monedas: number }>;
+  insignias: string[];
+  /** Racha antes y después del cierre, para verla crecer. */
+  rachaAntes: number;
+  rachaDespues: number;
 }
 
 export const JUEGOS: IdJuego[] = [
@@ -300,6 +320,8 @@ export function estadoInicial(): Estado {
     extraDelDia: null,
     premiosDePantalla: [],
     premiosSemanales: [],
+    premiosPorVer: null,
+    galeriaVista: 0,
     asistenteCompletado: false,
   };
 }

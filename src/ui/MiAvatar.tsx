@@ -1,4 +1,5 @@
 /** Mi avatar: cambiar lo que lleva puesto y su apariencia, sin comprar nada. */
+import { useState } from 'react';
 import { es } from '../i18n/es';
 import { useEstado } from '../storage/contexto';
 import { CATEGORIAS, articulo, type Categoria } from '../rewards/catalogo';
@@ -6,17 +7,21 @@ import { equipar } from '../rewards/tienda';
 import { PELOS, PIELES, type Apariencia } from '../avatar/vector/apariencia';
 import { AvatarCompuesto } from './componentes/AvatarCompuesto';
 import { Paisaje } from '../avatar/vector/Fondos';
+import { useSalto } from './animacion';
 
 export function MiAvatar({ alVolver }: { alVolver: () => void }) {
   const { estado, despachar } = useEstado();
   const { economia } = estado;
   const apariencia = estado.perfil.apariencia;
+  const [saltos, setSaltos] = useState(0);
+  const avatar = useSalto<HTMLDivElement>(saltos);
 
   function equiparArticulo(id: string) {
     despachar({
       tipo: 'reemplazar',
       estado: { ...estado, economia: equipar(economia, id) },
     });
+    setSaltos((n) => n + 1);
   }
 
   function cambiarApariencia(cambio: Partial<Apariencia>) {
@@ -49,8 +54,8 @@ export function MiAvatar({ alVolver }: { alVolver: () => void }) {
           }}
         >
           <Paisaje id={economia.equipado.fondos} />
-          <div style={{ position: 'relative' }}>
-            <AvatarCompuesto alto={260} conMascota respira />
+          <div ref={avatar} style={{ position: 'relative' }}>
+            <AvatarCompuesto alto={260} conMascota respira vivo />
           </div>
         </div>
 

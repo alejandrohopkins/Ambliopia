@@ -1,6 +1,6 @@
 /** Piezas compartidas por los minijuegos. */
 import { config } from '../config';
-import type { DichopticRenderer } from '../engine/DichopticRenderer';
+import type { Capa, DichopticRenderer, OpcionesDeDibujo } from '../engine/DichopticRenderer';
 import { nivelSuperado } from '../rewards/niveles';
 import type { ResumenDeNivel } from './tipos';
 
@@ -88,6 +88,32 @@ export function areaDeJuego(renderer: DichopticRenderer): AreaDeJuego {
     ancho: Math.max(1, renderer.ancho - MARGEN * 2),
     alto: Math.max(1, renderer.alto - ALTO_DE_HUD - MARGEN * 2),
   };
+}
+
+/**
+ * Onda de acierto: un marco que sale una sola vez de la caja acertada y se
+ * va afinando hasta desaparecer. Solo crece: nunca parpadea. `avance` va de
+ * 0 a 1; fuera de ese tramo no se dibuja nada.
+ */
+export function dibujarOnda(
+  renderer: DichopticRenderer,
+  capa: Capa,
+  caja: { x: number; y: number; lado: number },
+  avance: number,
+  opciones?: OpcionesDeDibujo,
+): void {
+  if (avance < 0 || avance >= 1) return;
+  const crece = Math.round(config.modulos.ondaPx * avance);
+  const grosor = Math.max(1, Math.round(config.modulos.ondaGrosorPx * (1 - avance)));
+  renderer.marco(
+    capa,
+    Math.round(caja.x) - crece,
+    Math.round(caja.y) - crece,
+    Math.round(caja.lado) + crece * 2,
+    Math.round(caja.lado) + crece * 2,
+    grosor,
+    opciones,
+  );
 }
 
 /**

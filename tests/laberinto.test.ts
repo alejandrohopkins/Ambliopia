@@ -17,6 +17,7 @@ import {
   type Celda,
   type Laberinto,
 } from '../src/games/laberinto/mapa';
+import { puntoDelRecorrido } from '../src/games/laberinto/Laberinto';
 import { montarJuego, type JuegoFalso } from './ayudas/juegoFalso';
 
 describe('el laberinto', () => {
@@ -159,6 +160,48 @@ describe('partida del laberinto', () => {
     expect(juego.ensayos).toHaveLength(1);
     expect(juego.ensayos[0].acierto).toBe(false);
     expect(interior(juego).punto).toEqual(salida);
+  });
+
+  it('tras chocar lejos del control, el punto vuelve deslizándose por el pasillo', () => {
+    const juego = montarJuego('laberinto', 'parche');
+    const salida = { ...interior(juego).punto };
+    recorrer(juego, 2);
+    const dentro = interior(juego);
+    const antes = { ...dentro.punto };
+    const celda = dentro.celdaDe(antes);
+    // Una dirección sin paso desde esta celda: por ahí hay muro.
+    const pared = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as const).find(([dx, dy]) => {
+      const vecina: Celda = [celda[0] + dx, celda[1] + dy];
+      const dentroDelMapa = vecina[0] >= 0 && vecina[1] >= 0 && vecina[0] < dentro.lab.cols && vecina[1] < dentro.lab.filas;
+      return !dentroDelMapa || caminoMasCorto(dentro.lab, celda, vecina).length !== 2;
+    })!;
+    const ensayos = juego.ensayos.length;
+    juego.tocar(antes.x, antes.y);
+    juego.arrastrar(antes.x + pared[0] * 200, antes.y + pared[1] * 200);
+    expect(juego.ensayos).toHaveLength(ensayos + 1);
+    expect(juego.ensayos.at(-1)!.acierto).toBe(false);
+
+    // Todavía no está en el control: va de camino.
+    juego.avanzar(config.laberinto.vueltaMs / 2);
+    const aMedias = interior(juego).punto;
+    expect(aMedias).not.toEqual(salida);
+    expect(Math.hypot(aMedias.x - salida.x, aMedias.y - salida.y)).toBeLessThan(
+      Math.hypot(antes.x - salida.x, antes.y - salida.y),
+    );
+    juego.avanzar(config.laberinto.vueltaMs);
+    expect(interior(juego).punto).toEqual(salida);
+  });
+
+  it('el recorrido de vuelta avanza por lo andado, tramo a tramo', () => {
+    const camino = [
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 30 },
+    ];
+    expect(puntoDelRecorrido(camino, 0)).toEqual({ x: 0, y: 0 });
+    expect(puntoDelRecorrido(camino, 0.25)).toEqual({ x: 10, y: 0 });
+    expect(puntoDelRecorrido(camino, 0.5)).toEqual({ x: 10, y: 10 });
+    expect(puntoDelRecorrido(camino, 1)).toEqual({ x: 10, y: 30 });
   });
 
   it('con el teclado el punto también avanza y también choca', () => {

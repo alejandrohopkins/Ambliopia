@@ -4,15 +4,17 @@
  * juego; en la base, lo que falta para ganarla y el botón para volver a verla.
  */
 import { useState } from 'react';
-import type { Modo } from '../../config';
+import { config, type Modo } from '../../config';
 import { diasDeLaSemana } from '../../engine/fechas';
 import { es } from '../../i18n/es';
 import { premioDeLaSemana } from '../../rewards/premioSemanal';
 import { useEstado } from '../../storage/contexto';
 import { premioDePantallaGanado } from '../../storage/selectores';
 import { hoyDelJuego } from '../reloj';
+import { conAnimacion, useValorAnimado } from '../animacion';
 import { BolsaDePlatanitos } from './BolsaDePlatanitos';
 import { TarjetaDePremio } from './PremioDePantalla';
+import { PremiosDelCierre } from './PremiosDelCierre';
 
 export function TarjetaDePremioSemanal({ modo, alCerrar }: { modo: Modo; alCerrar: () => void }) {
   const { estado } = useEstado();
@@ -36,8 +38,14 @@ export function TarjetaDePremioSemanal({ modo, alCerrar }: { modo: Modo; alCerra
       }}
     >
       <div
-        className="panel pixelado"
-        style={{ maxWidth: 520, textAlign: 'center', borderColor: 'var(--musgo-pixel)', borderWidth: 6 }}
+        className="panel pixelado aparece"
+        style={{
+          ...conAnimacion(config.animacion.aparecerMs),
+          maxWidth: 520,
+          textAlign: 'center',
+          borderColor: 'var(--musgo-pixel)',
+          borderWidth: 6,
+        }}
       >
         <BolsaDePlatanitos escala={9} etiqueta={es.premioSemanal.bolsa} />
         <h1 style={{ color: 'var(--musgo-pixel)' }}>{es.premioSemanal.titulo}</h1>
@@ -57,12 +65,21 @@ export function TarjetaDePremioSemanal({ modo, alCerrar }: { modo: Modo; alCerra
 }
 
 /**
- * Las felicitaciones que salen solas: primero la del día y, al cerrarla, la
- * de la semana. Nunca las dos a la vez.
+ * Las felicitaciones que salen solas, de una en una: primero lo ganado al
+ * cerrar el día (cofre, racha, insignias), después la del día y, al cerrarla,
+ * la de la semana.
  */
 export function AvisosDePremio({ modo }: { modo: Modo }) {
   const { estado, despachar } = useEstado();
   const dia = hoyDelJuego();
+  if (estado.premiosPorVer) {
+    return (
+      <PremiosDelCierre
+        premios={estado.premiosPorVer}
+        alCerrar={() => despachar({ tipo: 'premiosPorVer/vistos' })}
+      />
+    );
+  }
   if (premioDePantallaGanado(estado, dia) && !estado.premiosDePantalla.includes(dia)) {
     return <TarjetaDePremio alCerrar={() => despachar({ tipo: 'premio/visto', dia })} />;
   }
@@ -82,6 +99,7 @@ export function ProgresoDePremioSemanal({ modo }: { modo: Modo }) {
   const [abierto, setAbierto] = useState(false);
   const premio = premioDeLaSemana(estado, hoyDelJuego(), modo);
   const hechos = Math.min(premio.perfectos.length, premio.meta);
+  const barra = useValorAnimado(hechos, `premioSemanal:${premio.semana}`).valor;
 
   // La tarjeta va fuera del panel: su recorte de esquinas la taparía.
   return (
@@ -102,7 +120,7 @@ export function ProgresoDePremioSemanal({ modo }: { modo: Modo }) {
           >
             <div
               style={{
-                width: `${(hechos / Math.max(1, premio.meta)) * 100}%`,
+                width: `${(barra / Math.max(1, premio.meta)) * 100}%`,
                 height: '100%',
                 background: 'var(--musgo-pixel)',
               }}
